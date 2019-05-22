@@ -1,0 +1,37 @@
+---
+title: 'Project 3: Ovarian Cancer'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Contents
+1. Overview Ovarian Cancer
+2. Data Cleanup
+3. Driver Mutations
+4. co-existing Mutations
+5. Synthetic Lethality Interactions
+6. Linear Regression
+7. Summary of Results
+8. Conclusion
+
+## 1. Overview Ovarian Cancer
+
+### 1.1 General facts
+Ovarian cancer is a very heterogenous disease.
+
+## 2. Data Cleanup
+
+## 3. Driver Mutations
+
+## 4. Co-existing Mutations
+
+## 5. Synthetic Lethality Interactions
+
+## 6. Linear Regression
+
+## 7. Summary of Results
+
+## 8. Conclusion
+
