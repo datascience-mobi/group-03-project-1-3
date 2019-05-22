@@ -29,11 +29,11 @@ Ovarian cancer is a very heterogenous disease.
 
 
 ## 3. Driver Mutations
-depp
 
 ## 4. Co-existing Mutations
 
 ## 5. Synthetic Lethality Interactions
+After identifying our most common driver mutations, we used this information to find possible synthetic lethality interaction partners
 
 ## 6. Linear Regression
 
