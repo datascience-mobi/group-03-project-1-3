@@ -22,8 +22,13 @@ knitr::opts_chunk$set(echo = TRUE)
 Ovarian cancer is a very heterogenous disease.
 
 ## 2. Data Cleanup
+
+load data
 ```{r}
-1+1
+allDepMapData <- readRDS("~/GitHub/project-01-group-03/DepMap19Q1_allData.RDS")
+```
+rename the lists from the main data
+```{r}
 
 ```
 
