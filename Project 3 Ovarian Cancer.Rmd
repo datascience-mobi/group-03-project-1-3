@@ -40,7 +40,7 @@ expression = allDepMapData[["expression"]]
 extract all cell lines that have ovarian cancer as primary disease. 
 ```{r}
 annotation = annotation[which(annotation$Primary.Disease == "Ovarian Cancer"), ]
-ID = annotation.oc$DepMap_ID
+ID = annotation$DepMap_ID
 expression = expression[ , which(colnames(expression) %in% ID)]
 copynumber = copynumber [ , which(colnames(copynumber) %in% ID)]
 kd.ceres = kd.ceres [ , which(colnames(kd.ceres) %in% ID)]
