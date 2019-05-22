@@ -23,13 +23,35 @@ Ovarian cancer is a very heterogenous disease.
 
 ## 2. Data Cleanup
 
-load data
+first we downloaded the data and load data in R
 ```{r}
 allDepMapData <- readRDS("~/GitHub/project-01-group-03/DepMap19Q1_allData.RDS")
 ```
 rename the lists from the main data
 ```{r}
+copynumber = allDepMapData[["copynumber"]]
+mutation = allDepMapData[["mutation"]]
+kd.ceres = allDepMapData[["kd.ceres"]]
+kd.prob = allDepMapData[["kd.prob"]]
+annotation = allDepMapData[["annotation"]]
+expression = allDepMapData[["expression"]]
 
+```
+extract all cell lines that have ovarian cancer as primary disease. 
+```{r}
+annotation.oc = annotation[which(annotation$Primary.Disease == "Ovarian Cancer"), ]
+ID = annotation.oc$DepMap_ID
+expression = expression[ , which(colnames(expression) %in% ID)]
+copynumber = copynumber [ , which(colnames(copynumber) %in% ID)]
+kd.ceres = kd.ceres [ , which(colnames(kd.ceres) %in% ID)]
+kd.prob = kd.prob [ , which(colnames(kd.prob) %in% ID)]
+mutation = mutation [ ID]
+```
+extract mutation submatrices
+
+remove the object allDepMapData for a clean workflow
+```{r}
+rm(allDepMapData)
 ```
 
 
