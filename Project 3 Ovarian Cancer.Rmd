@@ -53,7 +53,18 @@ remove the object allDepMapData for a clean workflow
 ```{r}
 rm(allDepMapData)
 ```
+ delte the unnecesary columns in the annotation matrix
+```{r}
+rownames(annotation) = annotation$DepMap_ID
+annotation = annotation[, -which(colnames(annotation) %in% c("Aliases", "DepMap_ID", "Primary.Disease", "Gender", "Source"))]
 
+```
+ check the matrices about NA values
+```{r}
+summary(copynumber)
+
+```
+ 
 
 ## 3. Driver Mutations
 juop
