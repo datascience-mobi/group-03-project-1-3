@@ -49,9 +49,46 @@ mutation = mutation [ ID]
 ```
 extract mutation submatrices
 
+```{r}
+#ich bin kurz vorm durchbruch
+
+n = 34
+#for(i in 0:n) {"ID[i]" = mutation[[i]] ;}
+
+```
+
+
 remove the object allDepMapData for a clean workflow
 ```{r}
 rm(allDepMapData)
+```
+
+remove unnecesary cols of the annotation matrix and rename the rows with the cell lines
+```{r}
+rownames(annotation) = annotation$DepMap_ID
+annotation = annotation[, -which(colnames(annotation) %in% c("DepMap_ID", "Aliases", "Primary.Disease", "Gender", "Source"))]
+
+```
+
+check the matrices if they contain any NA values and delte the containing rows
+
+```{r}
+#summary(copynumber) hier müssen wirs hinkriegen dass er den output net reinhaut
+
+
+NAV = apply(copynumber, 1, function(x) {sum(is.na(x))}) 
+copynumber = copynumber[-which(NAV > 0), ]  
+
+#hier muss ich nochmal gucken ob man des machen muss weil iwi passiert da was komisches
+
+#NAV = apply(expression, 1, function(x) {sum(is.na(x))}) 
+#expression = expression[-which(NAV > 0), ]  
+ 
+#NAV = apply(kd.ceres, 1, function(x) {sum(is.na(x))}) 
+#kd.ceres = kd.ceres[-which(NAV > 0), ]
+
+#NAV = apply(kd.prob, 1, function(x) {sum(is.na(x))}) 
+#kd.prob = kd.prob[-which(NAV > 0), ]
 ```
 
 
