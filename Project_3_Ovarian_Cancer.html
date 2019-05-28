@@ -215,15 +215,37 @@ $(document).ready(function () {
 </div>
 <div id="data-cleanup" class="section level2">
 <h2>2. Data Cleanup</h2>
+<p>first we downloaded the data and load data in R</p>
+<pre class="r"><code>allDepMapData &lt;- readRDS(&quot;~/GitHub/project-01-group-03/DepMap19Q1_allData.RDS&quot;)</code></pre>
+<p>rename the lists from the main data</p>
+<pre class="r"><code>copynumber = allDepMapData[[&quot;copynumber&quot;]]
+mutation = allDepMapData[[&quot;mutation&quot;]]
+kd.ceres = allDepMapData[[&quot;kd.ceres&quot;]]
+kd.prob = allDepMapData[[&quot;kd.prob&quot;]]
+annotation = allDepMapData[[&quot;annotation&quot;]]
+expression = allDepMapData[[&quot;expression&quot;]]</code></pre>
+<p>extract all cell lines that have ovarian cancer as primary disease.</p>
+<pre class="r"><code>annotation.oc = annotation[which(annotation$Primary.Disease == &quot;Ovarian Cancer&quot;), ]
+ID = annotation.oc$DepMap_ID
+expression = expression[ , which(colnames(expression) %in% ID)]
+copynumber = copynumber [ , which(colnames(copynumber) %in% ID)]
+kd.ceres = kd.ceres [ , which(colnames(kd.ceres) %in% ID)]
+kd.prob = kd.prob [ , which(colnames(kd.prob) %in% ID)]
+mutation = mutation [ ID]</code></pre>
+<p>extract mutation submatrices</p>
+<p>remove the object allDepMapData for a clean workflow</p>
+<pre class="r"><code>rm(allDepMapData)</code></pre>
 </div>
 <div id="driver-mutations" class="section level2">
 <h2>3. Driver Mutations</h2>
+<p>juop</p>
 </div>
 <div id="co-existing-mutations" class="section level2">
 <h2>4. Co-existing Mutations</h2>
 </div>
 <div id="synthetic-lethality-interactions" class="section level2">
 <h2>5. Synthetic Lethality Interactions</h2>
+<p>After identifying our most common driver mutations, we used this information to find possible synthetic lethality interaction partners</p>
 </div>
 <div id="linear-regression" class="section level2">
 <h2>6. Linear Regression</h2>
