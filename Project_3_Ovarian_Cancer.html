@@ -210,7 +210,7 @@ $(document).ready(function () {
 <h2>1. Overview Ovarian Cancer</h2>
 <div id="general-facts" class="section level3">
 <h3>1.1 General facts</h3>
-<p>Ovarian cancer is a very heterogenous disease.</p>
+<p>Ovarian cancer is a very heterogenous disease.lol</p>
 </div>
 </div>
 <div id="data-cleanup" class="section level2">
@@ -225,16 +225,40 @@ kd.prob = allDepMapData[[&quot;kd.prob&quot;]]
 annotation = allDepMapData[[&quot;annotation&quot;]]
 expression = allDepMapData[[&quot;expression&quot;]]</code></pre>
 <p>extract all cell lines that have ovarian cancer as primary disease.</p>
-<pre class="r"><code>annotation.oc = annotation[which(annotation$Primary.Disease == &quot;Ovarian Cancer&quot;), ]
-ID = annotation.oc$DepMap_ID
+<pre class="r"><code>annotation = annotation[which(annotation$Primary.Disease == &quot;Ovarian Cancer&quot;), ]
+ID = annotation$DepMap_ID
 expression = expression[ , which(colnames(expression) %in% ID)]
 copynumber = copynumber [ , which(colnames(copynumber) %in% ID)]
 kd.ceres = kd.ceres [ , which(colnames(kd.ceres) %in% ID)]
 kd.prob = kd.prob [ , which(colnames(kd.prob) %in% ID)]
 mutation = mutation [ ID]</code></pre>
 <p>extract mutation submatrices</p>
+<pre class="r"><code>#ich bin kurz vorm durchbruch
+
+n = 34
+#for(i in 0:n) {&quot;ID[i]&quot; = mutation[[i]] ;}</code></pre>
 <p>remove the object allDepMapData for a clean workflow</p>
 <pre class="r"><code>rm(allDepMapData)</code></pre>
+<p>remove unnecesary cols of the annotation matrix and rename the rows with the cell lines</p>
+<pre class="r"><code>rownames(annotation) = annotation$DepMap_ID
+annotation = annotation[, -which(colnames(annotation) %in% c(&quot;DepMap_ID&quot;, &quot;Aliases&quot;, &quot;Primary.Disease&quot;, &quot;Gender&quot;, &quot;Source&quot;))]</code></pre>
+<p>check the matrices if they contain any NA values and delte the containing rows</p>
+<pre class="r"><code>#summary(copynumber) hier müssen wirs hinkriegen dass er den output net reinhaut
+
+
+NAV = apply(copynumber, 1, function(x) {sum(is.na(x))}) 
+copynumber = copynumber[-which(NAV &gt; 0), ]  
+
+#hier muss ich nochmal gucken ob man des machen muss weil iwi passiert da was komisches
+
+#NAV = apply(expression, 1, function(x) {sum(is.na(x))}) 
+#expression = expression[-which(NAV &gt; 0), ]  
+ 
+#NAV = apply(kd.ceres, 1, function(x) {sum(is.na(x))}) 
+#kd.ceres = kd.ceres[-which(NAV &gt; 0), ]
+
+#NAV = apply(kd.prob, 1, function(x) {sum(is.na(x))}) 
+#kd.prob = kd.prob[-which(NAV &gt; 0), ]</code></pre>
 </div>
 <div id="driver-mutations" class="section level2">
 <h2>3. Driver Mutations</h2>
@@ -249,6 +273,53 @@ mutation = mutation [ ID]</code></pre>
 </div>
 <div id="linear-regression" class="section level2">
 <h2>6. Linear Regression</h2>
+<div id="structuring-of-the-data" class="section level3">
+<h3>6.1 Structuring of the data</h3>
+<p>In the first step the data frames copynumber and expression were ordered alphabetically, this helps to gain a better overview of the reviewed genes.</p>
+<pre class="r"><code># order the rows/ genes alphabetically to gain a better overview of shared genes
+copynumber.lr &lt;- copynumber[order(rownames(copynumber)),]
+expression.lr &lt;- expression[order(rownames(expression)),]</code></pre>
+<p>Only genes, who are present in both dataframes share, can be included for the linear regression model. There for we first established the list list_linear_regression, which contains both dataframes. This step allows to extract the shared genes in both dataframes in a more effectiv way.</p>
+<pre class="r"><code># new list contains the two elements expression.lr and copynumber.lr
+list_linear_regression = list(expression.lr,copynumber.lr )</code></pre>
+<p>Next we identified the identical rownames/ genes in both dataframes. We sorted out all identical genes and collated them all in one object/value (nachschauen was es wirklich ist) function of the used commands: Reduce: Intersect: lapply:</p>
+<pre class="r"><code>#create a list of values/ genes, that are  present in both dataframes
+common_names = Reduce(intersect, lapply(list_linear_regression, row.names))</code></pre>
+<p>With the next code we sorted out all the genes of the list_linear_regression, that are not present in the dataframe expression.lr and copynumber.lr noch genauere Beschreibung der einzelnen Komponenten des Befehls</p>
+<pre class="r"><code># the new list_linear_regression only contains genes/ rownames that both dataframes have in common
+list_linear_regression = lapply(list_linear_regression, function(x) {x[row.names(x) %in% common_names,]})</code></pre>
+<p>(Next name the elements of the list, have name1 and name2, change the name to name1=expression and name2 = copynumber)</p>
+<pre class="r"><code># name the elements and change their names for easier handling
+names(list_linear_regression) &lt;- paste(&quot;name&quot;, 1:2, sep = &quot;&quot;)
+names(list_linear_regression) &lt;- c(&quot;expression&quot;,&quot;copynumber&quot; )</code></pre>
+<p>To check if the process was succesful, we compared the dimensions of the dataframes before and after the clean up (noch so gestalten, dass beide Befehle untereinander sind und output in einem Kasten) The dimension of the primary dataframes shows 49070 and 23299 rows</p>
+<pre class="r"><code># dimensions of the primary dataframes
+dim(expression.lr)</code></pre>
+<pre><code>## [1] 49070    34</code></pre>
+<pre class="r"><code>dim(copynumber.lr)</code></pre>
+<pre><code>## [1] 23192    34</code></pre>
+<p>After the cleanup both dataframes contain 20142 rows and all 34 cell lines that have ovarian cancer as primary disease. A short overview of both elements of the list revealed, that they only share common genes. Due to the alphabetically arrangement in an earlier step the dataframes also share the same sequence of the individual genes</p>
+<pre class="r"><code># checking the dimension of the (new) dataframes
+dim(list_linear_regression$expression)</code></pre>
+<pre><code>## [1] 20061    34</code></pre>
+<pre class="r"><code>dim(list_linear_regression$copynumber)</code></pre>
+<pre><code>## [1] 20061    34</code></pre>
+<p>The analysis concludes, that both dataframes only consisits of shared genes and that all ovarian cancer cell lines were maintained during the clean up process.</p>
+<pre class="r"><code># Removal of the primary dataframes for a clear workspace
+remove(expression.lr, copynumber.lr)</code></pre>
+</div>
+<div id="analysis-of-the-correlation" class="section level3">
+<h3>6.2 Analysis of the correlation</h3>
+</div>
+<div id="significance-of-the-correlation-coefficient" class="section level3">
+<h3>6.3 Significance of the correlation coefficient</h3>
+</div>
+<div id="creation-of-a-linear-regression-model" class="section level3">
+<h3>6.4 Creation of a linear regression model</h3>
+</div>
+<div id="verfication-of-the-model" class="section level3">
+<h3>6.5 Verfication of the model</h3>
+</div>
 </div>
 <div id="summary-of-results" class="section level2">
 <h2>7. Summary of Results</h2>
