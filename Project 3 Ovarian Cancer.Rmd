@@ -39,22 +39,13 @@ expression = allDepMapData[["expression"]]
 ```
 extract all cell lines that have ovarian cancer as primary disease. 
 ```{r}
-annotation = annotation[which(annotation$Primary.Disease == "Ovarian Cancer"), ]
-ID = annotation$DepMap_ID
-expression = expression[ , which(colnames(expression) %in% ID)]
+annotation = annotation[which(annotation$Primary.Disease == "Ovarian Cancer"), ] # The annotation matrix now only consists of Ovarian Cancer cell lines
+ID = annotation$DepMap_ID # DepMap_ID is the column name for the Ovarian Cancer cell lines
+expression = expression[ , which(colnames(expression) %in% ID)] # Extract the expression column from ID and re-define the data frame called expression. Do the same for the columns copynumber, kd.ceres and kd.prob. (Stimmt das?)
 copynumber = copynumber [ , which(colnames(copynumber) %in% ID)]
 kd.ceres = kd.ceres [ , which(colnames(kd.ceres) %in% ID)]
 kd.prob = kd.prob [ , which(colnames(kd.prob) %in% ID)]
 mutation = mutation [ ID]
-```
-extract mutation submatrices
-
-```{r}
-#ich bin kurz vorm durchbruch
-
-n = 34
-#for(i in 0:n) {"ID[i]" = mutation[[i]] ;}
-
 ```
 
 
@@ -63,14 +54,14 @@ remove the object allDepMapData for a clean workflow
 rm(allDepMapData)
 ```
 
-remove unnecesary cols of the annotation matrix and rename the rows with the cell lines
+Remove unnecessary cols of the annotation matrix and rename the rows with the cell lines
 ```{r}
 rownames(annotation) = annotation$DepMap_ID
 annotation = annotation[, -which(colnames(annotation) %in% c("DepMap_ID", "Aliases", "Primary.Disease", "Gender", "Source"))]
 
 ```
 
-check the matrices if they contain any NA values and delte the containing rows
+check the matrices if they contain any NA values and delete the containing rows
 
 ```{r}
 #summary(copynumber) hier müssen wirs hinkriegen dass er den output net reinhaut
@@ -96,7 +87,7 @@ copynumber = copynumber[-which(NAV > 0), ]
 
 Create new matrices for each cell line
 ```{r}
-Patient.13 = mutation$`ACH-000013`
+Patient.13 = mutation$`ACH-000013`       # hier stattdessen den "eleganteren" Code von David einfügen
 Patient.116 = mutation$`ACH-000116`
 Patient.123 = mutation$`ACH-000123`
 Patient.132 = mutation$`ACH-000132`
@@ -138,13 +129,13 @@ Fuse to one matrix
 mutation.all.unfiltered <- rbind(Patient.1048,Patient.116,Patient.123,Patient.1278,Patient.13,Patient.132,Patient.1374,Patient.237,Patient.256,Patient.278,Patient.280,Patient.291,Patient.308,Patient.324,Patient.460,Patient.520,Patient.524,Patient.527,Patient.542,Patient.584,Patient.608,Patient.646,Patient.657,Patient.663,Patient.688,Patient.696,Patient.701,Patient.713,Patient.796,Patient.811,Patient.885,Patient.906,Patient.936,Patient.947)
 ```
 
-Delete unnecessary columns
+Our analyses just need the information in certain columns of our data frame, for example gene name and location (chromosome), cell line, the kind of mutation (missense, frame shift, etc.). Thus, we extract these columns and put them in the data frame "mutation.all".
 ```{r}
  mutation.all = mutation.all.unfiltered[, which(colnames(mutation.all.unfiltered) %in% c("Hugo_Symbol", "DepMap_ID", "Variant_Classification", "Variant_annotation", "isTCGAhotspot", "Chromosome", "isDeleterious"))]
 ```
-extract all cell lines that are TRUE for isDeleterious
+There are different types of mutations. Some of them are silent, which means that the amino acid sequence is not altered and the protein structure is not affected. Other mutations lead to an amino acid exchange, but do not provoke dramatic conformational changes in the encoded protein. Whether or not a mutation has an impact on protein function is noted in the column "isDeleterious". We want to extract all mutations that are TRUE for isDeleterious, since these might have something to do with cancer cell development.
 ```{r}
-mutation.all = mutation.all[which(mutation.all$isDeleterious == "TRUE"), ]
+mutation.all = mutation.all[which(mutation.all$isDeleterious == "TRUE"), ] # only include rows (=genes) that have deleterious mutations in data frame "mutation.all"
 ```
 Order matrix alphabetically
 
@@ -164,9 +155,22 @@ Plot all mutations to see most frequently mutated genes
 ```{r}
 plot(mutation.all$Hugo_Symbol)
 ```
-However, this does not look very nice. How can we solely plot genes that are mutated more than e.g. 5 times in total.
+
+However, this does not look very nice. How can we solely plot genes that are mutated more than e.g. 5 times in total?
 
 The most common mutation is found in ARID1A (16 times). Surprisingly, BRCA1 and BRCA2 are only mutated twice and once, respectively.
+
+Problem: Many mutations occur several times in one cell line, but in different DNA loci. If we want to identify the most frequent mutations among all cell lines, these duplicates should not be included. We want to extract mutations that occur frequently in different cell lines. Therefore, we use the "duplicated" function from the dplyr package and define a new data frame called new_uniq that only contains one mutation of a gene per cell line for simplicity (since the type of mutation is not relevant here).
+
+```{r}
+duplicates <- which(duplicated(mutation.all[c('Hugo_Symbol', 'DepMap_ID')]), ) #find all identical combinations of mutated gene and cell line
+duplicates # show all genes that are duplicated
+new_uniq <- mutation.all[!duplicated(mutation.all[c('Hugo_Symbol', 'DepMap_ID')]),] #do not include duplicates in data frame new_uniq
+summary(new_uniq)
+
+```
+As we can see, ARID1A is only the second most common mutation after TP53, which is mutated in 12 of 34 different cell lines. The most common mutations among our cell lines are thought to be our driver mutations. We will be conducting further analyses with these genes.
+
 ## 4. Co-existing Mutations
 
 ## 5. Synthetic Lethality Interactions
