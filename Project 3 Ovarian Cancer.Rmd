@@ -101,6 +101,7 @@ juop
 After identifying our most common driver mutations, we used this information to find possible synthetic lethality interaction partners
 
 ## 6. Linear Regression
+
 ### 6.1 Structuring of the data 
 In the first step the data frames copynumber and expression were ordered alphabetically, this helps to gain a better overview of the reviewed genes.
 ```{r}
