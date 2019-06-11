@@ -230,8 +230,23 @@ The analysis concludes, that both dataframes only consisits of shared genes and 
 # Removal of the primary dataframes for a clear workspace
 remove(expression.lr, copynumber.lr)
 ```
+New clean up, if we will only use the two driver mutations TP53 and ARID1A for the linear regression model.
+first: new dataframe with expression and copynumber for the driver mutations
+```{r}
+reg.driver <- data.frame(rbind(list_linear_regression$expression["TP53",], list_linear_regression$copynumber["TP53",], list_linear_regression$expression["ARID1A",], list_linear_regression$copynumber["ARID1A",])) # new dataframe, which contains expression and copynumber vor TP53 and ARID1Ablubereg
+row.names(reg.driver)<- c("TP53ex", "TP53cn", "ARID1Aex", "ARID1Acn") # rename the rownames, differetiation between ex=expression and cn=copynumber
+```
+for easier application = transpose, colnames to rownames and the other way around. Now all rownames are cell lines and the colnames are genes (expression or copynumber)
+```{r}
+reg.driver <- as.data.frame(t(reg.driver)) # transpose 
+```
 
 ### 6.2 Analysis of the correlation
+
+
+#### TP53
+first scatterplot for visual overview. correlation
+
 ### 6.3 Significance of the correlation coefficient
 ### 6.4 Creation of a linear regression model
 ### 6.5 Verfication of the model

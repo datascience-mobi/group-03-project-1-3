@@ -409,9 +409,18 @@ dim(list_linear_regression$expression)</code></pre>
 <p>The analysis concludes, that both dataframes only consisits of shared genes and that all ovarian cancer cell lines were maintained during the clean up process.</p>
 <pre class="r"><code># Removal of the primary dataframes for a clear workspace
 remove(expression.lr, copynumber.lr)</code></pre>
+<p>New clean up, if we will only use the two driver mutations TP53 and ARID1A for the linear regression model. first: new dataframe with expression and copynumber for the driver mutations</p>
+<pre class="r"><code>reg.driver &lt;- data.frame(rbind(list_linear_regression$expression[&quot;TP53&quot;,], list_linear_regression$copynumber[&quot;TP53&quot;,], list_linear_regression$expression[&quot;ARID1A&quot;,], list_linear_regression$copynumber[&quot;ARID1A&quot;,])) # new dataframe, which contains expression and copynumber vor TP53 and ARID1Ablubereg
+row.names(reg.driver)&lt;- c(&quot;TP53ex&quot;, &quot;TP53cn&quot;, &quot;ARID1Aex&quot;, &quot;ARID1Acn&quot;) # rename the rownames, differetiation between ex=expression and cn=copynumber</code></pre>
+<p>for easier application = transpose, colnames to rownames and the other way around. Now all rownames are cell lines and the colnames are genes (expression or copynumber)</p>
+<pre class="r"><code>reg.driver &lt;- as.data.frame(t(reg.driver)) # transpose </code></pre>
 </div>
 <div id="analysis-of-the-correlation" class="section level3">
 <h3>6.2 Analysis of the correlation</h3>
+<div id="tp53" class="section level4">
+<h4>TP53</h4>
+<p>first scatterplot for visual overview. correlation ?</p>
+</div>
 </div>
 <div id="significance-of-the-correlation-coefficient" class="section level3">
 <h3>6.3 Significance of the correlation coefficient</h3>
