@@ -1,0 +1,254 @@
+---
+title: 'Project 3: Ovarian Cancer'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Contents
+1. Overview Ovarian Cancer
+2. Data Cleanup
+3. Driver Mutations
+4. co-existing Mutations
+5. Synthetic Lethality Interactions
+6. Linear Regression
+7. Summary of Results
+8. Conclusion
+
+## 1. Overview Ovarian Cancer
+
+### 1.1 General facts
+Ovarian cancer is a very heterogenous disease.lol
+
+## 2. Data Cleanup
+
+first we downloaded the data and load data in R
+```{r}
+allDepMapData <- readRDS("~/GitHub/project-01-group-03/DepMap19Q1_allData.RDS")
+```
+rename the lists from the main data
+```{r}
+copynumber = allDepMapData[["copynumber"]]
+mutation = allDepMapData[["mutation"]]
+kd.ceres = allDepMapData[["kd.ceres"]]
+kd.prob = allDepMapData[["kd.prob"]]
+annotation = allDepMapData[["annotation"]]
+expression = allDepMapData[["expression"]]
+
+```
+extract all cell lines that have ovarian cancer as primary disease. 
+```{r}
+annotation = annotation[which(annotation$Primary.Disease == "Ovarian Cancer"), ] # The annotation matrix now only consists of Ovarian Cancer cell lines
+ID = annotation$DepMap_ID # DepMap_ID is the column name for the Ovarian Cancer cell lines
+expression = expression[ , which(colnames(expression) %in% ID)] # Extract the expression column from ID and re-define the data frame called expression. Do the same for the columns copynumber, kd.ceres and kd.prob. (Stimmt das?)
+copynumber = copynumber [ , which(colnames(copynumber) %in% ID)]
+kd.ceres = kd.ceres [ , which(colnames(kd.ceres) %in% ID)]
+kd.prob = kd.prob [ , which(colnames(kd.prob) %in% ID)]
+mutation = mutation [ ID]
+```
+
+
+remove the object allDepMapData for a clean workflow
+```{r}
+rm(allDepMapData)
+```
+
+Remove unnecessary cols of the annotation matrix and rename the rows with the cell lines
+```{r}
+rownames(annotation) = annotation$DepMap_ID
+annotation = annotation[, -which(colnames(annotation) %in% c("DepMap_ID", "Aliases", "Primary.Disease", "Gender", "Source"))]
+
+```
+
+check the matrices if they contain any NA values and delete the containing rows
+
+```{r}
+#summary(copynumber) hier müssen wirs hinkriegen dass er den output net reinhaut
+
+
+NAV = apply(copynumber, 1, function(x) {sum(is.na(x))}) 
+copynumber = copynumber[-which(NAV > 0), ]  
+
+#hier muss ich nochmal gucken ob man des machen muss weil iwi passiert da was komisches
+
+#NAV = apply(expression, 1, function(x) {sum(is.na(x))}) 
+#expression = expression[-which(NAV > 0), ]  
+ 
+#NAV = apply(kd.ceres, 1, function(x) {sum(is.na(x))}) 
+#kd.ceres = kd.ceres[-which(NAV > 0), ]
+
+#NAV = apply(kd.prob, 1, function(x) {sum(is.na(x))}) 
+#kd.prob = kd.prob[-which(NAV > 0), ]
+```
+
+
+## 3. Driver Mutations
+
+Create new matrices for each cell line
+```{r}
+Patient.13 = mutation$`ACH-000013`       # hier stattdessen den "eleganteren" Code von David einfügen
+Patient.116 = mutation$`ACH-000116`
+Patient.123 = mutation$`ACH-000123`
+Patient.132 = mutation$`ACH-000132`
+Patient.237 = mutation$`ACH-000237`
+Patient.256 = mutation$`ACH-000256`
+Patient.278 = mutation$`ACH-000278`
+Patient.280 = mutation$`ACH-000280`
+Patient.291 = mutation$`ACH-000291`
+Patient.308 = mutation$`ACH-000308`
+Patient.324 = mutation$`ACH-000324`
+Patient.460 = mutation$`ACH-000460`
+Patient.520 = mutation$`ACH-000520`
+Patient.524 = mutation$`ACH-000524`
+Patient.527 = mutation$`ACH-000527`
+Patient.542 = mutation$`ACH-000542`
+Patient.584 = mutation$`ACH-000584`
+Patient.608 = mutation$`ACH-000608`
+Patient.646 = mutation$`ACH-000646`
+Patient.657 = mutation$`ACH-000657`
+Patient.663 = mutation$`ACH-000663`
+Patient.688 = mutation$`ACH-000688`
+Patient.696 = mutation$`ACH-000696`
+Patient.701 = mutation$`ACH-000701`
+Patient.713 = mutation$`ACH-000713`
+Patient.796 = mutation$`ACH-000796`
+Patient.811 = mutation$`ACH-000811`
+Patient.1278 = mutation$`ACH-001278`
+Patient.885 = mutation$`ACH-000885`
+Patient.906 = mutation$`ACH-000906`
+Patient.936 = mutation$`ACH-000936`
+Patient.947 = mutation$`ACH-000947`
+Patient.1048 = mutation$`ACH-0001048`
+Patient.1048 = mutation$`ACH-001048`
+Patient.1374 = mutation$`ACH-001374`
+```
+
+Fuse to one matrix
+```{r}
+mutation.all.unfiltered <- rbind(Patient.1048,Patient.116,Patient.123,Patient.1278,Patient.13,Patient.132,Patient.1374,Patient.237,Patient.256,Patient.278,Patient.280,Patient.291,Patient.308,Patient.324,Patient.460,Patient.520,Patient.524,Patient.527,Patient.542,Patient.584,Patient.608,Patient.646,Patient.657,Patient.663,Patient.688,Patient.696,Patient.701,Patient.713,Patient.796,Patient.811,Patient.885,Patient.906,Patient.936,Patient.947)
+```
+
+Our analyses just need the information in certain columns of our data frame, for example gene name and location (chromosome), cell line, the kind of mutation (missense, frame shift, etc.). Thus, we extract these columns and put them in the data frame "mutation.all".
+```{r}
+ mutation.all = mutation.all.unfiltered[, which(colnames(mutation.all.unfiltered) %in% c("Hugo_Symbol", "DepMap_ID", "Variant_Classification", "Variant_annotation", "isTCGAhotspot", "Chromosome", "isDeleterious"))]
+```
+There are different types of mutations. Some of them are silent, which means that the amino acid sequence is not altered and the protein structure is not affected. Other mutations lead to an amino acid exchange, but do not provoke dramatic conformational changes in the encoded protein. Whether or not a mutation has an impact on protein function is noted in the column "isDeleterious". We want to extract all mutations that are TRUE for isDeleterious, since these might have something to do with cancer cell development.
+```{r}
+mutation.all = mutation.all[which(mutation.all$isDeleterious == "TRUE"), ] # only include rows (=genes) that have deleterious mutations in data frame "mutation.all"
+```
+Order matrix alphabetically
+
+```{r}
+mutation.all <- mutation.all[order(mutation.all$Hugo_Symbol),]
+
+```
+
+Find most frequently mutated genes by summing up all "mutation events" found in all cell lines. To do this, the names of the genes were converted to factors.
+```{r}
+mutation.all$Hugo_Symbol = factor(mutation.all$Hugo_Symbol)
+
+summary(mutation.all$Hugo_Symbol)
+
+```
+Plot all mutations to see most frequently mutated genes
+```{r}
+plot(mutation.all$Hugo_Symbol)
+```
+
+However, this does not look very nice. How can we solely plot genes that are mutated more than e.g. 5 times in total?
+
+The most common mutation is found in ARID1A (16 times). Surprisingly, BRCA1 and BRCA2 are only mutated twice and once, respectively.
+
+Problem: Many mutations occur several times in one cell line, but in different DNA loci. If we want to identify the most frequent mutations among all cell lines, these duplicates should not be included. We want to extract mutations that occur frequently in different cell lines. Therefore, we use the "duplicated" function from the dplyr package and define a new data frame called new_uniq that only contains one mutation of a gene per cell line for simplicity (since the type of mutation is not relevant here).
+
+```{r}
+duplicates <- which(duplicated(mutation.all[c('Hugo_Symbol', 'DepMap_ID')]), ) #find all identical combinations of mutated gene and cell line
+duplicates # show all genes that are duplicated
+new_uniq <- mutation.all[!duplicated(mutation.all[c('Hugo_Symbol', 'DepMap_ID')]),] #do not include duplicates in data frame new_uniq
+summary(new_uniq)
+
+```
+As we can see, ARID1A is only the second most common mutation after TP53, which is mutated in 12 of 34 different cell lines. The most common mutations among our cell lines are thought to be our driver mutations. We will be conducting further analyses with these genes.
+
+## 4. Co-existing Mutations
+
+## 5. Synthetic Lethality Interactions
+After identifying our most common driver mutations, we used this information to find possible synthetic lethality interaction partners
+
+## 6. Linear Regression
+
+### 6.1 Structuring of the data 
+In the first step the data frames copynumber and expression were ordered alphabetically, this helps to gain a better overview of the reviewed genes.
+```{r}
+# order the rows/ genes alphabetically to gain a better overview of shared genes
+copynumber.lr <- copynumber[order(rownames(copynumber)),]
+expression.lr <- expression[order(rownames(expression)),]
+```
+Only genes, who are present in both dataframes share, can be included for the linear regression model. There for we first established the list list_linear_regression, which contains both dataframes. This step allows to extract the shared genes in both dataframes in a more effectiv way.
+```{r}
+# new list contains the two elements expression.lr and copynumber.lr
+list_linear_regression = list(expression.lr,copynumber.lr )
+```
+Next we identified the identical rownames/ genes in both dataframes. We sorted out all identical genes and collated them all in one object/value (nachschauen was es wirklich ist)
+function of the used commands:
+Reduce: 
+Intersect:
+lapply: 
+```{r}
+#create a list of values/ genes, that are  present in both dataframes
+common_names = Reduce(intersect, lapply(list_linear_regression, row.names))
+```
+With the next code we sorted out all the genes of the list_linear_regression, that are not present in the dataframe expression.lr and copynumber.lr
+noch genauere Beschreibung der einzelnen Komponenten des Befehls
+```{r}
+# the new list_linear_regression only contains genes/ rownames that both dataframes have in common
+list_linear_regression = lapply(list_linear_regression, function(x) {x[row.names(x) %in% common_names,]})
+```
+(Next name the elements of the list, have name1 and name2, change the name to name1=expression and name2 = copynumber)
+```{r}
+# name the elements and change their names for easier handling
+names(list_linear_regression) <- paste("name", 1:2, sep = "")
+names(list_linear_regression) <- c("expression","copynumber" )
+```
+
+To check if the process was succesful, we compared the dimensions of the dataframes before and after the clean up (noch so gestalten, dass beide Befehle untereinander sind und output in einem Kasten)
+The dimension of the primary dataframes shows 49070 and 23299 rows
+```{r}
+# dimensions of the primary dataframes
+dim(expression.lr)
+dim(copynumber.lr)
+```
+After the cleanup both dataframes contain 20142 rows and all 34 cell lines that have ovarian cancer as primary disease. A short overview of both elements of the list revealed, that they only share common genes. Due to the alphabetically arrangement in an earlier step the dataframes also share the same sequence of the individual genes
+```{r}
+# checking the dimension of the (new) dataframes
+dim(list_linear_regression$expression)
+dim(list_linear_regression$copynumber)
+```
+The analysis concludes, that both dataframes only consisits of shared genes and that all ovarian cancer cell lines were maintained during the clean up process.
+```{r}
+# Removal of the primary dataframes for a clear workspace
+remove(expression.lr, copynumber.lr)
+```
+New clean up, if we will only use the two driver mutations TP53 and ARID1A for the linear regression model.
+first: new dataframe with expression and copynumber for the driver mutations
+```{r}
+reg.driver <- data.frame(rbind(list_linear_regression$expression["TP53",], list_linear_regression$copynumber["TP53",], list_linear_regression$expression["ARID1A",], list_linear_regression$copynumber["ARID1A",])) # new dataframe, which contains expression and copynumber vor TP53 and ARID1Ablubereg
+row.names(reg.driver)<- c("TP53ex", "TP53cn", "ARID1Aex", "ARID1Acn") # rename the rownames, differetiation between ex=expression and cn=copynumber
+```
+for easier application = transpose, colnames to rownames and the other way around. Now all rownames are cell lines and the colnames are genes (expression or copynumber)
+```{r}
+reg.driver <- as.data.frame(t(reg.driver)) # transpose 
+```
+
+### 6.2 Analysis of the correlation
+
+
+#### TP53
+first scatterplot for visual overview. correlation
+
+### 6.3 Significance of the correlation coefficient
+### 6.4 Creation of a linear regression model
+### 6.5 Verfication of the model
+## 7. Summary of Results
+## 8. Conclusion
