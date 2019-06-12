@@ -158,6 +158,17 @@ plot(mutation.all$Hugo_Symbol)
 
 However, this does not look very nice. How can we solely plot genes that are mutated more than e.g. 5 times in total?
 
+```{r}
+DriverMutation <- as.data.frame(table(new_uniq$Hugo_Symbol))
+DriverMutation = DriverMutation[which(DriverMutation$Freq > 4), ]
+DriverMutation <- DriverMutation[order(DriverMutation$Freq, decreasing = TRUE),]
+barplot(DriverMutation$Freq, names.arg = DriverMutation$Var1, xlab="mutated Gene", las = 1, horiz=FALSE, cex.axis = 1,2, col = "lightblue", main = "mutations present in more than four cell lines", ylab = "frequency")
+
+
+
+```
+
+
 The most common mutation is found in ARID1A (16 times). Surprisingly, BRCA1 and BRCA2 are only mutated twice and once, respectively.
 
 Problem: Many mutations occur several times in one cell line, but in different DNA loci. If we want to identify the most frequent mutations among all cell lines, these duplicates should not be included. We want to extract mutations that occur frequently in different cell lines. Therefore, we use the "duplicated" function from the dplyr package and define a new data frame called new_uniq that only contains one mutation of a gene per cell line for simplicity (since the type of mutation is not relevant here).
