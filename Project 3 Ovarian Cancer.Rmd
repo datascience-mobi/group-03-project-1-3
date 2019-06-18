@@ -195,12 +195,45 @@ For an easier application the whole dataframe was transposed. Before this proces
 ```{r}
 reg.driver <- as.data.frame(t(reg.driver)) # transpose 
 ```
+After a short overview with the view-function, the data frame indicates missing values for the expression level of BAI1. Because this gene can not be included in a regression model, it was removed from the data frame
+```{r}
+regression.driver <- regression.driver[, -which(colnames(regression.driver) %in% c("BAI1ex", "BAI1cn"))] # remove the columns of the gene BAI1
 
-### 6.2 Analysis of the correlation
+```
 
+### 6.2 Analysis of the correlation and linear regression model
 
 #### TP53
-first scatterplot for visual overview. correlation
+Before using the data of gene TP53 for a linear regression model, a few requirements have to be achieved by the two variables gene expression and copynumber
+First both variables should be distributed normally. This circumstances was verified visual with an desity plot and a Q-Q-plot.
+```{r}
+plot(density(regression.driver$TP53ex), xlab = "expression level", 
++      main = "gene TP53") + abline(v = summary(regression.driver$TP53ex)[2:5], col = c("blue", "red", "black", "orange"), lty = 2) # density plot with 1st quantil, median, mean and 3rd quantil
+```
+can we use this one? can we cut out the not so looking part?
+Next a qq-plot was performed
+```{r}
+qqnorm(regression.driver$TP53ex)
+qqline(regression.driver$TP53ex)
+```
+same question?
+
+To check the correlation between the expression and copynumber of the gene TP53 --> scatterplot with correlation
+```{r}
+plot(TP53cn ~ TP53ex, data = regression.driver, xlab= "expression", ylab = "copynumber", main="TP53", col="blue") + abline(lm(TP53cn~TP53ex, data = reg.driver), col="red") # scatter plot with the line for the pearson correlation coefficient
+```
+The visual overview of the scatter plot does not conclude a high correlation between the gene expression and the copy number of TP53. To further ceck the correlation, the pearson correlation coefficient was estimated.
+```{r}
+cor(regression.driver$TP53ex, regression.driver$TP53cn) # compute pearson correlation
+
+```
+
+The value of approximately 0.47 for the pearson correlation coefficient concludes a weak/ moderate positive linear relationship between the two variables. To avoid a strong influence of outliners the spearman correlation to check the correlation a second time. This method will transform the values of each Variable in ranks
+```{r}
+cor(regression.driver$TP53ex, regression.driver$TP53cn, method = "spearman") # compute spearman correlation
+
+```
+The spearman correlation results with approximately 0.37 in an even lower value for the correlation. 
 
 ### 6.3 Significance of the correlation coefficient
 ### 6.4 Creation of a linear regression model
