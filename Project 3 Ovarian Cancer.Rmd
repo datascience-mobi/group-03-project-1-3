@@ -184,6 +184,33 @@ As we can see, ARID1A is only the second most common mutation after TP53, which 
 
 ## 4. Co-existing Mutations
 
+```{r}
+library(dendextend)  # we need this package to create tree diagrams
+
+tree <- expression[which(rownames(expression) %in% DriverMutation$Var1), ]
+#neue Matrix belegen, damit expression nicht überschribene wird
+# aber komischerweise fehlt ein mutiertes Gen in der Expression BAI... ???
+
+cor.mat = cor(tree, method = "spearman")
+cor.dist = as.dist(1 - cor.mat)
+cor.hc = hclust(cor.dist, method = "ward.D2")
+cor.hc = as.dendrogram(cor.hc)
+
+
+plot(cor.hc, las = 2, cex.lab = 0.7)
+
+
+cb1 <- ifelse(annotation == "Adenocarcinoma", "forestgreen", "firebrick")
+cb <- cbind(`Adeno` = cb1)
+plot(cor.hc, las = 2, cex.lab = 0.7)
+colored_bars(colors = cb, dend = cor.hc)
+
+# David fragen warum das nicht funktioniert, beim 3FS Kurs hats geklappt
+#http://bioinfo.ipmb.uni-heidelberg.de/crg/datascience3fs/practicals/2_UnsupervisedLearning.html#hierarchical-clustering
+
+```
+
+
 ## 5. Synthetic Lethality Interactions
 After identifying our most common driver mutations, we used this information to find possible synthetic lethality interaction partners
 
