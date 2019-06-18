@@ -64,7 +64,7 @@ annotation = annotation[, -which(colnames(annotation) %in% c("DepMap_ID", "Alias
 check the matrices if they contain any NA values and delete the containing rows
 
 ```{r}
-#summary(copynumber) hier müssen wirs hinkriegen dass er den output net reinhaut
+#summary(copynumber) hier m?ssen wirs hinkriegen dass er den output net reinhaut
 
 
 NAV = apply(copynumber, 1, function(x) {sum(is.na(x))}) 
@@ -85,53 +85,15 @@ copynumber = copynumber[-which(NAV > 0), ]
 
 ## 3. Driver Mutations
 
-Create new matrices for each cell line
-```{r}
-Patient.13 = mutation$`ACH-000013`       # hier stattdessen den "eleganteren" Code von David einfügen
-Patient.116 = mutation$`ACH-000116`
-Patient.123 = mutation$`ACH-000123`
-Patient.132 = mutation$`ACH-000132`
-Patient.237 = mutation$`ACH-000237`
-Patient.256 = mutation$`ACH-000256`
-Patient.278 = mutation$`ACH-000278`
-Patient.280 = mutation$`ACH-000280`
-Patient.291 = mutation$`ACH-000291`
-Patient.308 = mutation$`ACH-000308`
-Patient.324 = mutation$`ACH-000324`
-Patient.460 = mutation$`ACH-000460`
-Patient.520 = mutation$`ACH-000520`
-Patient.524 = mutation$`ACH-000524`
-Patient.527 = mutation$`ACH-000527`
-Patient.542 = mutation$`ACH-000542`
-Patient.584 = mutation$`ACH-000584`
-Patient.608 = mutation$`ACH-000608`
-Patient.646 = mutation$`ACH-000646`
-Patient.657 = mutation$`ACH-000657`
-Patient.663 = mutation$`ACH-000663`
-Patient.688 = mutation$`ACH-000688`
-Patient.696 = mutation$`ACH-000696`
-Patient.701 = mutation$`ACH-000701`
-Patient.713 = mutation$`ACH-000713`
-Patient.796 = mutation$`ACH-000796`
-Patient.811 = mutation$`ACH-000811`
-Patient.1278 = mutation$`ACH-001278`
-Patient.885 = mutation$`ACH-000885`
-Patient.906 = mutation$`ACH-000906`
-Patient.936 = mutation$`ACH-000936`
-Patient.947 = mutation$`ACH-000947`
-Patient.1048 = mutation$`ACH-0001048`
-Patient.1048 = mutation$`ACH-001048`
-Patient.1374 = mutation$`ACH-001374`
-```
 
-Fuse to one matrix
+Fuse mutation lists to one matrix
 ```{r}
-mutation.all.unfiltered <- rbind(Patient.1048,Patient.116,Patient.123,Patient.1278,Patient.13,Patient.132,Patient.1374,Patient.237,Patient.256,Patient.278,Patient.280,Patient.291,Patient.308,Patient.324,Patient.460,Patient.520,Patient.524,Patient.527,Patient.542,Patient.584,Patient.608,Patient.646,Patient.657,Patient.663,Patient.688,Patient.696,Patient.701,Patient.713,Patient.796,Patient.811,Patient.885,Patient.906,Patient.936,Patient.947)
+mutation.all = as.data.frame(rbindlist(mutation))
 ```
 
 Our analyses just need the information in certain columns of our data frame, for example gene name and location (chromosome), cell line, the kind of mutation (missense, frame shift, etc.). Thus, we extract these columns and put them in the data frame "mutation.all".
 ```{r}
- mutation.all = mutation.all.unfiltered[, which(colnames(mutation.all.unfiltered) %in% c("Hugo_Symbol", "DepMap_ID", "Variant_Classification", "Variant_annotation", "isTCGAhotspot", "Chromosome", "isDeleterious"))]
+ mutation.all = mutation.all[, which(colnames(mutation.all) %in% c("Hugo_Symbol", "DepMap_ID", "Variant_Classification", "Variant_annotation", "isTCGAhotspot", "Chromosome", "isDeleterious"))]
 ```
 There are different types of mutations. Some of them are silent, which means that the amino acid sequence is not altered and the protein structure is not affected. Other mutations lead to an amino acid exchange, but do not provoke dramatic conformational changes in the encoded protein. Whether or not a mutation has an impact on protein function is noted in the column "isDeleterious". We want to extract all mutations that are TRUE for isDeleterious, since these might have something to do with cancer cell development.
 ```{r}
