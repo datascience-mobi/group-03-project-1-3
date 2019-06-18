@@ -189,65 +189,20 @@ After identifying our most common driver mutations, we used this information to 
 
 ## 6. Linear Regression
 
-### 6.1 Structuring of the data 
-In the first step the data frames copynumber and expression were ordered alphabetically, this helps to gain a better overview of the reviewed genes.
-```{r}
-# order the rows/ genes alphabetically to gain a better overview of shared genes
-copynumber.lr <- copynumber[order(rownames(copynumber)),]
-expression.lr <- expression[order(rownames(expression)),]
-```
-Only genes, who are present in both dataframes share, can be included for the linear regression model. There for we first established the list list_linear_regression, which contains both dataframes. This step allows to extract the shared genes in both dataframes in a more effectiv way.
-```{r}
-# new list contains the two elements expression.lr and copynumber.lr
-list_linear_regression = list(expression.lr,copynumber.lr )
-```
-Next we identified the identical rownames/ genes in both dataframes. We sorted out all identical genes and collated them all in one object/value (nachschauen was es wirklich ist)
-function of the used commands:
-Reduce: 
-Intersect:
-lapply: 
-```{r}
-#create a list of values/ genes, that are  present in both dataframes
-common_names = Reduce(intersect, lapply(list_linear_regression, row.names))
-```
-With the next code we sorted out all the genes of the list_linear_regression, that are not present in the dataframe expression.lr and copynumber.lr
-noch genauere Beschreibung der einzelnen Komponenten des Befehls
-```{r}
-# the new list_linear_regression only contains genes/ rownames that both dataframes have in common
-list_linear_regression = lapply(list_linear_regression, function(x) {x[row.names(x) %in% common_names,]})
-```
-(Next name the elements of the list, have name1 and name2, change the name to name1=expression and name2 = copynumber)
-```{r}
-# name the elements and change their names for easier handling
-names(list_linear_regression) <- paste("name", 1:2, sep = "")
-names(list_linear_regression) <- c("expression","copynumber" )
-```
+### 6.1 Structuring of the data
 
-To check if the process was succesful, we compared the dimensions of the dataframes before and after the clean up (noch so gestalten, dass beide Befehle untereinander sind und output in einem Kasten)
-The dimension of the primary dataframes shows 49070 and 23299 rows
+In this step we wanted to investigate if it is possible to estimate the gene expression of a driver mutation based on the copynumber of the gene.
+We will only use the driver mutations, that show a frequency of 5 counts or higher for the linear regression models.
+First a new dataframe with expression and copynumber for each driver mutation was established
 ```{r}
-# dimensions of the primary dataframes
-dim(expression.lr)
-dim(copynumber.lr)
+regression.driver <- data.frame(rbind(expression["TP53",], copynumber["TP53",], expression["ARID1A",], copynumber["ARID1A",], expression["ATM",], copynumber["ATM",], expression["BAI1",], copynumber["BAI1",], expression["PTPRF",], copynumber["PTPRF",], expression["SYNE1",], copynumber["SYNE1",], expression["THBS3", ], copynumber["THBS3",] ))
+ # new dataframe, which contains expression and copynumber vor TP53 and ARID1Ablubereg
 ```
-After the cleanup both dataframes contain 20142 rows and all 34 cell lines that have ovarian cancer as primary disease. A short overview of both elements of the list revealed, that they only share common genes. Due to the alphabetically arrangement in an earlier step the dataframes also share the same sequence of the individual genes
+For an easy determination between the expression and the copy number of a gene, all the genes receive the index ex or cn. The index ex is used for the expression level while the index cn stands for the copynumber of the gene. 
 ```{r}
-# checking the dimension of the (new) dataframes
-dim(list_linear_regression$expression)
-dim(list_linear_regression$copynumber)
+row.names(regression.driver)<- c("TP53ex", "TP53cn", "ARID1Aex", "ARID1Acn", "ATMex", "ATMcn", "BAI1ex", "BAI1cn", "PTPRFex", "PTPRFcn", "SYNE1ex", "SYNE1cn", "THBS3ex", "THBS3cn" ) # rename the rownames, differetiation between ex=expression and cn=copynumber
 ```
-The analysis concludes, that both dataframes only consisits of shared genes and that all ovarian cancer cell lines were maintained during the clean up process.
-```{r}
-# Removal of the primary dataframes for a clear workspace
-remove(expression.lr, copynumber.lr)
-```
-New clean up, if we will only use the two driver mutations TP53 and ARID1A for the linear regression model.
-first: new dataframe with expression and copynumber for the driver mutations
-```{r}
-reg.driver <- data.frame(rbind(list_linear_regression$expression["TP53",], list_linear_regression$copynumber["TP53",], list_linear_regression$expression["ARID1A",], list_linear_regression$copynumber["ARID1A",])) # new dataframe, which contains expression and copynumber vor TP53 and ARID1Ablubereg
-row.names(reg.driver)<- c("TP53ex", "TP53cn", "ARID1Aex", "ARID1Acn") # rename the rownames, differetiation between ex=expression and cn=copynumber
-```
-for easier application = transpose, colnames to rownames and the other way around. Now all rownames are cell lines and the colnames are genes (expression or copynumber)
+For an easier application the whole dataframe was transposed. Before this process the  columns listed the cell lines and the rows contained the genes.(After the transpose process it is the other way around.)
 ```{r}
 reg.driver <- as.data.frame(t(reg.driver)) # transpose 
 ```
