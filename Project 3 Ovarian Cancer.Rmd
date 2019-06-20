@@ -177,11 +177,41 @@ colored_bars(colors = cb, dend = cor.hc)
 After identifying our most common driver mutations, we used this information to find possible synthetic lethality interaction partners
 
 ## 6. Linear Regression
+In this step we wanted to investigate if it is possible to estimate the gene expression of a gene based on the copynumber. First a linear regression model should show if this issue can be applied to the totality of our data set independent of the differences between the single genes. Another regression model will focus on the correlation between the seven driver mutation
+Last we want to investigate the relationship between the gene expression and copy number for each driver mutation individually.
 
-### 6.1 Structuring of the data
+### 6.1 Regression model for all genes
+#### 6.1.1 Structuring the data
+Fuse the knock down data to a single dataframe
+```{r}
+knock.down <- as.data.frame(rbind.data.frame(kd.ceres, kd.prob))
+```
+In the first step the data frames copynumber, knock.down and expression were ordered alphabetically, this helps to gain a better overview of the reviewed genes.
 
-In this step we wanted to investigate if it is possible to estimate the gene expression of a driver mutation based on the copynumber of the gene.
-We will only use the driver mutations, that show a frequency of 5 counts or higher for the linear regression models.
+```{r}
+copynumber.lr <- copynumber[order(rownames(copynumber)),]
+expression.lr <- expression[order(rownames(expression)),]
+knock.down <- knock.down[order(rownames(knock.down)),]
+```
+Only genes, who are present in all dataframes, can be included for the linear regression model. There for we first established a list, which contains all three dataframes. This step allows to extract the shared genes in both dataframes in a more effectiv way.
+```{r}
+list_all.genes <- list(expression.lr,copynumber.lr, knock.down ) # bind all the dataframes in one list
+names(list_all.genes) <- c("expression","copynumber", "knock.down" ) # rename the elements of the list
+```
+Next we will only extraxt genes, that are common in all three dataframes. Therefore all identical rownames/ genes were collated in one object/value
+```{r}
+common_names = Reduce(intersect, lapply(list_all.genes, row.names)) # all common rownames in the three dataframes
+list_all.genes <- lapply(list_all.genes, function(x) {x[row.names(x) %in% common_names,]}) # new list reduced to only the shared genes/ rownames
+```
+To check if the process was succesful, we compared the dimensions of the dataframes before and after the clean up
+
+### 6.2 Regression model for all driver muatations
+
+### 6.3 Regression model for the single driver mutations
+
+#### 6.3.1 Structuring of the data
+
+We only used the driver mutations, that show a frequency of 5 counts or higher for the linear regression models.
 First a new dataframe with expression and copynumber for each driver mutation was established
 ```{r}
 regression.driver <- data.frame(rbind(expression["TP53",], copynumber["TP53",], expression["ARID1A",], copynumber["ARID1A",], expression["ATM",], copynumber["ATM",], expression["BAI1",], copynumber["BAI1",], expression["PTPRF",], copynumber["PTPRF",], expression["SYNE1",], copynumber["SYNE1",], expression["THBS3", ], copynumber["THBS3",] ))
@@ -201,14 +231,13 @@ regression.driver <- regression.driver[, -which(colnames(regression.driver) %in%
 
 ```
 
-### 6.2 Analysis of the correlation and linear regression model
+### 6.3.2 Analysis of the correlation and linear regression model
 
-#### TP53
+##### TP53
 Before using the data of gene TP53 for a linear regression model, a few requirements have to be achieved by the two variables gene expression and copynumber
 First both variables should be distributed normally. This circumstances was verified visual with an desity plot and a Q-Q-plot.
 ```{r}
-plot(density(regression.driver$TP53ex), xlab = "expression level", 
-+      main = "gene TP53") + abline(v = summary(regression.driver$TP53ex)[2:5], col = c("blue", "red", "black", "orange"), lty = 2) # density plot with 1st quantil, median, mean and 3rd quantil
+plot(density(regression.driver$TP53ex), xlab = "expression level", main = "gene TP53") + abline(v = summary(regression.driver$TP53ex)[2:5], col = c("blue", "red", "black", "orange"), lty = 2) # density plot with 1st quantil, median, mean and 3rd quantil
 ```
 can we use this one? can we cut out the not so looking part?
 Next a qq-plot was performed
@@ -220,7 +249,7 @@ same question?
 
 To check the correlation between the expression and copynumber of the gene TP53 --> scatterplot with correlation
 ```{r}
-plot(TP53cn ~ TP53ex, data = regression.driver, xlab= "expression", ylab = "copynumber", main="TP53", col="blue") + abline(lm(TP53cn~TP53ex, data = reg.driver), col="red") # scatter plot with the line for the pearson correlation coefficient
+plot(TP53cn ~ TP53ex, data = regression.driver, xlab= "expression", ylab = "copynumber", main="TP53", col="blue") + abline(lm(TP53cn~TP53ex, data = regression.driver), col="red") # scatter plot with the line for the pearson correlation coefficient
 ```
 The visual overview of the scatter plot does not conclude a high correlation between the gene expression and the copy number of TP53. To further ceck the correlation, the pearson correlation coefficient was estimated.
 ```{r}
