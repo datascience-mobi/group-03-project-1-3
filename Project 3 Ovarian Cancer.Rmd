@@ -181,21 +181,19 @@ In this step we wanted to investigate if it is possible to estimate the gene exp
 Last we want to investigate the relationship between the gene expression and copy number for each driver mutation individually.
 
 ### 6.1 Regression model for all genes
+
 #### 6.1.1 Structuring the data
-Fuse the knock down data to a single dataframe
-```{r}
-knock.down <- as.data.frame(rbind.data.frame(kd.ceres, kd.prob))
-```
+
 In the first step the data frames copynumber, knock.down and expression were ordered alphabetically, this helps to gain a better overview of the reviewed genes.
 
 ```{r}
-copynumber.lr <- copynumber[order(rownames(copynumber)),]
-expression.lr <- expression[order(rownames(expression)),]
-knock.down <- knock.down[order(rownames(knock.down)),]
+copynumber <- copynumber[order(rownames(copynumber)),]
+expression <- expression[order(rownames(expression)),]
+kd.ceres <- kd.ceres[order(rownames(kd.ceres)),]
 ```
 Only genes, who are present in all dataframes, can be included for the linear regression model. There for we first established a list, which contains all three dataframes. This step allows to extract the shared genes in both dataframes in a more effectiv way.
 ```{r}
-list_all.genes <- list(expression.lr,copynumber.lr, knock.down ) # bind all the dataframes in one list
+list_all.genes <- list(expression,copynumber, kd.ceres ) # bind all the dataframes in one list
 names(list_all.genes) <- c("expression","copynumber", "knock.down" ) # rename the elements of the list
 ```
 Next we will only extraxt genes, that are common in all three dataframes. Therefore all identical rownames/ genes were collated in one object/value
@@ -203,7 +201,25 @@ Next we will only extraxt genes, that are common in all three dataframes. Theref
 common_names = Reduce(intersect, lapply(list_all.genes, row.names)) # all common rownames in the three dataframes
 list_all.genes <- lapply(list_all.genes, function(x) {x[row.names(x) %in% common_names,]}) # new list reduced to only the shared genes/ rownames
 ```
-To check if the process was succesful, we compared the dimensions of the dataframes before and after the clean up
+To check if the process was succesful, the dimensions before and after the clean up process were compared.
+```{r}
+dim(expression)
+dim(copynumber)
+dim(kd.ceres)
+```
+The dimension of the primary dataframes shows 49070, 23299  and 17634 rows, which indicates the present of different genes in the dataframes. After the clean up all data frames contain 16970 genes and the 34 ovarian cancer cell lines
+```{r}
+dim(list_all.genes$expression)
+dim(list_all.genes$copynumber)
+dim(list_all.genes$knock.down)
+```
+
+#### 6.1.2 Checking distribution 
+As a requirement for the regression model the data sets have to show a normal distribution. For an visual assessment  a Q-Q-plot was used for each of the three variables.
+```{r}
+
+```
+
 
 ### 6.2 Regression model for all driver muatations
 
@@ -239,7 +255,6 @@ First both variables should be distributed normally. This circumstances was veri
 ```{r}
 plot(density(regression.driver$TP53ex), xlab = "expression level", main = "gene TP53") + abline(v = summary(regression.driver$TP53ex)[2:5], col = c("blue", "red", "black", "orange"), lty = 2) # density plot with 1st quantil, median, mean and 3rd quantil
 ```
-can we use this one? can we cut out the not so looking part?
 Next a qq-plot was performed
 ```{r}
 qqnorm(regression.driver$TP53ex)
