@@ -19,7 +19,17 @@ knitr::opts_chunk$set(echo = TRUE)
 ## 1. Overview Ovarian Cancer
 
 ### 1.1 General facts
-Ovarian cancer is a very heterogenous disease.lol
+
+Ovarian cancer is the one of the leading cancer death causes in women. One of 71 women will be diagnosed with this disease at some point during her lifetime. When treated in early stages, OC has relatively high survival rates. However, symptomes mostly start to develop when the tumour has already progressed to advanced stages, which is why the overall 5-year survival rate for OC lies under 50%.
+
+Ovarian cancer is a very heterogenous disease and mostly represented by epithelial tumours. There are four main subtypes: serous, endometrioid, mucinous and clear cell. Furthermore, tumours can be classified dependent on their state of differentiation. Low grade (LG) Ovarian cancer is well differentiated and therefore not invasive; high grade (HG) tumours are often aggressive and frequently metastasize.
+
+Standard therapy approaches include surgery and chemotherapy with DNA-damaging agents. Personalized immunotherapeutic approaches often target special features of cancer cell genome and proteome such as over-expressed surface receptors.
+
+### 1.2 Common mutations in OC (literature)
+
+Literature on Ovarian cancer states that the most common mutations are found in the DNA repair-related genes BRCA1 and BRCA2. Abnormalities in other DNA and mismatch repair genes have been found too, as well as TP53, which is also known as "guardian of the genome". According to Testa et al., TP53 accounts for most mutations found in high grade serous Ovarian cancer.
+It will be our task to verify this information and to gain insight on potential driver mutations in Ovarian cancer.
 
 ## 2. Data Cleanup
 
@@ -118,18 +128,6 @@ Plot all mutations to see most frequently mutated genes
 plot(mutation.all$Hugo_Symbol)
 ```
 
-However, this does not look very nice. How can we solely plot genes that are mutated more than e.g. 5 times in total?
-
-```{r}
-DriverMutation <- as.data.frame(table(new_uniq$Hugo_Symbol))
-DriverMutation = DriverMutation[which(DriverMutation$Freq > 4), ]
-DriverMutation <- DriverMutation[order(DriverMutation$Freq, decreasing = TRUE),]
-barplot(DriverMutation$Freq, names.arg = DriverMutation$Var1, xlab="mutated Gene", las = 1, horiz=FALSE, cex.axis = 1,2, col = "lightblue", main = "mutations present in more than four cell lines", ylab = "frequency")
-
-
-
-```
-
 
 The most common mutation is found in ARID1A (16 times). Surprisingly, BRCA1 and BRCA2 are only mutated twice and once, respectively.
 
@@ -143,6 +141,19 @@ summary(new_uniq)
 
 ```
 As we can see, ARID1A is only the second most common mutation after TP53, which is mutated in 12 of 34 different cell lines. The most common mutations among our cell lines are thought to be our driver mutations. We will be conducting further analyses with these genes.
+
+For a better overview, we solely plot genes that are mutated more than 4 times in total. Further analyses will focus on these designated driver mutations.
+
+```{r}
+DriverMutation <- as.data.frame(table(new_uniq$Hugo_Symbol)) # Create a new data frame that contains the mutated genes (but just once per cell line, as definded in new_uniq)
+DriverMutation = DriverMutation[which(DriverMutation$Freq > 4), ] # extract all mutations that occur more than 4 times among our cell lines in total
+DriverMutation <- DriverMutation[order(DriverMutation$Freq, decreasing = TRUE),] # order the genes in the data frame according to their frequency
+barplot(DriverMutation$Freq, names.arg = DriverMutation$Var1, xlab="mutated Gene", las = 1, horiz=FALSE, cex.axis = 1,2, col = "lightblue", main = "mutations present in more than four cell lines", ylab = "frequency") # create a barplot of the most frequent mutations, displaying their occurence
+
+
+```
+
+
 
 ## 4. Co-existing Mutations
 
@@ -172,9 +183,31 @@ colored_bars(colors = cb, dend = cor.hc)
 
 ```
 
+Here, we want to investigate whether there are certain mutations that often occur together and are therefore possibly linked to each other in their genesis. The goal will be to create a symmetrical matrix whose columns AND rows are our genes; the cells' content will be the counts of how often two corresponding genes turn up in the same cell line together. Next, maximum values can be extracted and tested for significance.
+
+
+
 
 ## 5. Synthetic Lethality Interactions
 After identifying our most common driver mutations, we used this information to find possible synthetic lethality interaction partners
+First of all, we want to calculate the variance of the cell survival (kd.ceres) and estimated cell survival probability (kd.prob) when knocking out specific genes. We hereby assume that genes that display high variances when knocked out are more likely to have specific synthetic lethality interactions since genes that broadly lead to cell death in most cell lines are probably essential for survival on their own. Therefore, we will conduct the search for synthetic lethality interaction partners with genes whose variances are greater than the 75% quantile.
+
+```{r}
+topVar = apply(kd.prob, 1, var) # calculate variance over all rows (genes)
+summary(topVar)
+kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] # new data frame with just the genes whose knockout leads to highly variant cell death events -> perhaps our synthetic lethality interaction partners?
+dim(kd.prob.topVar) # show me how many genes we are looking at now
+
+mean.survival.prob <- apply(kd.prob.topVar, 1, mean) # calculate the mean cell survival probability of the remaining genes
+summary(mean.survival.prob) # show me the mean survival distribution of the genes whose knockout leads to the most variant cell survival
+
+plot(density(as.matrix(mean.survival.prob))) # plot me the distribution of cell survival probability of most variant survivals
+
+#weiß noch nicht, wie sinnvoll das alles ist :D mal sehen
+
+
+```
+
 
 ## 6. Linear Regression
 In this step we wanted to investigate if it is possible to estimate the gene expression of a gene based on the copynumber. First a linear regression model should show if this issue can be applied to the totality of our data set independent of the differences between the single genes. Another regression model will focus on the correlation between the seven driver mutation
