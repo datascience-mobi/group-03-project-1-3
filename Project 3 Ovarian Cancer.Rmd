@@ -270,7 +270,7 @@ qqline(exp1$value) # lines the ideal distributaion for a perfect normality of th
 ```
 The plot shows a high amount of expression values equal zero, which has a huge deviation of the ideal gaussian distribution for the expression data. In comparison to the perfect distribution the rest of the data points show a good fit for the regression model. To achieve a better fit the genes that contain expression values equal zero will be removed in the next step.
 ```{r}
-list_all.genes$expression <- list_all.genes$expression[apply(list_all.genes$expression!=0, 1, all),] # removes all rows that contain a value = 0
+list_all.genes$expression <- list_all.genes$expression[apply(list_all.genes$expression !=0, 1, all),] # removes all rows that contain a value = 0
 ```
 With the melt function the reduced data set is fused to one column of values agian
 ```{r}
@@ -293,7 +293,51 @@ Next the distribution is checked with a q-q-plot
 qqnorm(cn1$value) # create qqplot
 qqline(cn1$value) # show ideal line for normality
 ```
-The plot indicates a high deviation for vales approximately smaller than -1, to reduce the influence of this circumstance for the normality, all rows/ genes that show a value smaller than 
+The plot indicates a high deviation for vales approximately smaller than -1, to reduce the influence of this circumstance for the normality, all rows/ genes that show a value smaller than -2 or equal -2. There for we first created a vector with all genes, those contain one value smaller or equal -2
+```{r}
+rmv.rows = apply(list_all.genes$copynumber, 1, function(x) {sum(x <= -2)}) # find all genes with values <= -2
+```
+The vector is used to remove any gene, that has one or more values smaller/ equal to -2
+```{r}
+list_all.genes$copynumber <- list_all.genes$copynumber[-which(rmv.rows > 0), ] # remove all rows, those contain more than one value <= -2
+```
+To check the distribution once agian the separate cell lines must be fused to one long column
+```{r}
+cn1 <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline") # fuse all cell lines
+```
+The qq-plot reveals a better fit of the data set after the reduction process, although for copynumbers higher than one a strong aberration is revealed.
+```{r}
+qqnorm(cn1$value) # create qqplot
+qqline(cn1$value) # ideal distributaion
+```
+Before checking the correlation between the two variables, the common genes of both dataframes have to be identified for a second time. Only genes that are present in both dataframes can be used for the correlation test
+```{r}
+common_names = Reduce(intersect, lapply(list_all.genes, row.names)) # identify shared rownames
+list_all.genes <- lapply(list_all.genes, function(x) {x[row.names(x) %in% common_names,]}) # only keep the common rownames in the new list
+```
+Even both dataframes do not indicate a good fit for normality, futher analysis is performed with the data set.
+
+#### 6.1.3 Correlation between the two variables
+In this step the correlation between the gene expression and copy number is tested, to decide wether a linear regression model can be applied for the problem. First all values for the gene expression and copy number are merged in one dataframe. There for the former established matices exp1 and cn1, but first tey have to be replaced after the wohle reduction process.
+```{r}
+exp1 <- melt.data.frame(list_all.genes$expression, variable_name = "cellline")
+cn1 <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline")
+```
+The both columns containing the values for the gene expression and copynumber are merged in the data frame regression.all.genes
+```{r}
+regression.all.genes <- as.data.frame(cbind(exp1$value, cn1$value)) # merge the colums
+colnames(regression.all.genes) <- c("expression", "copy number") # rename the colums
+```
+To ensure a clean workspace the no longer needed data frames exp1 and cn1 are removed
+```{r}
+remove(exp1, cn1)
+```
+A Create a scatter to check the correlation between the two variables and correlation coefficient in the plot is ablined (sieht nicht so gut aus, was kann ich ändern :( )
+```{r}
+ plot(expression ~ copynumber, data = regression.all.genes, xlab= "expression", ylab = "copynumber", main="Correlation between all genes", col="blue") + abline(lm(expression ~ copynumber, data = regression.all.genes), col="red")
+```
+
+
 
 ### 6.2 Regression model for all driver muatations
 
