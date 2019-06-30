@@ -223,11 +223,12 @@ In the first step the data frames copynumber, knock.down and expression were ord
 copynumber <- copynumber[order(rownames(copynumber)),]
 expression <- expression[order(rownames(expression)),]
 kd.ceres <- kd.ceres[order(rownames(kd.ceres)),]
+kd.prob <- kd.prob[order(rownames(kd.prob)),]
 ```
 Only genes, who are present in all dataframes, can be included for the linear regression model. There for we first established a list, which contains all three dataframes. This step allows to extract the shared genes in both dataframes in a more effectiv way.
 ```{r}
-list_all.genes <- list(expression,copynumber, kd.ceres ) # bind all the dataframes in one list
-names(list_all.genes) <- c("expression","copynumber", "knock.down" ) # rename the elements of the list
+list_all.genes <- list(expression,copynumber, kd.ceres, kd.prob ) # bind all the dataframes in one list
+names(list_all.genes) <- c("expression","copynumber", "kd.ceres", "kd.prob" ) # rename the elements of the list
 ```
 Next we will only extraxt genes, that are common in all three dataframes. Therefore all identical rownames/ genes were collated in one object/value
 ```{r}
@@ -239,20 +240,60 @@ To check if the process was succesful, the dimensions before and after the clean
 dim(expression)
 dim(copynumber)
 dim(kd.ceres)
+dim(kd.prob)
 ```
 The dimension of the primary dataframes shows 49070, 23299  and 17634 rows, which indicates the present of different genes in the dataframes. After the clean up all data frames contain 16970 genes and the 34 ovarian cancer cell lines
 ```{r}
 dim(list_all.genes$expression)
 dim(list_all.genes$copynumber)
-dim(list_all.genes$knock.down)
+dim(list_all.genes$kd.ceres)
+dim(list_all.genes$kd.prob)
+
 ```
 
 #### 6.1.2 Checking distribution 
-As a requirement for the regression model the data sets have to show a normal distribution. For an visual assessment  a Q-Q-plot was used for each of the three variables.
+##### Gene expression
+As a requirement for the regression model the data sets have to show a normal distribution. For an visual assessment  a Q-Q-plot was used for each of the four variables. First all the expression values of the different cell lines are fused to one long column. 
+For an easierer application of a Q-Q-plot, the package reshape
 ```{r}
-
+install.packages("reshape")
+library(reshape)
 ```
+After the installation the values of each cell lines are fused to a new matrix exp1, which contains only two columns. The first column shows the original cell line of the listed expression value in the second column.
+```{r}
+exp1 <- melt.data.frame(list_all.genes$expression, variable_name = "cell line") #fuse all expression values to one long column
+```
+The new matix will be used to check the distribution of the gene expression. The q-q-plot compairs the quantils of an normal distribution with the distribution of our data set and therefor can be used to check normality of the expression data
+```{r}
+qqnorm(exp1$value) # plot the quantils of the dataset with the quantils of a gaussian distribution
+qqline(exp1$value) # lines the ideal distributaion for a perfect normality of the dataset
+```
+The plot shows a high amount of expression values equal zero, which has a huge deviation of the ideal gaussian distribution for the expression data. In comparison to the perfect distribution the rest of the data points show a good fit for the regression model. To achieve a better fit the genes that contain expression values equal zero will be removed in the next step.
+```{r}
+list_all.genes$expression <- list_all.genes$expression[apply(list_all.genes$expression!=0, 1, all),] # removes all rows that contain a value = 0
+```
+With the melt function the reduced data set is fused to one column of values agian
+```{r}
+exp1 <- melt.data.frame(list_all.genes$expression, variable_name = "cell line") #fuse all expression values to one long column
+```
+A q-q-plot is peformed to check the normality of the expression data set once again and determine if the reduction process shows a improved result
+```{r}
+qqnorm(exp1$value) # plot the quantils of the dataset with the quantils of a gaussian distribution
+qqline(exp1$value) # ideal line
+```
+While the plot indicates a higher accord with the peferct gaussian distribution, there is still a horizontal line pointing out a hogh amount of values near zero. Even if the fit is not perfect, the regression model will be performed with this data points for the gene expression
 
+##### Copy number
+As describe in the paragraph above the distribution for the copy number of the genes has to be investigated. First the data is fused to a matrix with two columns
+```{r}
+cn1 <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline") # fuse all cell lines
+```
+Next the distribution is checked with a q-q-plot
+```{r}
+qqnorm(cn1$value) # create qqplot
+qqline(cn1$value) # show ideal line for normality
+```
+The plot indicates a high deviation for vales approximately smaller than -1, to reduce the influence of this circumstance for the normality, all rows/ genes that show a value smaller than 
 
 ### 6.2 Regression model for all driver muatations
 
