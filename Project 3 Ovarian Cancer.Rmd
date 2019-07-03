@@ -160,9 +160,12 @@ barplot(DriverMutation$Freq, names.arg = DriverMutation$Var1, xlab="mutated Gene
 ```{r}
 library(dendextend)  # we need this package to create tree diagrams
 
-tree <- expression[which(rownames(expression) %in% DriverMutation$Var1), ]
+tree <- kd.prob[which(rownames(kd.prob) %in% DriverMutation$Var1), ]
 #neue Matrix belegen, damit expression nicht überschribene wird
-# aber komischerweise fehlt ein mutiertes Gen in der Expression BAI... ???
+
+
+colnames(tree) <- c(1:34)
+rownames(anno1) <- c(1:34)
 
 cor.mat = cor(tree, method = "spearman")
 cor.dist = as.dist(1 - cor.mat)
@@ -173,13 +176,45 @@ cor.hc = as.dendrogram(cor.hc)
 plot(cor.hc, las = 2, cex.lab = 0.7)
 
 
-cb1 <- ifelse(annotation == "Adenocarcinoma", "forestgreen", "firebrick")
-cb <- cbind(`Adeno` = cb1)
+anno$has_TP53 <- ifelse(rownames(anno) %in% dmTP53$DepMap_ID, TRUE, FALSE)
+anno$has_ARID1A <- ifelse(rownames(anno) %in% dmARID1A$DepMap_ID, TRUE, FALSE)
+anno$has_ATM <- ifelse(rownames(anno) %in% dmATM$DepMap_ID, TRUE, FALSE)
+anno$has_BAI1 <- ifelse(rownames(anno) %in% dmBAI1$DepMap_ID, TRUE, FALSE)
+anno$has_PTPRF <- ifelse(rownames(anno) %in% dmPTPRF$DepMap_ID, TRUE, FALSE)
+anno$has_SYNE1 <- ifelse(rownames(anno) %in% dmSYNE1$DepMap_ID, TRUE, FALSE)
+anno$has_THBS3 <- ifelse(rownames(anno) %in% dmTHBS3$DepMap_ID, TRUE, FALSE)
+
+
+cb1 <- ifelse(anno$has_TP53 == "TRUE", "forestgreen", "firebrick")
+cb <- cbind(`TP53` = cb1)
 plot(cor.hc, las = 2, cex.lab = 0.7)
 colored_bars(colors = cb, dend = cor.hc)
 
-# David fragen warum das nicht funktioniert, beim 3FS Kurs hats geklappt
-#http://bioinfo.ipmb.uni-heidelberg.de/crg/datascience3fs/practicals/2_UnsupervisedLearning.html#hierarchical-clustering
+
+
+
+pca
+
+topVar = apply(kd.prob, 1, var)
+prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ]
+pca = prcomp(prob.topVar, center = F, scale. = F)
+plot(pca$rotation[, 1], pca$rotation[, 2], col = cb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+
+
+
+annodm <- anno[, -which(colnames(anno) %in% c("CCLE_Name", "Subtype.Disease", "TP53.none", "has_BAI1", "has_SYNE1", "has_THBS3"))]
+
+annodm$has_TP53 <- ifelse(rownames(anno) %in% dmTP53$DepMap_ID, 1000, 0)
+View(anno)
+annodm$has_ARID1A <- ifelse(rownames(anno) %in% dmARID1A$DepMap_ID, 100, 0)
+View(anno)
+annodm$has_ATM <- ifelse(rownames(anno) %in% dmATM$DepMap_ID, 10, 0)
+
+annodm$has_PTPRF <- ifelse(rownames(anno) %in% dmPTPRF$DepMap_ID, 1, 0)
+
+
+annodm$summe <- apply(annodm, 1, function(x) { sum(x)})
+
 
 ```
 
