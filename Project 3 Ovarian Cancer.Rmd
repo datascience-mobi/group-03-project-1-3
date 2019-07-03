@@ -210,8 +210,7 @@ plot(density(as.matrix(mean.survival.prob))) # plot me the distribution of cell 
 
 
 ## 6. Linear Regression
-In this step we wanted to investigate if it is possible to estimate the gene expression of a gene based on the copynumber. First a linear regression model should show if this issue can be applied to the totality of our data set independent of the differences between the single genes. Another regression model will focus on the correlation between the seven driver mutation
-Last we want to investigate the relationship between the gene expression and copy number for each driver mutation individually.
+In this step we wanted to investigate if it is possible to estimate the gene expression of a gene based on the copynumber. First a linear regression model should show if this issue can be applied to the totality of our data set independent of the differences between the single genes. Another regression model will focus on the relationship between the gene expression and copy number for the driver mutation individually.
 
 ### 6.1 Regression model for all genes
 
@@ -227,8 +226,8 @@ kd.prob <- kd.prob[order(rownames(kd.prob)),]
 ```
 Only genes, who are present in all dataframes, can be included for the linear regression model. There for we first established a list, which contains all three dataframes. This step allows to extract the shared genes in both dataframes in a more effectiv way.
 ```{r}
-list_all.genes <- list(expression,copynumber, kd.ceres, kd.prob ) # bind all the dataframes in one list
-names(list_all.genes) <- c("expression","copynumber", "kd.ceres", "kd.prob" ) # rename the elements of the list
+list_all.genes <- list(expression,copynumber) # bind all the dataframes in one list
+names(list_all.genes) <- c("expression","copynumber") # rename the elements of the list
 ```
 Next we will only extraxt genes, that are common in all three dataframes. Therefore all identical rownames/ genes were collated in one object/value
 ```{r}
@@ -325,6 +324,7 @@ cn1 <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline")
 ```
 The both columns containing the values for the gene expression and copynumber are merged in the data frame regression.all.genes
 ```{r}
+# noch Zelllinie rein bekommen
 regression.all.genes <- as.data.frame(cbind(exp1$value, cn1$value)) # merge the colums
 colnames(regression.all.genes) <- c("expression", "copy number") # rename the colums
 ```
