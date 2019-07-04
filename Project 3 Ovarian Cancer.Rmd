@@ -160,9 +160,24 @@ barplot(DriverMutation$Freq, names.arg = DriverMutation$Var1, xlab="mutated Gene
 ```{r}
 library(dendextend)  # we need this package to create tree diagrams
 
-tree <- expression[which(rownames(expression) %in% DriverMutation$Var1), ]
-#neue Matrix belegen, damit expression nicht ?berschribene wird
-# aber komischerweise fehlt ein mutiertes Gen in der Expression BAI... ???
+anno1 <- anno
+anno1$has_TP53 <- ifelse(rownames(anno) %in% dmTP53$DepMap_ID, TRUE, FALSE)
+anno1$has_ARID1A <- ifelse(rownames(anno) %in% dmARID1A$DepMap_ID, TRUE, FALSE)
+anno1$has_ATM <- ifelse(rownames(anno) %in% dmATM$DepMap_ID, TRUE, FALSE)
+anno1$has_BAI1 <- ifelse(rownames(anno) %in% dmBAI1$DepMap_ID, TRUE, FALSE)
+anno1$has_PTPRF <- ifelse(rownames(anno) %in% dmPTPRF$DepMap_ID, TRUE, FALSE)
+anno1$has_SYNE1 <- ifelse(rownames(anno) %in% dmSYNE1$DepMap_ID, TRUE, FALSE)
+anno1$has_THBS3 <- ifelse(rownames(anno) %in% dmTHBS3$DepMap_ID, TRUE, FALSE)
+
+topVar = apply(kd.prob, 1, var)
+tree = kd.prob[topVar > quantile(topVar, probs = 0.75), ]
+
+#tree <- kd.prob[which(rownames(kd.prob) %in% DriverMutation$Var1), ]
+#neue Matrix belegen, damit expression nicht überschribene wird
+
+
+colnames(tree) <- c(1:34)
+rownames(anno1) <- c(1:34)
 
 cor.mat = cor(tree, method = "spearman")
 cor.dist = as.dist(1 - cor.mat)
@@ -173,13 +188,116 @@ cor.hc = as.dendrogram(cor.hc)
 plot(cor.hc, las = 2, cex.lab = 0.7)
 
 
-cb1 <- ifelse(annotation == "Adenocarcinoma", "forestgreen", "firebrick")
-cb <- cbind(`Adeno` = cb1)
+
+
+
+cb7 <- ifelse(anno$has_TP53 == "TRUE", "forestgreen", "firebrick")
+cb6 <- ifelse(anno$has_ARID1A == "TRUE", "forestgreen", "firebrick")
+cb5 <- ifelse(anno$has_ATM == "TRUE", "forestgreen", "firebrick")
+cb4 <- ifelse(anno$has_PTPRF == "TRUE", "forestgreen", "firebrick")
+cb3 <- ifelse(anno$has_BAI1 == "TRUE", "forestgreen", "firebrick")
+cb2 <- ifelse(anno$has_SYNE1 == "TRUE", "forestgreen", "firebrick")
+cb1 <- ifelse(anno$has_THBS3 == "TRUE", "forestgreen", "firebrick")
+cb <- cbind(`THBS3` = cb1, `SYNE1` = cb2, `BAI1` = cb3, `PTPRF` = cb4, `ATM` = cb5, `ARID1A` = cb6, `TP53` = cb7)
 plot(cor.hc, las = 2, cex.lab = 0.7)
 colored_bars(colors = cb, dend = cor.hc)
 
-# David fragen warum das nicht funktioniert, beim 3FS Kurs hats geklappt
-#http://bioinfo.ipmb.uni-heidelberg.de/crg/datascience3fs/practicals/2_UnsupervisedLearning.html#hierarchical-clustering
+
+cb4 <- ifelse(anno$has_TP53 == "TRUE", "forestgreen", "firebrick")
+cb3 <- ifelse(anno$has_ARID1A == "TRUE", "forestgreen", "firebrick")
+cb2 <- ifelse(anno$has_ATM == "TRUE", "forestgreen", "firebrick")
+cb1 <- ifelse(anno$has_PTPRF == "TRUE", "forestgreen", "firebrick")
+cb <- cbind(`PTPRF` = cb1, `ATM` = cb2, `ARID1A` = cb3, `TP53` = cb4)
+plot(cor.hc, las = 2, cex.lab = 0.7)
+colored_bars(colors = cb, dend = cor.hc)
+
+
+
+
+pca
+
+#FArbegebung
+
+
+
+
+annodm$has_TP53 <- ifelse(rownames(anno) %in% dmTP53$DepMap_ID, 1000, 0)
+View(anno)
+annodm$has_ARID1A <- ifelse(rownames(anno) %in% dmARID1A$DepMap_ID, 100, 0)
+View(anno)
+annodm$has_ATM <- ifelse(rownames(anno) %in% dmATM$DepMap_ID, 10, 0)
+annodm$has_PTPRF <- ifelse(rownames(anno) %in% dmPTPRF$DepMap_ID, 1, 0)
+
+
+annodm$summe <- apply(annodm, 1, function(x) { sum(x)})
+
+
+annodm$kat <- ifelse(annodm$summe == 1000, "nTP", ifelse(annodm$summe > 1099, "TP+AR", ifelse(annodm$summe == 100, "nAR", ifelse(annodm$summe == 110, "AR+AT", ifelse(annodm$summe == 101, "AR+PT", ifelse(annodm$summe < 100, "nTP+AR", ifelse(annodm$kat == 0, "TP+SM", "nix")))))))
+
+pcb <- ifelse(annodm$summe == 1000, "blue", ifelse(annodm$summe > 1099, "purple", ifelse(annodm$summe == 100, "pink",  ifelse(annodm$summe == 101, "red", ifelse(annodm$summe < 100, "grey", "white")))))
+pcb <- cbind(`TP` = pcb)
+
+
+annodm$col <- pcb
+
+#alle Gene aus kd.prob
+
+topVar = apply(kd.prob, 1, var)
+prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ]
+pca = prcomp(prob.topVar, center = F, scale. = F)
+plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+
+
+
+# alle 7 Drivermut
+
+pcamat <- kd.prob[which(rownames(kd.prob) %in% DriverMutation$Var1), ]
+
+topVar = apply(pcamat, 1, var)
+prob.topVar = pcamat[topVar > quantile(topVar, probs = 0.75), ]
+pca = prcomp(prob.topVar, center = F, scale. = F)
+plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+
+
+# alle 7 mit ceres
+
+pcamat <- kd.ceres[which(rownames(kd.ceres) %in% DriverMutation$Var1), ]
+
+topVar = apply(pcamat, 1, var)
+prob.topVar = pcamat[topVar > quantile(topVar, probs = 0.75), ]
+pca = prcomp(prob.topVar, center = F, scale. = F)
+plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+
+
+# nur die 4 Main
+
+pcamat <- kd.prob[which(rownames(kd.prob) %in% DriverMutation1$Var1), ]
+
+topVar = apply(pcamat, 1, var)
+prob.topVar = pcamat[topVar > quantile(topVar, probs = 0.65), ]
+pca = prcomp(prob.topVar, center = F, scale. = F)
+plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+
+#nur TP53 und ARID1A 
+DriverMutation2 <- DriverMutation1
+DriverMutation2 <- DriverMutation2[-which(rownames(DriverMutation) == 183),]
+DriverMutation2 <- DriverMutation2[-which(rownames(DriverMutation) == 1757),]
+pcamat <- kd.prob[which(rownames(kd.prob) %in% DriverMutation2$Var1), ]
+
+topVar = apply(pcamat, 1, var)
+
+pca = prcomp(pcamat, center = F, scale. = F)
+plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+
+#nur TP53 und ARID mit ceres
+DriverMutation2 <- DriverMutation1
+DriverMutation2 <- DriverMutation2[-which(rownames(DriverMutation) == 183),]
+DriverMutation2 <- DriverMutation2[-which(rownames(DriverMutation) == 1757),]
+pcamat <- kd.ceres[which(rownames(kd.ceres) %in% DriverMutation2$Var1), ]
+topVar = apply(pcamat, 1, var)
+pca = prcomp(pcamat, center = F, scale. = F)
+plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+
 
 ```
 
@@ -203,7 +321,7 @@ summary(mean.survival.prob) # show me the mean survival distribution of the gene
 
 plot(density(as.matrix(mean.survival.prob))) # plot me the distribution of cell survival probability of most variant survivals
 
-#wei? noch nicht, wie sinnvoll das alles ist :D mal sehen
+#weiß noch nicht, wie sinnvoll das alles ist :D mal sehen
 
 
 ```
@@ -326,16 +444,17 @@ The both columns containing the values for the gene expression and copynumber ar
 ```{r}
 # noch Zelllinie rein bekommen
 regression.all.genes <- as.data.frame(cbind(exp1$value, cn1$value)) # merge the colums
-colnames(regression.all.genes) <- c("expression", "copynumber") # rename the colums
+colnames(regression.all.genes) <- c("expression", "copy number") # rename the colums
 ```
 To ensure a clean workspace the no longer needed data frames exp1 and cn1 are removed
 ```{r}
 remove(exp1, cn1)
 ```
-A Create a scatter to check the correlation between the two variables and correlation coefficient in the plot is ablined (sieht nicht so gut aus, was kann ich ?ndern :( )
+A Create a scatter to check the correlation between the two variables and correlation coefficient in the plot is ablined (sieht nicht so gut aus, was kann ich ändern :( )
 ```{r}
  plot(expression ~ copynumber, data = regression.all.genes, xlab= "expression", ylab = "copynumber", main="Correlation between all genes", col="blue") + abline(lm(expression ~ copynumber, data = regression.all.genes), col="red")
 ```
+
 
 
 ### 6.2 Regression model for all driver muatations
