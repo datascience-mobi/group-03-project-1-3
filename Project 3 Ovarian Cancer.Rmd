@@ -161,7 +161,7 @@ barplot(DriverMutation$Freq, names.arg = DriverMutation$Var1, xlab="mutated Gene
 library(dendextend)  # we need this package to create tree diagrams
 
 tree <- expression[which(rownames(expression) %in% DriverMutation$Var1), ]
-#neue Matrix belegen, damit expression nicht überschribene wird
+#neue Matrix belegen, damit expression nicht ?berschribene wird
 # aber komischerweise fehlt ein mutiertes Gen in der Expression BAI... ???
 
 cor.mat = cor(tree, method = "spearman")
@@ -203,7 +203,7 @@ summary(mean.survival.prob) # show me the mean survival distribution of the gene
 
 plot(density(as.matrix(mean.survival.prob))) # plot me the distribution of cell survival probability of most variant survivals
 
-#weiß noch nicht, wie sinnvoll das alles ist :D mal sehen
+#wei? noch nicht, wie sinnvoll das alles ist :D mal sehen
 
 
 ```
@@ -326,17 +326,16 @@ The both columns containing the values for the gene expression and copynumber ar
 ```{r}
 # noch Zelllinie rein bekommen
 regression.all.genes <- as.data.frame(cbind(exp1$value, cn1$value)) # merge the colums
-colnames(regression.all.genes) <- c("expression", "copy number") # rename the colums
+colnames(regression.all.genes) <- c("expression", "copynumber") # rename the colums
 ```
 To ensure a clean workspace the no longer needed data frames exp1 and cn1 are removed
 ```{r}
 remove(exp1, cn1)
 ```
-A Create a scatter to check the correlation between the two variables and correlation coefficient in the plot is ablined (sieht nicht so gut aus, was kann ich ändern :( )
+A Create a scatter to check the correlation between the two variables and correlation coefficient in the plot is ablined (sieht nicht so gut aus, was kann ich ?ndern :( )
 ```{r}
  plot(expression ~ copynumber, data = regression.all.genes, xlab= "expression", ylab = "copynumber", main="Correlation between all genes", col="blue") + abline(lm(expression ~ copynumber, data = regression.all.genes), col="red")
 ```
-
 
 
 ### 6.2 Regression model for all driver muatations
