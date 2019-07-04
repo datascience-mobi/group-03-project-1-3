@@ -281,12 +281,13 @@ In the following step we gave the different combinations a specific category
 
 #we picked the most common combinations and gave them different categories by their sums
 
-annodm$kat <- ifelse(annodm$summe == 1000, "TP_only", ifelse(annodm$summe > 1099, "TP+AR", ifelse(annodm$summe == 100, "AR_only", ifelse(annodm$summe == 110, "AR+AT", ifelse(annodm$summe == 101, "AR+PT", ifelse(annodm$summe < 100, "no_TP+no_AR", ifelse(annodm$summe == 0, "nix", "TP+SM")))))))
+annodm$kat <- ifelse(annodm$summe == 1000, "TP53 only", ifelse(annodm$summe > 1099, "TP53 & ARID1A", ifelse(annodm$summe == 100, "ARID1A only", ifelse(annodm$summe == 110, "ARID1A & sec. Mu", ifelse(annodm$summe == 101, "ARID1A & sec. Mu", ifelse(annodm$summe < 100, "no TP53 & no ARID1A", ifelse(annodm$summe == 0, "no TP53 & no ARID1A", "TP53 & sec. Mu")))))))
+
 
 
 #we also gave them different colors by using the same function as before
 
-pcb <- ifelse(annodm$summe == 1000, "lightblue", ifelse(annodm$summe > 1099, "purple",  ifelse(annodm$summe == 100, "pink",  ifelse(annodm$summe == 110, "red", ifelse(annodm$summe == 101, "red", ifelse(annodm$summe == 11, "green", ifelse(annodm$summe == 10, "grey",ifelse(annodm$summe == 0, "grey","blue"))))))))
+pcb <- ifelse(annodm$summe == 1000, "blue", ifelse(annodm$summe > 1099, "green",  ifelse(annodm$summe == 100, "orange",  ifelse(annodm$summe == 110, "red", ifelse(annodm$summe == 101, "red",  ifelse(annodm$summe < 100, "grey",ifelse(annodm$summe == 0, "grey","darkblue")))))))
 
 
 #and we added another column to the matrix containing that colors
@@ -336,8 +337,14 @@ pca = prcomp(kd.prob.topVar, center = F, scale. = F)
 plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
 
 #we also add a legend to the plot
+#to add the right colors to that legend we create a new dataframe containing the colors and the categories used in step 4:
 
-legend("topright", pch = 20, col= c("lightblue", "blue", "pink", "red", "purple", "grey"), legend = c("TP53 only","TP53 & sec. Mu", "ARID1A only", "ARID1A & sec. Mu", "TP53 & ARID1A", "no TP53 & no ARID1A"), bty='n', cex=.75)
+colors <- unique(annodm$col)
+cat <- as.data.frame(colors)
+cat$cat <- unique(annodm$kat)
+
+legend("topright", pch = 20, col= cat$colors, legend = cat$cat, bty='n', cex=1.3)
+
 
 ```
 
