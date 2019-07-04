@@ -177,8 +177,6 @@ tree = kd.prob[topVar > quantile(topVar, probs = 0.75), ]
 
 
 colnames(tree) <- c(1:34)
-
-
 rownames(anno1) <- c(1:34)
 
 cor.mat = cor(tree, method = "spearman")
@@ -220,7 +218,8 @@ pca
 
 #FArbegebung
 
-annodm <- anno[, -which(colnames(anno) %in% c("CCLE_Name", "Subtype.Disease", "has_BAI1", "has_SYNE1", "has_THBS3"))]
+
+
 
 annodm$has_TP53 <- ifelse(rownames(anno) %in% dmTP53$DepMap_ID, 1000, 0)
 View(anno)
@@ -233,10 +232,11 @@ annodm$has_PTPRF <- ifelse(rownames(anno) %in% dmPTPRF$DepMap_ID, 1, 0)
 annodm$summe <- apply(annodm, 1, function(x) { sum(x)})
 
 
-annodm$kat <- ifelse(annodm$summe == 1000, "nTP", ifelse(annodm$summe > 1099, "TP+AR", ifelse(annodm$summe == 100, "nAR", ifelse(annodm$summe == 110, "AR+AT", ifelse(annodm$summe == 101, "AR+PT", ifelse(annodm$summe < 100, "nTP+AR", ifelse(annodm$kat == 0, "TP+SM", 0)))))))
+annodm$kat <- ifelse(annodm$summe == 1000, "nTP", ifelse(annodm$summe > 1099, "TP+AR", ifelse(annodm$summe == 100, "nAR", ifelse(annodm$summe == 110, "AR+AT", ifelse(annodm$summe == 101, "AR+PT", ifelse(annodm$summe < 100, "nTP+AR", ifelse(annodm$kat == 0, "TP+SM", "nix")))))))
 
-pcb <- ifelse(annodm$summe == 1000, "blue", ifelse(annodm$summe > 1099, "purple", ifelse(annodm$summe == 100, "pink",  ifelse(annodm$summe == 101, "red", ifelse(annodm$summe < 100, "grey", ifelse(annodm$col == 0, "darkblue", "white"))))))
+pcb <- ifelse(annodm$summe == 1000, "blue", ifelse(annodm$summe > 1099, "purple", ifelse(annodm$summe == 100, "pink",  ifelse(annodm$summe == 101, "red", ifelse(annodm$summe < 100, "grey", "white")))))
 pcb <- cbind(`TP` = pcb)
+
 
 annodm$col <- pcb
 
