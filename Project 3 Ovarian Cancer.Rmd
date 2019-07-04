@@ -160,11 +160,25 @@ barplot(DriverMutation$Freq, names.arg = DriverMutation$Var1, xlab="mutated Gene
 ```{r}
 library(dendextend)  # we need this package to create tree diagrams
 
-tree <- kd.prob[which(rownames(kd.prob) %in% DriverMutation$Var1), ]
+anno1 <- anno
+anno1$has_TP53 <- ifelse(rownames(anno) %in% dmTP53$DepMap_ID, TRUE, FALSE)
+anno1$has_ARID1A <- ifelse(rownames(anno) %in% dmARID1A$DepMap_ID, TRUE, FALSE)
+anno1$has_ATM <- ifelse(rownames(anno) %in% dmATM$DepMap_ID, TRUE, FALSE)
+anno1$has_BAI1 <- ifelse(rownames(anno) %in% dmBAI1$DepMap_ID, TRUE, FALSE)
+anno1$has_PTPRF <- ifelse(rownames(anno) %in% dmPTPRF$DepMap_ID, TRUE, FALSE)
+anno1$has_SYNE1 <- ifelse(rownames(anno) %in% dmSYNE1$DepMap_ID, TRUE, FALSE)
+anno1$has_THBS3 <- ifelse(rownames(anno) %in% dmTHBS3$DepMap_ID, TRUE, FALSE)
+
+topVar = apply(kd.prob, 1, var)
+tree = kd.prob[topVar > quantile(topVar, probs = 0.75), ]
+
+#tree <- kd.prob[which(rownames(kd.prob) %in% DriverMutation$Var1), ]
 #neue Matrix belegen, damit expression nicht überschribene wird
 
 
 colnames(tree) <- c(1:34)
+
+
 rownames(anno1) <- c(1:34)
 
 cor.mat = cor(tree, method = "spearman")
@@ -176,17 +190,26 @@ cor.hc = as.dendrogram(cor.hc)
 plot(cor.hc, las = 2, cex.lab = 0.7)
 
 
-anno$has_TP53 <- ifelse(rownames(anno) %in% dmTP53$DepMap_ID, TRUE, FALSE)
-anno$has_ARID1A <- ifelse(rownames(anno) %in% dmARID1A$DepMap_ID, TRUE, FALSE)
-anno$has_ATM <- ifelse(rownames(anno) %in% dmATM$DepMap_ID, TRUE, FALSE)
-anno$has_BAI1 <- ifelse(rownames(anno) %in% dmBAI1$DepMap_ID, TRUE, FALSE)
-anno$has_PTPRF <- ifelse(rownames(anno) %in% dmPTPRF$DepMap_ID, TRUE, FALSE)
-anno$has_SYNE1 <- ifelse(rownames(anno) %in% dmSYNE1$DepMap_ID, TRUE, FALSE)
-anno$has_THBS3 <- ifelse(rownames(anno) %in% dmTHBS3$DepMap_ID, TRUE, FALSE)
 
 
-cb1 <- ifelse(anno$has_TP53 == "TRUE", "forestgreen", "firebrick")
-cb <- cbind(`TP53` = cb1)
+
+cb7 <- ifelse(anno$has_TP53 == "TRUE", "forestgreen", "firebrick")
+cb6 <- ifelse(anno$has_ARID1A == "TRUE", "forestgreen", "firebrick")
+cb5 <- ifelse(anno$has_ATM == "TRUE", "forestgreen", "firebrick")
+cb4 <- ifelse(anno$has_PTPRF == "TRUE", "forestgreen", "firebrick")
+cb3 <- ifelse(anno$has_BAI1 == "TRUE", "forestgreen", "firebrick")
+cb2 <- ifelse(anno$has_SYNE1 == "TRUE", "forestgreen", "firebrick")
+cb1 <- ifelse(anno$has_THBS3 == "TRUE", "forestgreen", "firebrick")
+cb <- cbind(`THBS3` = cb1, `SYNE1` = cb2, `BAI1` = cb3, `PTPRF` = cb4, `ATM` = cb5, `ARID1A` = cb6, `TP53` = cb7)
+plot(cor.hc, las = 2, cex.lab = 0.7)
+colored_bars(colors = cb, dend = cor.hc)
+
+
+cb4 <- ifelse(anno$has_TP53 == "TRUE", "forestgreen", "firebrick")
+cb3 <- ifelse(anno$has_ARID1A == "TRUE", "forestgreen", "firebrick")
+cb2 <- ifelse(anno$has_ATM == "TRUE", "forestgreen", "firebrick")
+cb1 <- ifelse(anno$has_PTPRF == "TRUE", "forestgreen", "firebrick")
+cb <- cbind(`PTPRF` = cb1, `ATM` = cb2, `ARID1A` = cb3, `TP53` = cb4)
 plot(cor.hc, las = 2, cex.lab = 0.7)
 colored_bars(colors = cb, dend = cor.hc)
 
@@ -195,25 +218,85 @@ colored_bars(colors = cb, dend = cor.hc)
 
 pca
 
-topVar = apply(kd.prob, 1, var)
-prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ]
-pca = prcomp(prob.topVar, center = F, scale. = F)
-plot(pca$rotation[, 1], pca$rotation[, 2], col = cb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+#FArbegebung
 
-
-
-annodm <- anno[, -which(colnames(anno) %in% c("CCLE_Name", "Subtype.Disease", "TP53.none", "has_BAI1", "has_SYNE1", "has_THBS3"))]
+annodm <- anno[, -which(colnames(anno) %in% c("CCLE_Name", "Subtype.Disease", "has_BAI1", "has_SYNE1", "has_THBS3"))]
 
 annodm$has_TP53 <- ifelse(rownames(anno) %in% dmTP53$DepMap_ID, 1000, 0)
 View(anno)
 annodm$has_ARID1A <- ifelse(rownames(anno) %in% dmARID1A$DepMap_ID, 100, 0)
 View(anno)
 annodm$has_ATM <- ifelse(rownames(anno) %in% dmATM$DepMap_ID, 10, 0)
-
 annodm$has_PTPRF <- ifelse(rownames(anno) %in% dmPTPRF$DepMap_ID, 1, 0)
 
 
 annodm$summe <- apply(annodm, 1, function(x) { sum(x)})
+
+
+annodm$kat <- ifelse(annodm$summe == 1000, "nTP", ifelse(annodm$summe > 1099, "TP+AR", ifelse(annodm$summe == 100, "nAR", ifelse(annodm$summe == 110, "AR+AT", ifelse(annodm$summe == 101, "AR+PT", ifelse(annodm$summe < 100, "nTP+AR", ifelse(annodm$kat == 0, "TP+SM", 0)))))))
+
+pcb <- ifelse(annodm$summe == 1000, "blue", ifelse(annodm$summe > 1099, "purple", ifelse(annodm$summe == 100, "pink",  ifelse(annodm$summe == 101, "red", ifelse(annodm$summe < 100, "grey", ifelse(annodm$col == 0, "darkblue", "white"))))))
+pcb <- cbind(`TP` = pcb)
+
+annodm$col <- pcb
+
+#alle Gene aus kd.prob
+
+topVar = apply(kd.prob, 1, var)
+prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ]
+pca = prcomp(prob.topVar, center = F, scale. = F)
+plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+
+
+
+# alle 7 Drivermut
+
+pcamat <- kd.prob[which(rownames(kd.prob) %in% DriverMutation$Var1), ]
+
+topVar = apply(pcamat, 1, var)
+prob.topVar = pcamat[topVar > quantile(topVar, probs = 0.75), ]
+pca = prcomp(prob.topVar, center = F, scale. = F)
+plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+
+
+# alle 7 mit ceres
+
+pcamat <- kd.ceres[which(rownames(kd.ceres) %in% DriverMutation$Var1), ]
+
+topVar = apply(pcamat, 1, var)
+prob.topVar = pcamat[topVar > quantile(topVar, probs = 0.75), ]
+pca = prcomp(prob.topVar, center = F, scale. = F)
+plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+
+
+# nur die 4 Main
+
+pcamat <- kd.prob[which(rownames(kd.prob) %in% DriverMutation1$Var1), ]
+
+topVar = apply(pcamat, 1, var)
+prob.topVar = pcamat[topVar > quantile(topVar, probs = 0.65), ]
+pca = prcomp(prob.topVar, center = F, scale. = F)
+plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+
+#nur TP53 und ARID1A 
+DriverMutation2 <- DriverMutation1
+DriverMutation2 <- DriverMutation2[-which(rownames(DriverMutation) == 183),]
+DriverMutation2 <- DriverMutation2[-which(rownames(DriverMutation) == 1757),]
+pcamat <- kd.prob[which(rownames(kd.prob) %in% DriverMutation2$Var1), ]
+
+topVar = apply(pcamat, 1, var)
+
+pca = prcomp(pcamat, center = F, scale. = F)
+plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+
+#nur TP53 und ARID mit ceres
+DriverMutation2 <- DriverMutation1
+DriverMutation2 <- DriverMutation2[-which(rownames(DriverMutation) == 183),]
+DriverMutation2 <- DriverMutation2[-which(rownames(DriverMutation) == 1757),]
+pcamat <- kd.ceres[which(rownames(kd.ceres) %in% DriverMutation2$Var1), ]
+topVar = apply(pcamat, 1, var)
+pca = prcomp(pcamat, center = F, scale. = F)
+plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
 
 
 ```
