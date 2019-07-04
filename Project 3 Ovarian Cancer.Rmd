@@ -157,38 +157,33 @@ barplot(DriverMutation$Freq, names.arg = DriverMutation$Var1, xlab="mutated Gene
 
 ## 4. Co-existing Mutations
 
+Here, we want to investigate whether there are certain mutations that often occur together and are therefore possibly linked to each other in their genesis. The goal will be to create a symmetrical matrix whose columns AND rows are our genes; the cells' content will be the counts of how often two corresponding genes turn up in the same cell line together. Next, maximum values can be extracted and tested for significance.
+
+To get a short overview about how many co existing mutations are common in the data we perform a tree diagram that clusters the Drivermutations
+
 ```{r}
 library(dendextend)  # we need this package to create tree diagrams
 
-anno1 <- anno
-anno1$has_TP53 <- ifelse(rownames(anno) %in% dmTP53$DepMap_ID, TRUE, FALSE)
-anno1$has_ARID1A <- ifelse(rownames(anno) %in% dmARID1A$DepMap_ID, TRUE, FALSE)
-anno1$has_ATM <- ifelse(rownames(anno) %in% dmATM$DepMap_ID, TRUE, FALSE)
-anno1$has_BAI1 <- ifelse(rownames(anno) %in% dmBAI1$DepMap_ID, TRUE, FALSE)
-anno1$has_PTPRF <- ifelse(rownames(anno) %in% dmPTPRF$DepMap_ID, TRUE, FALSE)
-anno1$has_SYNE1 <- ifelse(rownames(anno) %in% dmSYNE1$DepMap_ID, TRUE, FALSE)
-anno1$has_THBS3 <- ifelse(rownames(anno) %in% dmTHBS3$DepMap_ID, TRUE, FALSE)
-
 topVar = apply(kd.prob, 1, var)
-tree = kd.prob[topVar > quantile(topVar, probs = 0.75), ]
-
-#tree <- kd.prob[which(rownames(kd.prob) %in% DriverMutation$Var1), ]
-#neue Matrix belegen, damit expression nicht überschribene wird
-
-
+tree = kd.prob[topVar > quantile(topVar, probs = 0.75),] 
+anno <- annotation
+#to use the function colored_Bars the row and colnames have to be transformed to integer values
 colnames(tree) <- c(1:34)
-rownames(anno1) <- c(1:34)
+rownames(anno) <- c(1:34)
+
+
+#the following code calculates the hierachical cluster and plots it
 
 cor.mat = cor(tree, method = "spearman")
 cor.dist = as.dist(1 - cor.mat)
 cor.hc = hclust(cor.dist, method = "ward.D2")
 cor.hc = as.dendrogram(cor.hc)
 
-
 plot(cor.hc, las = 2, cex.lab = 0.7)
 
 
-
+#to get a good overview we add colored bars under the cluster
+#the following code defines colors for our 7 main Drivermutations
 
 
 cb7 <- ifelse(anno$has_TP53 == "TRUE", "forestgreen", "firebrick")
@@ -198,111 +193,103 @@ cb4 <- ifelse(anno$has_PTPRF == "TRUE", "forestgreen", "firebrick")
 cb3 <- ifelse(anno$has_BAI1 == "TRUE", "forestgreen", "firebrick")
 cb2 <- ifelse(anno$has_SYNE1 == "TRUE", "forestgreen", "firebrick")
 cb1 <- ifelse(anno$has_THBS3 == "TRUE", "forestgreen", "firebrick")
+
+#we have to bind them in one variable
 cb <- cbind(`THBS3` = cb1, `SYNE1` = cb2, `BAI1` = cb3, `PTPRF` = cb4, `ATM` = cb5, `ARID1A` = cb6, `TP53` = cb7)
-plot(cor.hc, las = 2, cex.lab = 0.7)
+
+#and add it to the cluster
 colored_bars(colors = cb, dend = cor.hc)
 
+```
 
-cb4 <- ifelse(anno$has_TP53 == "TRUE", "forestgreen", "firebrick")
-cb3 <- ifelse(anno$has_ARID1A == "TRUE", "forestgreen", "firebrick")
-cb2 <- ifelse(anno$has_ATM == "TRUE", "forestgreen", "firebrick")
-cb1 <- ifelse(anno$has_PTPRF == "TRUE", "forestgreen", "firebrick")
-cb <- cbind(`PTPRF` = cb1, `ATM` = cb2, `ARID1A` = cb3, `TP53` = cb4)
-plot(cor.hc, las = 2, cex.lab = 0.7)
-colored_bars(colors = cb, dend = cor.hc)
+In the Plot we can see that we have several green bars in many cell lines. To do further analysis we perform the following steps:
 
+```{r}
+#creating a new matrix containing every cell line that has at least one of our 7 Drivermutations
 
+dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% DriverMutation$Var1), ]
 
+#and delete unnecesary columns
+dm = dm[, -which(colnames(dm) %in% c("Chromosome", "isDeleterious", "Variant_annotation"))]
 
-pca
+#lets check out how many Drivermutations are common in the cell lines
+table(dm$DepMap_ID)
 
-#FArbegebung
+#to get acces to the single cell lines we have to create single matrices for every Drivermutation
 
-
-
-
-annodm$has_TP53 <- ifelse(rownames(anno) %in% dmTP53$DepMap_ID, 1000, 0)
-View(anno)
-annodm$has_ARID1A <- ifelse(rownames(anno) %in% dmARID1A$DepMap_ID, 100, 0)
-View(anno)
-annodm$has_ATM <- ifelse(rownames(anno) %in% dmATM$DepMap_ID, 10, 0)
-annodm$has_PTPRF <- ifelse(rownames(anno) %in% dmPTPRF$DepMap_ID, 1, 0)
-
-
-annodm$summe <- apply(annodm, 1, function(x) { sum(x)})
+dmTP53 = dm[which(dm$Hugo_Symbol == "TP53"), ]
+dmARID1A = dm[which(dm$Hugo_Symbol == "ARID1A"), ]
+dmATM = dm[which(dm$Hugo_Symbol == "ATM"), ]
+dmBAI1 = dm[which(dm$Hugo_Symbol == "BAI1"), ]
+dmPTPRF = dm[which(dm$Hugo_Symbol == "PTPRF"), ]
+dmSYNE1 = dm[which(dm$Hugo_Symbol == "SYNE1"), ]
+dmTHBS3 = dm[which(dm$Hugo_Symbol == "THBS3"), ]
 
 
-annodm$kat <- ifelse(annodm$summe == 1000, "nTP", ifelse(annodm$summe > 1099, "TP+AR", ifelse(annodm$summe == 100, "nAR", ifelse(annodm$summe == 110, "AR+AT", ifelse(annodm$summe == 101, "AR+PT", ifelse(annodm$summe < 100, "nTP+AR", ifelse(annodm$kat == 0, "TP+SM", "nix")))))))
+#now we add new colums to the annotation matrix containing information about which cell line contains which Drivermutation
+annotation$has_TP53 <- ifelse(rownames(anno) %in% dmTP53$DepMap_ID, TRUE, FALSE)
+annotation$has_ARID1A <- ifelse(rownames(anno) %in% dmARID1A$DepMap_ID, TRUE, FALSE)
+annotation$has_ATM <- ifelse(rownames(anno) %in% dmATM$DepMap_ID, TRUE, FALSE)
+annotation$has_BAI1 <- ifelse(rownames(anno) %in% dmBAI1$DepMap_ID, TRUE, FALSE)
+annotation$has_PTPRF <- ifelse(rownames(anno) %in% dmPTPRF$DepMap_ID, TRUE, FALSE)
+annotation$has_SYNE1 <- ifelse(rownames(anno) %in% dmSYNE1$DepMap_ID, TRUE, FALSE)
+annotation$has_THBS3 <- ifelse(rownames(anno) %in% dmTHBS3$DepMap_ID, TRUE, FALSE)
 
-pcb <- ifelse(annodm$summe == 1000, "blue", ifelse(annodm$summe > 1099, "purple", ifelse(annodm$summe == 100, "pink",  ifelse(annodm$summe == 101, "red", ifelse(annodm$summe < 100, "grey", "white")))))
-pcb <- cbind(`TP` = pcb)
-
-
-annodm$col <- pcb
-
-#alle Gene aus kd.prob
-
-topVar = apply(kd.prob, 1, var)
-prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ]
-pca = prcomp(prob.topVar, center = F, scale. = F)
-plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
-
-
-
-# alle 7 Drivermut
-
-pcamat <- kd.prob[which(rownames(kd.prob) %in% DriverMutation$Var1), ]
-
-topVar = apply(pcamat, 1, var)
-prob.topVar = pcamat[topVar > quantile(topVar, probs = 0.75), ]
-pca = prcomp(prob.topVar, center = F, scale. = F)
-plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
-
-
-# alle 7 mit ceres
-
-pcamat <- kd.ceres[which(rownames(kd.ceres) %in% DriverMutation$Var1), ]
-
-topVar = apply(pcamat, 1, var)
-prob.topVar = pcamat[topVar > quantile(topVar, probs = 0.75), ]
-pca = prcomp(prob.topVar, center = F, scale. = F)
-plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
-
-
-# nur die 4 Main
-
-pcamat <- kd.prob[which(rownames(kd.prob) %in% DriverMutation1$Var1), ]
-
-topVar = apply(pcamat, 1, var)
-prob.topVar = pcamat[topVar > quantile(topVar, probs = 0.65), ]
-pca = prcomp(prob.topVar, center = F, scale. = F)
-plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
-
-#nur TP53 und ARID1A 
-DriverMutation2 <- DriverMutation1
-DriverMutation2 <- DriverMutation2[-which(rownames(DriverMutation) == 183),]
-DriverMutation2 <- DriverMutation2[-which(rownames(DriverMutation) == 1757),]
-pcamat <- kd.prob[which(rownames(kd.prob) %in% DriverMutation2$Var1), ]
-
-topVar = apply(pcamat, 1, var)
-
-pca = prcomp(pcamat, center = F, scale. = F)
-plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
-
-#nur TP53 und ARID mit ceres
-DriverMutation2 <- DriverMutation1
-DriverMutation2 <- DriverMutation2[-which(rownames(DriverMutation) == 183),]
-DriverMutation2 <- DriverMutation2[-which(rownames(DriverMutation) == 1757),]
-pcamat <- kd.ceres[which(rownames(kd.ceres) %in% DriverMutation2$Var1), ]
-topVar = apply(pcamat, 1, var)
-pca = prcomp(pcamat, center = F, scale. = F)
-plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+#to be continued
 
 
 ```
 
-Here, we want to investigate whether there are certain mutations that often occur together and are therefore possibly linked to each other in their genesis. The goal will be to create a symmetrical matrix whose columns AND rows are our genes; the cells' content will be the counts of how often two corresponding genes turn up in the same cell line together. Next, maximum values can be extracted and tested for significance.
+The next step is only possible with less than seven Mutations. Because otherwise there would be too many combinations of Drivermutations. In the Tree-Diagramm we performed in step 4 it is visible that many Drivermutations, especially the ones that occur only five times in our cell lines, occur very randomly along the cell lines. Caused by this fact we validated our seven mutations and choosed the ones that were mentioned in an Ovarian cancer context in literature. The following are our chosen ones: TP53, ARID1A, ATM and PTPRF. We continue the PCA analysis:
 
+```{r}
+#to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
+annodm <- annotation[, -which(colnames(anno) %in% c("CCLE_Name", "Subtype.Disease", "has_BAI1", "has_SYNE1", "has_THBS3"))]
+
+
+#to seperate the cell lines in groups with similar Mutations we give every Drivermutation a specific value: If TP53 is True in the cell line it gets a "1000" , if it isnt ther will be a "0"
+annodm$has_TP53 <- ifelse(rownames(anno) %in% dmTP53$DepMap_ID, 1000, 0)
+
+
+#same here, ARID1A gets a "100" for True and a "0" for FALSE
+annodm$has_ARID1A <- ifelse(rownames(anno) %in% dmARID1A$DepMap_ID, 100, 0)
+
+#and the same for the next Mutations
+annodm$has_ATM <- ifelse(rownames(anno) %in% dmATM$DepMap_ID, 10, 0)
+annodm$has_PTPRF <- ifelse(rownames(anno) %in% dmPTPRF$DepMap_ID, 1, 0)
+
+
+#we can now sum up these values in a new column
+annodm$summe <- apply(annodm, 1, function(x) { sum(x)})
+
+```
+We can now use the following order to take a look at our co existing Mutations
+
+```{r}
+View(annodm$summe)
+```
+
+We can now see that many cell lines dont even have one of our chosen mutations because their sum is zero. At many others we can see that they have the same combination of Drivermutations because they have the same value at "annodm$summe".
+In the following step we gave the different combinations a specific category
+
+```{r}
+
+#we picked the most common combinations and gave them different categories by their sums
+
+annodm$kat <- ifelse(annodm$summe == 1000, "TP_only", ifelse(annodm$summe > 1099, "TP+AR", ifelse(annodm$summe == 100, "AR_only", ifelse(annodm$summe == 110, "AR+AT", ifelse(annodm$summe == 101, "AR+PT", ifelse(annodm$summe < 100, "no_TP+no_AR", ifelse(annodm$summe == 0, "nix", "TP+SM")))))))
+
+
+#we also gave them different colors by using the same function as before
+
+pcb <- ifelse(annodm$summe == 1000, "lightblue", ifelse(annodm$summe > 1099, "purple",  ifelse(annodm$summe == 100, "pink",  ifelse(annodm$summe == 110, "red", ifelse(annodm$summe == 101, "red", ifelse(annodm$summe == 11, "green", ifelse(annodm$summe == 10, "grey",ifelse(annodm$summe == 0, "grey","blue"))))))))
+
+
+#and we added another column to the matrix containing that colors
+
+annodm$col <- pcb
+
+
+```
 
 
 
@@ -325,6 +312,32 @@ plot(density(as.matrix(mean.survival.prob))) # plot me the distribution of cell 
 
 
 ```
+Performing Principal Component Analysis
+
+To reduce the information of the kd.ceres matrix we perform a PCA. The Analysis creates groups of cell lines with similar lethality partners. We use the variable TopVar created before.
+
+```{r}
+
+#we use the colors defined in step 4 for our co existing muattions
+pcb <- cbind(`TP` = pcb)
+
+#keine Ahnung warum ich das machen muss ich frag david noch... aber ohne gehts net
+
+
+#this function calculates the PCA with the variance calculated bafore
+pca = prcomp(kd.prob.topVar, center = F, scale. = F)
+
+#we plot the pca with the different colors for cell lines with similar Driver Mutations
+plot(pca$rotation[, 1], pca$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1",      ylab = "PC2")
+
+#we also add a legend to the plot
+
+legend("topright", pch = 20, col= c("lightblue", "blue", "pink", "red", "purple", "grey"), legend = c("TP53 only","TP53 & sec. Mu", "ARID1A only", "ARID1A & sec. Mu", "TP53 & ARID1A", "no TP53 & no ARID1A"), bty='n', cex=.75)
+
+```
+
+
+
 
 
 ## 6. Linear Regression
