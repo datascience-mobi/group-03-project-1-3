@@ -315,6 +315,7 @@ summary(mean.survival.prob) # show me the mean survival distribution of the gene
 plot(density(as.matrix(mean.survival.prob))) # plot me the distribution of cell survival probability of most variant survivals
 
 #weiß noch nicht, wie sinnvoll das alles ist :D mal sehen
+# ja lass des mal drin ich hab des für den nächsten step der PCA benutzt... also die kd.prob.topVar  mfG Marco
 
 
 ```
