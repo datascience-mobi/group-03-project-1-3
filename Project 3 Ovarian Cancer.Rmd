@@ -208,57 +208,7 @@ annotation$has_PTPRF <- ifelse(rownames(annotation) %in% dmPTPRF$DepMap_ID, TRUE
 annotation$has_SYNE1 <- ifelse(rownames(annotation) %in% dmSYNE1$DepMap_ID, TRUE, FALSE)
 annotation$has_THBS3 <- ifelse(rownames(annotation) %in% dmTHBS3$DepMap_ID, TRUE, FALSE)
 
-#to be continued
-
-
 ```
-
-
-
-```{r}
-library(dendextend)  # we need this package to create tree diagrams
-
-topVar = apply(kd.prob, 1, var)
-tree = kd.prob[topVar > quantile(topVar, probs = 0.75),] 
-anno <- annotation
-rm(topVar)
-
-#to use the function colored_Bars the row and colnames have to be transformed to integer values
-colnames(tree) <- c(1:34)
-rownames(anno) <- c(1:34)
-
-
-#the following code calculates the hierachical cluster and plots it
-
-cor.mat = cor(tree, method = "spearman")
-cor.dist = as.dist(1 - cor.mat)
-cor.hc = hclust(cor.dist, method = "ward.D2")
-cor.hc = as.dendrogram(cor.hc)
-
-plot(cor.hc, las = 2, cex.lab = 0.7)
-
-
-#to get a good overview we add colored bars under the cluster
-#the following code defines colors for our 7 main Drivermutations
-
-
-cb7 <- ifelse(anno$has_TP53 == "TRUE", "forestgreen", "firebrick")
-cb6 <- ifelse(anno$has_ARID1A == "TRUE", "forestgreen", "firebrick")
-cb5 <- ifelse(anno$has_ATM == "TRUE", "forestgreen", "firebrick")
-cb4 <- ifelse(anno$has_PTPRF == "TRUE", "forestgreen", "firebrick")
-cb3 <- ifelse(anno$has_BAI1 == "TRUE", "forestgreen", "firebrick")
-cb2 <- ifelse(anno$has_SYNE1 == "TRUE", "forestgreen", "firebrick")
-cb1 <- ifelse(anno$has_THBS3 == "TRUE", "forestgreen", "firebrick")
-
-#we have to bind them in one variable
-cb <- cbind(`THBS3` = cb1, `SYNE1` = cb2, `BAI1` = cb3, `PTPRF` = cb4, `ATM` = cb5, `ARID1A` = cb6, `TP53` = cb7)
-
-#and add it to the cluster
-colored_bars(colors = cb, dend = cor.hc)
-
-```
-
-
 
 The next step is only possible with less than seven Mutations. Because otherwise there would be too many combinations of Drivermutations. In the Tree-Diagramm we performed in step 4 it is visible that many Drivermutations, especially the ones that occur only five times in our cell lines, occur very randomly along the cell lines. Caused by this fact we validated our seven mutations and choosed the ones that were mentioned in an Ovarian cancer context in literature. The following are our chosen ones: TP53, ARID1A, ATM and PTPRF. We continue the PCA analysis:
 
@@ -312,6 +262,100 @@ annodm$col <- pcb
 
 ```
 
+
+
+```{r}
+#performing a heatmap
+
+
+anno <- annotation[, -which(colnames(annotation) %in% c("CCLE_Name", "Subtype.Disease"))]
+
+
+#to seperate the cell lines in groups with similar Mutations we give every Drivermutation a specific value: If TP53 is True in the cell line it gets a "1000" , if it isnt ther will be a "0"
+anno$has_TP53 <- ifelse(rownames(annotation) %in% dmTP53$DepMap_ID, 1, 0)
+
+
+#same here, ARID1A gets a "100" for True and a "0" for FALSE
+anno$has_ARID1A <- ifelse(rownames(annotation) %in% dmARID1A$DepMap_ID, 1, 0)
+
+#and the same for the next Mutations
+anno$has_ATM <- ifelse(rownames(annotation) %in% dmATM$DepMap_ID, 1, 0)
+anno$has_PTPRF <- ifelse(rownames(annotation) %in% dmPTPRF$DepMap_ID, 1, 0)
+anno$has_BAI1 <- ifelse(rownames(annotation) %in% dmBAI1$DepMap_ID, 1, 0)
+anno$has_SYNE1 <- ifelse(rownames(annotation) %in% dmSYNE1$DepMap_ID, 1, 0)
+anno$has_THBS3 <- ifelse(rownames(annotation) %in% dmTHBS3$DepMap_ID, 1, 0)
+
+rownames(anno) <- c(1:34)
+
+anno <- anno[order(anno$has_TP53, decreasing = TRUE),]
+
+
+
+anno$summe <- apply(anno, 1, function(x) { sum(x)})
+
+rmv.rows = apply(anno, 1, function(x) {
+    ifelse(anno$summe == 0, 1,0) })
+
+anno = anno[-which(rmv.rows > 0), ]
+
+anno <- anno[, -which(colnames(anno) == "summe")]
+
+anno <- data.matrix(anno)
+heatmap(anno, Rowv = NA, col = heat.colors(2))
+
+
+
+
+
+
+
+
+
+
+
+
+
+library(dendextend)  # we need this package to create tree diagrams
+
+topVar = apply(kd.prob, 1, var)
+tree = kd.prob[topVar > quantile(topVar, probs = 0.75), ]
+anno <- annotation
+rm(topVar)
+
+#to use the function colored_Bars the row and colnames have to be transformed to integer values
+colnames(tree) <- c(1:34)
+rownames(anno) <- c(1:34)
+
+
+#the following code calculates the hierachical cluster and plots it
+
+cor.mat = cor(tree, method = "spearman")
+cor.dist = as.dist(1 - cor.mat)
+cor.hc = hclust(cor.dist, method = "ward.D2")
+cor.hc = as.dendrogram(cor.hc)
+
+plot(cor.hc, las = 2, cex.lab = 0.7)
+
+
+#to get a good overview we add colored bars under the cluster
+#the following code defines colors for our 7 main Drivermutations
+
+
+cb7 <- ifelse(anno$has_TP53 == "TRUE", "forestgreen", "firebrick")
+cb6 <- ifelse(anno$has_ARID1A == "TRUE", "forestgreen", "firebrick")
+cb5 <- ifelse(anno$has_ATM == "TRUE", "forestgreen", "firebrick")
+cb4 <- ifelse(anno$has_PTPRF == "TRUE", "forestgreen", "firebrick")
+cb3 <- ifelse(anno$has_BAI1 == "TRUE", "forestgreen", "firebrick")
+cb2 <- ifelse(anno$has_SYNE1 == "TRUE", "forestgreen", "firebrick")
+cb1 <- ifelse(anno$has_THBS3 == "TRUE", "forestgreen", "firebrick")
+
+#we have to bind them in one variable
+cb <- cbind(`THBS3` = cb1, `SYNE1` = cb2, `BAI1` = cb3, `PTPRF` = cb4, `ATM` = cb5, `ARID1A` = cb6, `TP53` = cb7)
+
+#and add it to the cluster
+colored_bars(colors = cb, dend = cor.hc)
+
+```
 
 
 ## 5. Synthetic Lethality Interactions
