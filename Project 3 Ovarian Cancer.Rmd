@@ -177,11 +177,11 @@ barplot(DriverMutation$Freq, names.arg = DriverMutation$Var1, xlab="mutated Gene
 
 Here, we want to investigate whether there are certain mutations that often occur together and are therefore possibly linked to each other in their genesis. The goal will be to create a symmetrical matrix whose columns AND rows are our genes; the cells' content will be the counts of how often two corresponding genes turn up in the same cell line together. Next, maximum values can be extracted and tested for significance.
 
-To get a short overview about how many co existing mutations are common in the data we perform a tree diagram that clusters the Drivermutations
+To get a short overview about how many co existing Drivermutations are common in the data we perform a heatmap:
 
 
 ```{r}
-#creating a new matrix containing every cell line that has at least one of our 7 Drivermutations
+#creating a new matrix containing every cell line that has at least one of our 7 Drivermutations. We check if the name of our Drivermutation occurs in the Drivermutation matrix
 
 dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% DriverMutation$Var1), ]
 
@@ -191,7 +191,7 @@ dm = dm[, -which(colnames(dm) %in% c("Chromosome", "isDeleterious", "Variant_ann
 #lets check out how many Drivermutations are common in the cell lines
 table(dm$DepMap_ID)
 
-#to get acces to the single cell lines we have to create single matrices for every Drivermutation
+#to get acces to the single cell lines we have to create single matrices for every Drivermutation which contain the cell lines with that Mutation
 
 dmTP53 = dm[which(dm$Hugo_Symbol == "TP53"), ]
 dmARID1A = dm[which(dm$Hugo_Symbol == "ARID1A"), ]
@@ -203,13 +203,56 @@ dmTHBS3 = dm[which(dm$Hugo_Symbol == "THBS3"), ]
 
 
 #now we add new colums to the annotation matrix containing information about which cell line contains which Drivermutation
-annotation$has_TP53 <- ifelse(rownames(annotation) %in% dmTP53$DepMap_ID, TRUE, FALSE)
-annotation$has_ARID1A <- ifelse(rownames(annotation) %in% dmARID1A$DepMap_ID, TRUE, FALSE)
-annotation$has_ATM <- ifelse(rownames(annotation) %in% dmATM$DepMap_ID, TRUE, FALSE)
-annotation$has_BAI1 <- ifelse(rownames(annotation) %in% dmBAI1$DepMap_ID, TRUE, FALSE)
-annotation$has_PTPRF <- ifelse(rownames(annotation) %in% dmPTPRF$DepMap_ID, TRUE, FALSE)
-annotation$has_SYNE1 <- ifelse(rownames(annotation) %in% dmSYNE1$DepMap_ID, TRUE, FALSE)
-annotation$has_THBS3 <- ifelse(rownames(annotation) %in% dmTHBS3$DepMap_ID, TRUE, FALSE)
+annotation$TP53 <- ifelse(rownames(annotation) %in% dmTP53$DepMap_ID, TRUE, FALSE)
+annotation$ARID1A <- ifelse(rownames(annotation) %in% dmARID1A$DepMap_ID, TRUE, FALSE)
+annotation$ATM <- ifelse(rownames(annotation) %in% dmATM$DepMap_ID, TRUE, FALSE)
+annotation$PTPRF <- ifelse(rownames(annotation) %in% dmPTPRF$DepMap_ID, TRUE, FALSE)
+annotation$SYNE1 <- ifelse(rownames(annotation) %in% dmSYNE1$DepMap_ID, TRUE, FALSE)
+annotation$BAI1 <- ifelse(rownames(annotation) %in% dmBAI1$DepMap_ID, TRUE, FALSE)
+
+```
+
+Now we can see which cell line has which Drivermutation by just looking at the annotation matrix.
+For the further steps we copy the annotation marix because we will do some larger changes.
+
+```{r}
+#performing a heatmap
+
+#at first we copy the annotation matrix and delete columns which are unesessary for this step
+anno <- annotation[, -which(colnames(annotation) %in% c("CCLE_Name", "Subtype.Disease"))]
+
+#now we change the boolean variables into integer values: TRUE = 1, FALSE = 0
+anno <- apply(anno, 2, function(x) { ifelse(x == TRUE, 1, 0)})
+
+#for the further steps we have to convert the matrix back to a data frame
+anno <- as.data.frame(anno)
+
+#to get a better overview at the end we replace the cell line names into numbers
+rownames(anno) <- c(1:34)
+
+#now we sum up how many TRUE occur in each cell line
+anno$summe <- apply(anno, 1, function(x) { sum(x)})
+
+#we remove cell lines whitout any of the 7 Drivermutations
+rmv.rows = apply(anno, 1, function(x) {
+    ifelse(anno$summe == 0, 1,0) })
+
+anno = anno[-which(rmv.rows > 0), ]
+
+#the next step is done to order the cell lines after tp53 to have a better view at the end
+anno$order <- ifelse(anno$TP53 == 1 & anno$ARID1A == 0, 5, ifelse(anno$TP53 == 1 & anno$ARID1A == 1, 4, (ifelse(anno$ARID1A == 1, 3,ifelse(anno$ATM == 1, 2, ifelse(anno$PTPRF == 1, 1, 0))))))
+
+anno <- anno[order(anno$order, decreasing = TRUE),]
+
+#we remove columns which should not be plotted
+anno <- anno[, -which(colnames(anno) %in% c("order", "summe"))]
+
+#and bring the matrix in a format the function "heatmap" can plot
+anno <- data.matrix(anno)
+
+#plotting the heatmap
+heatmap(anno, Rowv = NA, Colv = NA, main = "occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(2))
+
 
 ```
 
@@ -267,53 +310,6 @@ annodm$col <- pcb
 
 
 
-```{r}
-#performing a heatmap
-
-
-anno <- annotation[, which(colnames(annotation) %in% c("gibtsnet"))]
-
-
-#to seperate the cell lines in groups with similar Mutations we give every Drivermutation a specific value: If TP53 is True in the cell line it gets a "1000" , if it isnt ther will be a "0"
-anno$TP53 <- ifelse(rownames(annotation) %in% dmTP53$DepMap_ID, 1, 0)
-
-
-#same here, ARID1A gets a "100" for True and a "0" for FALSE
-anno$ARID1A <- ifelse(rownames(annotation) %in% dmARID1A$DepMap_ID, 1, 0)
-
-#and the same for the next Mutations
-anno$ATM <- ifelse(rownames(annotation) %in% dmATM$DepMap_ID, 1, 0)
-anno$PTPRF <- ifelse(rownames(annotation) %in% dmPTPRF$DepMap_ID, 1, 0)
-anno$SYNE1 <- ifelse(rownames(annotation) %in% dmSYNE1$DepMap_ID, 1, 0)
-anno$BAI1 <- ifelse(rownames(annotation) %in% dmBAI1$DepMap_ID, 1, 0)
-anno$THBS3 <- ifelse(rownames(annotation) %in% dmTHBS3$DepMap_ID, 1, 0)
-
-rownames(anno) <- c(1:34)
-
-
-
-anno$summe <- apply(anno, 1, function(x) { sum(x)})
-
-rmv.rows = apply(anno, 1, function(x) {
-    ifelse(anno$summe == 0, 1,0) })
-
-anno = anno[-which(rmv.rows > 0), ]
-
-
-anno$order <- ifelse(anno$TP53 == 1 & anno$ARID1A == 0, 5, ifelse(anno$TP53 == 1 & anno$ARID1A == 1, 4, (ifelse(anno$ARID1A == 1, 3,ifelse(anno$ATM == 1, 2, ifelse(anno$PTPRF == 1, 1, 0))))))
-
-
-anno <- anno[order(anno$order, decreasing = TRUE),]
-
-anno <- anno[, -which(colnames(anno) == "summe")]
-anno <- anno[, -which(colnames(anno) == "order")]
-anno <- data.matrix(anno)
-
-
-heatmap(anno, Rowv = NA, Colv = NA, main = "occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(2))
-
-
-```
 
 
 
