@@ -38,7 +38,7 @@ At first we download the dataset and load it into R-Studio
 allDepMapData <- readRDS("~/GitHub/project-01-group-03/DepMap19Q1_allData.RDS")
 ```
 
-In order to get a better
+We gave each matrix a new, simple name, so it is easier to work with them.
 
 ```{r}
 copynumber = allDepMapData[["copynumber"]]
@@ -49,11 +49,12 @@ annotation = allDepMapData[["annotation"]]
 expression = allDepMapData[["expression"]]
 
 ```
-extract all cell lines that have ovarian cancer as primary disease. 
+
+After that we had to extract the ovarian cancer cell lines, so we only have the cell lines which are important for our project.
 ```{r}
 annotation = annotation[which(annotation$Primary.Disease == "Ovarian Cancer"), ] # The annotation matrix now only consists of Ovarian Cancer cell lines
 ID = annotation$DepMap_ID # DepMap_ID is the column name for the Ovarian Cancer cell lines
-expression = expression[ , which(colnames(expression) %in% ID)] # Extract the expression column from ID and re-define the data frame called expression. Do the same for the columns copynumber, kd.ceres and kd.prob. (Stimmt das?)
+expression = expression[ , which(colnames(expression) %in% ID)] # Extract the ovarian cancer cell lines from expression, copynumber, kd.ceres, kd.prob and mutation
 copynumber = copynumber [ , which(colnames(copynumber) %in% ID)]
 kd.ceres = kd.ceres [ , which(colnames(kd.ceres) %in% ID)]
 kd.prob = kd.prob [ , which(colnames(kd.prob) %in% ID)]
@@ -97,15 +98,17 @@ kd.prob = kd.prob[-which(NAV > 0), ]
 ```
 
 ### Install packages
-download the needed packages
+To perform all functions we have to download a few packages.
 ```{r}
 install.packages("reshape")
 install.packages("ggplot2")
+install.packages("data.table")
 ```
-install the packages
+After that the packages need to be installed
 ```{r}
 library(reshape)
 library(ggplot2)
+library(data.table)
 ```
 
 ## 3. Driver Mutations
@@ -342,11 +345,11 @@ plot(density(as.matrix(mean.survival.prob))) # plot me the distribution of cell 
 
 ```
 
-Alternative Idea: Wir nehmen unsere 7 Driver mutations (TP53, ARID1A, ATM, BAI1, PTPRF, SYNE1, THBS3) und teilen die Matrix kd.prob in zwei Submatrizen: eine, in der alle Zelllinien enthalten sind, die Driver mutations besitzen (23 von 34); und eine, wo die restlichen Zelllinien drin sind (11 von 34). Als nächstes werden ähnliche "Verhaltensmuster" unter den DM-Zelllinien gesucht: Erst werden alle Gene aussortiert, die eine hohe Varianz (oder hohe Differenz zw. Max und Min-Wert) haben (schließlich suchen wir SL partner, die möglichst oft zum Tod führen), und dann jene, wo das mittlere Überleben hoch ist => Man hat nur noch Gene, deren Knockout möglichst oft tödlich ist.
+Alternative Idea: Wir nehmen unsere 7 Driver mutations (TP53, ARID1A, ATM, BAI1, PTPRF, SYNE1, THBS3) und teilen die Matrix kd.prob in zwei Submatrizen: eine, in der alle Zelllinien enthalten sind, die Driver mutations besitzen (23 von 34); und eine, wo die restlichen Zelllinien drin sind (11 von 34). Als n?chstes werden ?hnliche "Verhaltensmuster" unter den DM-Zelllinien gesucht: Erst werden alle Gene aussortiert, die eine hohe Varianz (oder hohe Differenz zw. Max und Min-Wert) haben (schlie?lich suchen wir SL partner, die m?glichst oft zum Tod f?hren), und dann jene, wo das mittlere ?berleben hoch ist => Man hat nur noch Gene, deren Knockout m?glichst oft t?dlich ist.
 
-Jedoch muss gewährleistet sein, dass diese potenziellen SL partner keine allgemein essentiellen Gene sind, die auch ohne die Existenz von Driver mutations zum Zelltod führen. Daher behandelt man die Matrix mit den non-Driver-mutations-Zelllinien genauso, sodass man am Ende auch hier die Gene behält, deren Knockout durchgängig tödlich ist.
-Nun kann man beide Data frames vergleichen - jene Gene, die in beiden Matrizen zum Tod führen, können keine spezifischen SL partner für die Driver mutations sein. Jedoch besteht die Chance, dass der Knockout jener Gene, die nur in der DM Matrix auftauchen, auch nur dort (und wegen der DM) tödlich wirkt. Das wären dann die SL partner.
-Genauere Analysen könnte man noch mit Subsetten durchführen, indem man aufteilt in "Zelllinien mit TP53-Mutation" (ersetze jeweils mit einer anderen DM) und "Zelllinien ohne TP53-Mutation".
+Jedoch muss gew?hrleistet sein, dass diese potenziellen SL partner keine allgemein essentiellen Gene sind, die auch ohne die Existenz von Driver mutations zum Zelltod f?hren. Daher behandelt man die Matrix mit den non-Driver-mutations-Zelllinien genauso, sodass man am Ende auch hier die Gene beh?lt, deren Knockout durchg?ngig t?dlich ist.
+Nun kann man beide Data frames vergleichen - jene Gene, die in beiden Matrizen zum Tod f?hren, k?nnen keine spezifischen SL partner f?r die Driver mutations sein. Jedoch besteht die Chance, dass der Knockout jener Gene, die nur in der DM Matrix auftauchen, auch nur dort (und wegen der DM) t?dlich wirkt. Das w?ren dann die SL partner.
+Genauere Analysen k?nnte man noch mit Subsetten durchf?hren, indem man aufteilt in "Zelllinien mit TP53-Mutation" (ersetze jeweils mit einer anderen DM) und "Zelllinien ohne TP53-Mutation".
 
 ```{r}
 nonDM <- kd.prob[, -which(colnames(kd.prob) %in% dm$DepMap_ID)] # prob Matrix with cell lines that do not have at least one of the 7 driver mutations
