@@ -100,9 +100,10 @@ kd.prob = kd.prob[-which(NAV > 0), ]
 ### Install packages
 To perform all functions we have to download a few packages.
 ```{r}
-install.packages("reshape")
-install.packages("ggplot2")
-install.packages("data.table")
+
+install.packages("reshape", repos = "http://cran.us.r-project.org")
+install.packages("ggplot2", repos = "http://cran.us.r-project.org")
+install.packages("data.table", repos = "http://cran.us.r-project.org")
 ```
 After that the packages need to be installed
 ```{r}
@@ -343,7 +344,7 @@ kd.ceres.topVar = kd.ceres[topVar > quantile(topVar, probs = 0.75), ]
 mean.survival.prob <- apply(kd.prob.topVar, 1, mean) # calculate the mean cell survival probability of the remaining genes
 summary(mean.survival.prob) # show me the mean survival distribution of the genes whose knockout leads to the most variant cell survival
 
-plot(density(as.matrix(mean.survival.prob))) # plot me the distribution of cell survival probability of most variant survivals
+#plot(density(as.matrix(mean.survival.prob))) # plot me the distribution of cell survival probability of most variant survivals
 
 #wei? noch nicht, wie sinnvoll das alles ist :D mal sehen
 # ja lass des mal drin ich hab des f?r den n?chsten step der PCA benutzt... also die kd.prob.topVar  mfG Marco
@@ -407,7 +408,7 @@ yesARID1A <- kd.prob[, which(colnames(kd.prob) %in% dmARID1A$DepMap_ID)] # prob 
 # Steps:
 # 1. clean out high variance or those genes that have high difference between min and max survival
 
-Var.nonARID1A = apply(nonDM, 1, var) # calculate variance over all rows (genes)
+Var.nonARID1A = apply(nonARID1A, 1, var) # calculate variance over all rows (genes)
 low.nonARID1A = nonARID1A[Var.nonARID1A < quantile(Var.nonARID1A, probs = 0.3), ] # low variance in behaviour (live or die) upon knockout
 
 Var.yesARID1A = apply(yesARID1A, 1, var) # calculate variance over all rows (genes) for the knockout matrix with dm containing cell lines
@@ -416,10 +417,10 @@ low.yesARID1A = yesARID1A[Var.yesARID1A < quantile(Var.yesARID1A, probs = 0.3), 
 # 2. Clean out genes with high survival rates (we want lethal knockouts)
 
 Mean = rowMeans(low.nonARID1A) # calculate mean survival probability (high values: essential gene, knowckout is deadly)
-low.nonARID1A <- low.nonARID1A[which(Mean.A > 0.7), ] # exclude genes that lead to survival upon knockout
+low.nonARID1A <- low.nonARID1A[which(Mean > 0.7), ] # exclude genes that lead to survival upon knockout
 
 Mean2 = rowMeans(low.yesARID1A) # calculate mean survival probability (high values: essential gene, knowckout is deadly)
-low.yesARID1A <- low.yesARID1A[which(Mean.A2 > 0.7), ] # exclude genes that lead to survival upon knockout
+low.yesARID1A <- low.yesARID1A[which(Mean2 > 0.7), ] # exclude genes that lead to survival upon knockout
 
 # 3. compare both matrixes: genes that only lead to death in yesDM but not in nonDM could possibly be our synthetic lethality partners
 
@@ -437,7 +438,7 @@ not.common.genes <- lapply(common.genes, function(x) {x[row.names(x) %ni% common
 
 dim(not.common.genes$nonARID1A) # find out if there are genes that don't belong to the respective other list
 
-rm(nonARID1A, yesARID1A, Var.nonARID1A, Var.yesARID1A, low.nonARID1A, low.yesARID1A, Mean, Mean2, common.genes, common.names, not.common.genes)
+rm(Var.nonARID1A, Var.yesARID1A, low.nonARID1A, low.yesARID1A, Mean, Mean2, common.genes, common.names, not.common.genes)
 
 ```
 Since BRD2 cannot be identified as an SL partner this way, it remains to be found out which difference it makes for cancer cells to lose BRD2 expression when ARID1A is defect.
