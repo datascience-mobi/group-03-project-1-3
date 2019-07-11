@@ -250,8 +250,18 @@ anno <- anno[, -which(colnames(anno) %in% c("order", "summe"))]
 #and bring the matrix in a format the function "heatmap" can plot
 anno <- data.matrix(anno)
 
+#we create a color palette containing the colors we want to use
+cols <- c("forestgreen", "firebrick" )
+mypalette <- colorRampPalette(cols)(2)
+co <- as.data.frame(cols)
+co$kat <- c("not mutated", "mutated")
+
+
+
 #plotting the heatmap
-heatmap(anno, Rowv = NA, Colv = NA, main = "occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(2))
+heatmap(anno, Rowv = NA, Colv = NA, main = "occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = mypalette,  cexCol = 1.1)
+
+legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 1.2)
 
 
 ```
