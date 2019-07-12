@@ -611,7 +611,7 @@ The graph indicates a high amount of outliners, this may lead to an inefficient 
 Even both dataframes do not indicate a good fit for normality and show a high amount of outliners, futher analysis will be performed with the data set.
 
 #### 6.1.3 Correlation between the two variables
-In this step the correlation between the gene expression and copy number is tested, to decide wether a linear regression model can be applied for the problem. First all values for the gene expression and copy number are merged in one dataframe. There for the former established matices exp1 and cn1, but first tey have to be replaced after the wohle reduction process.
+In this step the correlation between the gene expression and copy number is tested, to decide wether a linear regression model can be applied for the problem. First all values for the gene expression and copy number are merged in one dataframe. There for the former established matices exp1 and cn1, but first they have to be replaced after the whole reduction process.
 ```{r}
 exp1 <- melt.data.frame(list_all.genes$expression, variable_name = "cellline")
 cn1 <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline")
@@ -626,13 +626,7 @@ To ensure a clean workspace the no longer needed data frames exp1 and cn1 are re
 ```{r}
 remove(exp1, cn1, commonnames, rmv.rows)
 ```
-A Create a scatter to check the correlation between the two variables and correlation coefficient in the plot is ablined 
-```{r}
-ggplot(regression.all.genes, aes(x = copynumber, y = expression)) # create scatter plot with x = copynumber and y = expression
-+ geom_point(color = "navy blue")+ stat_smooth(method = "lm", color = "red",se = FALSE, size = 1) # abline correlation between the two variables
-+ labs(title = "Correlation between the gene expression and copynumber") # ingtegrate title
-```
-The scatter plot reveals a very low correlation between both variables, to further analyse the issue the person and spearman correlation coefficient is computed.
+To  analyse the correlation between the gene expression and the copynumber the person and spearman correlation coefficient is computed.
 ```{r}
 cor(regression.all.genes$expression, regression.all.genes$copynumber) # compute person correlation 
 cor(regression.all.genes$expression, regression.all.genes$copynumber, method = "spearman") # compute spearman correlation coefficient
@@ -650,13 +644,13 @@ cor.test(regression.all.genes$expression, regression.all.genes$copynumber, metho
 The test also shows a p-value < 2.2e-16, concluding the rejection of the null hypothesis. Both test lead to the conclusion, that the variables expression and copynumber have a low correlation and therefore could possibly be applied for a linear regression model.
 
 #### 6.1.4 Univariate linear regression
-Before using the regression.all.genes data for a regression model, a small amount of values have to be seperated for training purposes. The first twenty rows of the dataframe will be used as trainingsdata in a later step. 
+Before using the regression.all.genes data for a regression model, a small amount of values have to be seperated for training purposes. 200 rows are taken randomly of the regression.all.genes matrix and will later be used as trainings data for the model. 
 ```{r}
-testing.all.genes <- regression.all.genes[1:20,] # new dataframe with row 1-20 of dataframe regression.all.genes
+testing.all.genes <- regression.all.genes[sample(1:nrow(regression.all.genes), 200),] # new dataframe with 200 rows of dataframe regression.all.genes
 ```
-Next the first twenty rows are removed from the original to exclude them from the regression model.
+Next the 200 rows are removed from the original to exclude them from the regression model.
 ```{r}
-regression.all.genes <- regression.all.genes[-c(1:20),] # remove row 1-20 
+regression.all.genes <- regression.all.genes[ -sample(1:nrow(regression.all.genes), 200),] # remove row 1-20 
 ```
 After the reduction process the data is integrated in the regression model lrm.all.genes. The variable copynumber is used as a predictor for the variable gene expression. 
 ```{r}
