@@ -479,10 +479,10 @@ plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcb[, 1], pch = 19, x
 #to add the right colors to that legend we create a new dataframe containing the colors and the categories defined in step 4:
 
 colors <- unique(annodm$col)
-cat <- as.data.frame(colors)
-cat$cat <- unique(annodm$kat)
+cl <- c(colors)
+ca <- unique(annodm$kat)
 
-legend("topright", pch = 20, col= cat$colors, legend = cat$cat, bty='n', cex=1)
+legend("topright", pch = 20, col= cl, legend = ca, bty='n', cex=1)
 
 #to have a comparisson we perform another PCA for the kd.ceres matrix
 #therefore we use the kd.ceres.topvar value generated before
@@ -491,7 +491,7 @@ pca.ceres = prcomp(kd.ceres.topVar, center = F, scale. = F)
 
 plot(pca.ceres$rotation[, 1], pca.ceres$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1", ylab = "PC2")
 
-legend("topright", pch = 20, col= cat$colors, legend = cat$cat, bty='n', cex=1)
+legend("topright", pch = 20, col= cl, legend = ca, bty='n', cex=1)
 
 ```
 
