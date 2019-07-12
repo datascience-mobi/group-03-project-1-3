@@ -652,7 +652,7 @@ The test also shows a p-value < 2.2e-16, concluding the rejection of the null hy
 #### 6.1.4 Univariate linear regression
 Before using the regression.all.genes data for a regression model, a small amount of values have to be seperated for training purposes. The first twenty rows of the dataframe will be used as trainingsdata in a later step. 
 ```{r}
-training.all.genes <- regression.all.genes[1:20,] # new dataframe with row 1-20 of dataframe regression.all.genes
+testing.all.genes <- regression.all.genes[1:20,] # new dataframe with row 1-20 of dataframe regression.all.genes
 ```
 Next the first twenty rows are removed from the original to exclude them from the regression model.
 ```{r}
