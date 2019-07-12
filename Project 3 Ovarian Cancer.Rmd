@@ -87,14 +87,14 @@ Many functions don't work with NA values. That's why we check the matrices for N
 NAV = apply(copynumber, 1, function(x) {sum(is.na(x))}) 
 copynumber = copynumber[-which(NAV > 0), ]  
 
-NAV = apply(expression, 1, function(x) {sum(is.na(x))}) 
+'NAV = apply(expression, 1, function(x) {sum(is.na(x))}) 
 expression = expression[-which(NAV > 0), ]  
  
 NAV = apply(kd.ceres, 1, function(x) {sum(is.na(x))}) 
 kd.ceres = kd.ceres[-which(NAV > 0), ]
 
 NAV = apply(kd.prob, 1, function(x) {sum(is.na(x))}) 
-kd.prob = kd.prob[-which(NAV > 0), ]
+kd.prob = kd.prob[-which(NAV > 0), ]'
 ```
 
 ### Install packages
@@ -186,8 +186,7 @@ To get a short overview about how many co existing Drivermutations are common in
 
 dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% DriverMutation$Var1), ]
 
-#and delete unnecesary columns
-dm = dm[, -which(colnames(dm) %in% c("Chromosome", "isDeleterious", "Variant_annotation"))]
+
 
 #lets check out how many Drivermutations are common in the cell lines
 table(dm$DepMap_ID)
@@ -262,7 +261,7 @@ co$kat <- c("not mutated", "mutated")
 #plotting the heatmap
 heatmap(anno, Rowv = NA, Colv = NA, main = "occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = mypalette,  cexCol = 1.1)
 
-legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 1.2)
+legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 1)
 
 
 ```
@@ -271,19 +270,19 @@ The next step is only possible with less than seven Mutations. Because otherwise
 
 ```{r}
 #to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
-annodm <- annotation[, -which(colnames(annotation) %in% c("CCLE_Name", "Subtype.Disease", "has_BAI1", "has_SYNE1", "has_THBS3"))]
+annodm <- annotation[, -which(colnames(annotation) %in% c("CCLE_Name", "Subtype.Disease", "BAI1", "SYNE1", "THBS3"))]
 
 
 #to seperate the cell lines in groups with similar Mutations we give every Drivermutation a specific value: If TP53 is True in the cell line it gets a "1000" , if it isnt ther will be a "0"
-annodm$has_TP53 <- ifelse(rownames(annotation) %in% dmTP53$DepMap_ID, 1000, 0)
+annodm$TP53 <- ifelse(rownames(annotation) %in% dmTP53$DepMap_ID, 1000, 0)
 
 
 #same here, ARID1A gets a "100" for True and a "0" for FALSE
-annodm$has_ARID1A <- ifelse(rownames(annotation) %in% dmARID1A$DepMap_ID, 100, 0)
+annodm$ARID1A <- ifelse(rownames(annotation) %in% dmARID1A$DepMap_ID, 100, 0)
 
 #and the same for the next Mutations
-annodm$has_ATM <- ifelse(rownames(annotation) %in% dmATM$DepMap_ID, 10, 0)
-annodm$has_PTPRF <- ifelse(rownames(annotation) %in% dmPTPRF$DepMap_ID, 1, 0)
+annodm$ATM <- ifelse(rownames(annotation) %in% dmATM$DepMap_ID, 10, 0)
+annodm$PTPRF <- ifelse(rownames(annotation) %in% dmPTPRF$DepMap_ID, 1, 0)
 
 
 #we can now sum up these values in a new column
@@ -483,7 +482,7 @@ colors <- unique(annodm$col)
 cat <- as.data.frame(colors)
 cat$cat <- unique(annodm$kat)
 
-legend("topright", pch = 20, col= cat$colors, legend = cat$cat, bty='n', cex=1.3)
+legend("topright", pch = 20, col= cat$colors, legend = cat$cat, bty='n', cex=1)
 
 #to have a comparisson we perform another PCA for the kd.ceres matrix
 #therefore we use the kd.ceres.topvar value generated before
@@ -492,7 +491,7 @@ pca.ceres = prcomp(kd.ceres.topVar, center = F, scale. = F)
 
 plot(pca.ceres$rotation[, 1], pca.ceres$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1", ylab = "PC2")
 
-legend("topright", pch = 20, col= cat$colors, legend = cat$cat, bty='n', cex=1.3)
+legend("topright", pch = 20, col= cat$colors, legend = cat$cat, bty='n', cex=1)
 
 ```
 
@@ -676,7 +675,7 @@ row.names(regression.driver)<- c("TP53ex", "TP53cn", "ARID1Aex", "ARID1Acn", "AT
 ```
 For an easier application the whole dataframe was transposed. Before this process the  columns listed the cell lines and the rows contained the genes.(After the transpose process it is the other way around.)
 ```{r}
-reg.driver <- as.data.frame(t(reg.driver)) # transpose 
+regression.driver <- as.data.frame(t(regression.driver)) # transpose 
 ```
 After a short overview with the view-function, the data frame indicates missing values for the expression level of BAI1. Because this gene can not be included in a regression model, it was removed from the data frame
 ```{r}
