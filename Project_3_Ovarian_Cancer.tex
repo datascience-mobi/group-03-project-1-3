@@ -1,0 +1,1617 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={Project 3: Ovarian Cancer},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{Project 3: Ovarian Cancer}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{}
+    \preauthor{}\postauthor{}
+    \date{}
+    \predate{}\postdate{}
+  
+
+\begin{document}
+\maketitle
+
+\hypertarget{contents}{%
+\subsection{Contents}\label{contents}}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Overview Ovarian Cancer
+\item
+  Data Cleanup
+\item
+  Driver Mutations
+\item
+  co-existing Mutations
+\item
+  Synthetic Lethality Interactions
+\item
+  Linear Regression
+\item
+  Summary of Results
+\item
+  Conclusion
+\end{enumerate}
+
+\hypertarget{overview-ovarian-cancer}{%
+\subsection{1. Overview Ovarian Cancer}\label{overview-ovarian-cancer}}
+
+\hypertarget{general-facts}{%
+\subsubsection{1.1 General facts}\label{general-facts}}
+
+Ovarian cancer is the one of the leading cancer death causes in women.
+One of 71 women will be diagnosed with this disease at some point during
+her lifetime. When treated in early stages, OC has relatively high
+survival rates. However, symptomes mostly start to develop when the
+tumour has already progressed to advanced stages, which is why the
+overall 5-year survival rate for OC lies under 50\%.
+
+Ovarian cancer is a very heterogenous disease and mostly represented by
+epithelial tumours. There are four main subtypes: serous, endometrioid,
+mucinous and clear cell. Furthermore, tumours can be classified
+dependent on their state of differentiation. Low grade (LG) Ovarian
+cancer is well differentiated and therefore not invasive; high grade
+(HG) tumours are often aggressive and frequently metastasize.
+
+Standard therapy approaches include surgery and chemotherapy with
+DNA-damaging agents. Personalized immunotherapeutic approaches often
+target special features of cancer cell genome and proteome such as
+over-expressed surface receptors.
+
+\hypertarget{common-mutations-in-oc-literature}{%
+\subsubsection{1.2 Common mutations in OC
+(literature)}\label{common-mutations-in-oc-literature}}
+
+Literature on Ovarian cancer states that the most common mutations are
+found in the DNA repair-related genes BRCA1 and BRCA2. Abnormalities in
+other DNA and mismatch repair genes have been found too, as well as
+TP53, which is also known as ``guardian of the genome''. According to
+Testa et al., TP53 accounts for most mutations found in high grade
+serous Ovarian cancer. It will be our task to verify this information
+and to gain insight on potential driver mutations in Ovarian cancer.
+
+\hypertarget{data-cleanup}{%
+\subsection{2. Data Cleanup}\label{data-cleanup}}
+
+At first we download the dataset and load it into R-Studio
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{allDepMapData <-}\StringTok{ }\KeywordTok{readRDS}\NormalTok{(}\StringTok{"~/GitHub/project-01-group-03/DepMap19Q1_allData.RDS"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+We gave each matrix a new, simple name, so it is easier to work with
+them.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{copynumber =}\StringTok{ }\NormalTok{allDepMapData[[}\StringTok{"copynumber"}\NormalTok{]]}
+\NormalTok{mutation =}\StringTok{ }\NormalTok{allDepMapData[[}\StringTok{"mutation"}\NormalTok{]]}
+\NormalTok{kd.ceres =}\StringTok{ }\NormalTok{allDepMapData[[}\StringTok{"kd.ceres"}\NormalTok{]]}
+\NormalTok{kd.prob =}\StringTok{ }\NormalTok{allDepMapData[[}\StringTok{"kd.prob"}\NormalTok{]]}
+\NormalTok{annotation =}\StringTok{ }\NormalTok{allDepMapData[[}\StringTok{"annotation"}\NormalTok{]]}
+\NormalTok{expression =}\StringTok{ }\NormalTok{allDepMapData[[}\StringTok{"expression"}\NormalTok{]]}
+\end{Highlighting}
+\end{Shaded}
+
+After that we had to extract the ovarian cancer cell lines, so we only
+have the cell lines which are important for our project.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{annotation =}\StringTok{ }\NormalTok{annotation[}\KeywordTok{which}\NormalTok{(annotation}\OperatorTok{$}\NormalTok{Primary.Disease }\OperatorTok{==}\StringTok{ "Ovarian Cancer"}\NormalTok{), ] }\CommentTok{# The annotation matrix now only consists of Ovarian Cancer cell lines}
+\NormalTok{ID =}\StringTok{ }\NormalTok{annotation}\OperatorTok{$}\NormalTok{DepMap_ID }\CommentTok{# DepMap_ID is the column name for the Ovarian Cancer cell lines}
+\NormalTok{expression =}\StringTok{ }\NormalTok{expression[ , }\KeywordTok{which}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(expression) }\OperatorTok{%in%}\StringTok{ }\NormalTok{ID)] }\CommentTok{# Extract the ovarian cancer cell lines from expression, copynumber, kd.ceres, kd.prob and mutation}
+\NormalTok{copynumber =}\StringTok{ }\NormalTok{copynumber [ , }\KeywordTok{which}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(copynumber) }\OperatorTok{%in%}\StringTok{ }\NormalTok{ID)]}
+\NormalTok{kd.ceres =}\StringTok{ }\NormalTok{kd.ceres [ , }\KeywordTok{which}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(kd.ceres) }\OperatorTok{%in%}\StringTok{ }\NormalTok{ID)]}
+\NormalTok{kd.prob =}\StringTok{ }\NormalTok{kd.prob [ , }\KeywordTok{which}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(kd.prob) }\OperatorTok{%in%}\StringTok{ }\NormalTok{ID)]}
+\NormalTok{mutation =}\StringTok{ }\NormalTok{mutation [ ID]}
+\end{Highlighting}
+\end{Shaded}
+
+For further work with the annotation matrix it makes it a lot easier to
+rename the rows with the names of the cell lines. So far the rownames
+seem to be random numbers we can not use. In the column ``DEPMap\_ID''
+we can find the name of the actual cell lines.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{rownames}\NormalTok{(annotation) =}\StringTok{ }\NormalTok{annotation}\OperatorTok{$}\NormalTok{DepMap_ID}
+\end{Highlighting}
+\end{Shaded}
+
+Further we remove columns of the annotation matrix we dont need and
+unnecessary objects as well.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# removing unecessary columns}
+\NormalTok{annotation =}\StringTok{ }\NormalTok{annotation[, }\OperatorTok{-}\KeywordTok{which}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(annotation) }\OperatorTok{%in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"DepMap_ID"}\NormalTok{, }\StringTok{"Aliases"}\NormalTok{, }\StringTok{"Primary.Disease"}\NormalTok{, }\StringTok{"Gender"}\NormalTok{, }\StringTok{"Source"}\NormalTok{))]}
+
+\CommentTok{#removing the main data, because we already extracted the OC Data}
+\KeywordTok{rm}\NormalTok{(allDepMapData)}
+\end{Highlighting}
+\end{Shaded}
+
+Many functions don't work with NA values. That's why we check the
+matrices for NA values
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#summary(copynumber) hier m?ssen wirs hinkriegen dass er den output net reinhaut}
+
+
+\NormalTok{NAV =}\StringTok{ }\KeywordTok{apply}\NormalTok{(copynumber, }\DecValTok{1}\NormalTok{, }\ControlFlowTok{function}\NormalTok{(x) \{}\KeywordTok{sum}\NormalTok{(}\KeywordTok{is.na}\NormalTok{(x))\}) }
+\NormalTok{copynumber =}\StringTok{ }\NormalTok{copynumber[}\OperatorTok{-}\KeywordTok{which}\NormalTok{(NAV }\OperatorTok{>}\StringTok{ }\DecValTok{0}\NormalTok{), ]  }
+
+\StringTok{'NAV = apply(expression, 1, function(x) \{sum(is.na(x))\}) }
+\StringTok{expression = expression[-which(NAV > 0), ]  }
+\StringTok{ }
+\StringTok{NAV = apply(kd.ceres, 1, function(x) \{sum(is.na(x))\}) }
+\StringTok{kd.ceres = kd.ceres[-which(NAV > 0), ]}
+
+\StringTok{NAV = apply(kd.prob, 1, function(x) \{sum(is.na(x))\}) }
+\StringTok{kd.prob = kd.prob[-which(NAV > 0), ]'}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "NAV = apply(expression, 1, function(x) {sum(is.na(x))}) \nexpression = expression[-which(NAV > 0), ]  \n \nNAV = apply(kd.ceres, 1, function(x) {sum(is.na(x))}) \nkd.ceres = kd.ceres[-which(NAV > 0), ]\n\nNAV = apply(kd.prob, 1, function(x) {sum(is.na(x))}) \nkd.prob = kd.prob[-which(NAV > 0), ]"
+\end{verbatim}
+
+\hypertarget{install-packages}{%
+\subsubsection{Install packages}\label{install-packages}}
+
+To perform all functions we have to download a few packages.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{install.packages}\NormalTok{(}\StringTok{"reshape"}\NormalTok{, }\DataTypeTok{repos =} \StringTok{"http://cran.us.r-project.org"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Installing package into 'C:/Users/ninah/Documents/R/win-library/3.6'
+## (as 'lib' is unspecified)
+\end{verbatim}
+
+\begin{verbatim}
+## package 'reshape' successfully unpacked and MD5 sums checked
+## 
+## The downloaded binary packages are in
+##  C:\Users\ninah\AppData\Local\Temp\RtmpkTaABB\downloaded_packages
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{install.packages}\NormalTok{(}\StringTok{"ggplot2"}\NormalTok{, }\DataTypeTok{repos =} \StringTok{"http://cran.us.r-project.org"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Installing package into 'C:/Users/ninah/Documents/R/win-library/3.6'
+## (as 'lib' is unspecified)
+\end{verbatim}
+
+\begin{verbatim}
+## package 'ggplot2' successfully unpacked and MD5 sums checked
+## 
+## The downloaded binary packages are in
+##  C:\Users\ninah\AppData\Local\Temp\RtmpkTaABB\downloaded_packages
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{install.packages}\NormalTok{(}\StringTok{"data.table"}\NormalTok{, }\DataTypeTok{repos =} \StringTok{"http://cran.us.r-project.org"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Installing package into 'C:/Users/ninah/Documents/R/win-library/3.6'
+## (as 'lib' is unspecified)
+\end{verbatim}
+
+\begin{verbatim}
+## package 'data.table' successfully unpacked and MD5 sums checked
+## 
+## The downloaded binary packages are in
+##  C:\Users\ninah\AppData\Local\Temp\RtmpkTaABB\downloaded_packages
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{install.packages}\NormalTok{(}\StringTok{"gridExtra"}\NormalTok{, }\DataTypeTok{repos =} \StringTok{"http://cran.us.r-project.org"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Installing package into 'C:/Users/ninah/Documents/R/win-library/3.6'
+## (as 'lib' is unspecified)
+\end{verbatim}
+
+\begin{verbatim}
+## package 'gridExtra' successfully unpacked and MD5 sums checked
+## 
+## The downloaded binary packages are in
+##  C:\Users\ninah\AppData\Local\Temp\RtmpkTaABB\downloaded_packages
+\end{verbatim}
+
+After that the packages need to be installed
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(reshape)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'reshape' was built under R version 3.6.1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(ggplot2)}
+\KeywordTok{library}\NormalTok{(data.table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'data.table' was built under R version 3.6.1
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Attaching package: 'data.table'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:reshape':
+## 
+##     melt
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(gridExtra)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'gridExtra' was built under R version 3.6.1
+\end{verbatim}
+
+\hypertarget{driver-mutations}{%
+\subsection{3. Driver Mutations}\label{driver-mutations}}
+
+Fuse mutation lists to one matrix
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mutation.all =}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(}\KeywordTok{rbindlist}\NormalTok{(mutation))}
+\end{Highlighting}
+\end{Shaded}
+
+Our analyses just need the information in certain columns of our data
+frame, for example gene name and location (chromosome), cell line, the
+kind of mutation (missense, frame shift, etc.). Thus, we extract these
+columns and put them in the data frame ``mutation.all''.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ mutation.all =}\StringTok{ }\NormalTok{mutation.all[, }\KeywordTok{which}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(mutation.all) }\OperatorTok{%in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"Hugo_Symbol"}\NormalTok{, }\StringTok{"DepMap_ID"}\NormalTok{, }\StringTok{"Variant_Classification"}\NormalTok{, }\StringTok{"Variant_annotation"}\NormalTok{, }\StringTok{"isTCGAhotspot"}\NormalTok{, }\StringTok{"Chromosome"}\NormalTok{, }\StringTok{"isDeleterious"}\NormalTok{))]}
+\end{Highlighting}
+\end{Shaded}
+
+There are different types of mutations. Some of them are silent, which
+means that the amino acid sequence is not altered and the protein
+structure is not affected. Other mutations lead to an amino acid
+exchange, but do not provoke dramatic conformational changes in the
+encoded protein. Whether or not a mutation has an impact on protein
+function is noted in the column ``isDeleterious''. We want to extract
+all mutations that are TRUE for isDeleterious, since these might have
+something to do with cancer cell development.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mutation.all =}\StringTok{ }\NormalTok{mutation.all[}\KeywordTok{which}\NormalTok{(mutation.all}\OperatorTok{$}\NormalTok{isDeleterious }\OperatorTok{==}\StringTok{ "TRUE"}\NormalTok{), ] }\CommentTok{# only include rows (=genes) that have deleterious mutations in data frame "mutation.all"}
+\end{Highlighting}
+\end{Shaded}
+
+Order matrix alphabetically
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mutation.all <-}\StringTok{ }\NormalTok{mutation.all[}\KeywordTok{order}\NormalTok{(mutation.all}\OperatorTok{$}\NormalTok{Hugo_Symbol),]}
+\end{Highlighting}
+\end{Shaded}
+
+Find most frequently mutated genes by summing up all ``mutation events''
+found in all cell lines. To do this, the names of the genes were
+converted to factors.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mutation.all}\OperatorTok{$}\NormalTok{Hugo_Symbol =}\StringTok{ }\KeywordTok{factor}\NormalTok{(mutation.all}\OperatorTok{$}\NormalTok{Hugo_Symbol)}
+
+\KeywordTok{summary}\NormalTok{(mutation.all}\OperatorTok{$}\NormalTok{Hugo_Symbol)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   ARID1A     TP53    PRSS3    THBS3     PTEN  SMARCA4   ARID1B      ATM 
+##       16       12        8        7        6        6        5        5 
+##     BAI1     MYH9    PTPRF    REV3L  SLC34A1    SYNE1      TTN   ALPPL2 
+##        5        5        5        5        5        5        5        4 
+##   CEP350   DUSP16  FAM168B  FAM193A    KMT2B    KMT2D   LMBRD1    LMTK3 
+##        4        4        4        4        4        4        4        4 
+##     LRBA    MYO5C    NFASC     NOX5  PKHD1L1     RBL2     RFC1  SLC22A6 
+##        4        4        4        4        4        4        4        4 
+##     SLTM     TLN2   TNRC6B   TNRC6C ADAMTS20    AMER1     ATG7    ATP7B 
+##        4        4        4        4        3        3        3        3 
+##   BCLAF1    BICC1      BRE C17orf80  CACNA1I     CBX8    CENPE  COL25A1 
+##        3        3        3        3        3        3        3        3 
+##   COL6A6    CSMD2    CSMD3    CTPS2     DBN1    DDX59     DLX6    DNAH7 
+##        3        3        3        3        3        3        3        3 
+##   ECHDC1    EIF5B    EP400    ERMAP    FLOT2    FOXN2    HERC2    HKDC1 
+##        3        3        3        3        3        3        3        3 
+##   INPPL1    ITGAE   JARID2   KANSL1 KIAA0947 KIAA2026    KMT2C    LAMA5 
+##        3        3        3        3        3        3        3        3 
+##     LGMN   MAP3K2  MAPKBP1    MORC4    MUC16   MYCBP2      NEB      NES 
+##        3        3        3        3        3        3        3        3 
+##     NPAT     OFD1  PIK3C2G   PIK3R1   RETSAT    RIMS2    SBNO1    SCN7A 
+##        3        3        3        3        3        3        3        3 
+##    SCN9A     SDE2    SHPRH   SLC3A2    STAB1    TFPI2  TMEM131     TPTE 
+##        3        3        3        3        3        3        3        3 
+##     TRIO      TTK     UBR1  (Other) 
+##        3        3        3     2734
+\end{verbatim}
+
+Plot all mutations to see most frequently mutated genes
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{plot}\NormalTok{(mutation.all}\OperatorTok{$}\NormalTok{Hugo_Symbol)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project_3_Ovarian_Cancer_files/figure-latex/unnamed-chunk-14-1.pdf}
+
+The most common mutation is found in ARID1A (16 times). Surprisingly,
+BRCA1 and BRCA2 are only mutated twice and once, respectively.
+
+Problem: Many mutations occur several times in one cell line, but in
+different DNA loci. If we want to identify the most frequent mutations
+among all cell lines, these duplicates should not be included. We want
+to extract mutations that occur frequently in different cell lines.
+Therefore, we use the ``duplicated'' function from the dplyr package and
+define a new data frame called new\_uniq that only contains one mutation
+of a gene per cell line for simplicity (since the type of mutation is
+not relevant here).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{duplicates <-}\StringTok{ }\KeywordTok{which}\NormalTok{(}\KeywordTok{duplicated}\NormalTok{(mutation.all[}\KeywordTok{c}\NormalTok{(}\StringTok{'Hugo_Symbol'}\NormalTok{, }\StringTok{'DepMap_ID'}\NormalTok{)]), ) }\CommentTok{#find all identical combinations of mutated gene and cell line}
+\NormalTok{duplicates }\CommentTok{# show all genes that are duplicated}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1]  103  105  109  129  176  177  178  180  182  186  188  190  195  227
+## [15]  228  236  286  358  388  415  461  642  704  877  891  895  907  908
+## [29]  967  971  972  980  981 1024 1072 1340 1346 1348 1351 1352 1370 1397
+## [43] 1404 1435 1449 1451 1513 1514 1517 1580 1589 1590 1720 1723 1778 1784
+## [57] 1832 1987 2082 2102 2117 2119 2121 2123 2137 2140 2233 2236 2237 2339
+## [71] 2424 2425 2427 2469 2476 2478 2587 2600 2605 2658 2659 2693 2759 2789
+## [85] 2790 2826 2834 2896 3003 3006 3023
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{new_uniq <-}\StringTok{ }\NormalTok{mutation.all[}\OperatorTok{!}\KeywordTok{duplicated}\NormalTok{(mutation.all[}\KeywordTok{c}\NormalTok{(}\StringTok{'Hugo_Symbol'}\NormalTok{, }\StringTok{'DepMap_ID'}\NormalTok{)]),] }\CommentTok{#do not include duplicates in data frame new_uniq}
+\KeywordTok{summary}\NormalTok{(new_uniq)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Hugo_Symbol    Chromosome        Variant_Classification isDeleterious 
+##  TP53   :  12   Length:3016        Length:3016            Mode:logical  
+##  ARID1A :   8   Class :character   Class :character       TRUE:3016     
+##  ATM    :   5   Mode  :character   Mode  :character                     
+##  BAI1   :   5                                                           
+##  PTPRF  :   5                                                           
+##  SYNE1  :   5                                                           
+##  (Other):2976                                                           
+##  isTCGAhotspot   Variant_annotation  DepMap_ID        
+##  Mode :logical   Length:3016        Length:3016       
+##  FALSE:2841      Class :character   Class :character  
+##  TRUE :175       Mode  :character   Mode  :character  
+##                                                       
+##                                                       
+##                                                       
+## 
+\end{verbatim}
+
+As we can see, ARID1A is only the second most common mutation after
+TP53, which is mutated in 12 of 34 different cell lines. The most common
+mutations among our cell lines are thought to be our driver mutations.
+We will be conducting further analyses with these genes.
+
+For a better overview, we solely plot genes that are mutated more than 4
+times in total. Further analyses will focus on these designated driver
+mutations.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{DriverMutation <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(}\KeywordTok{table}\NormalTok{(new_uniq}\OperatorTok{$}\NormalTok{Hugo_Symbol)) }\CommentTok{# Create a new data frame that contains the mutated genes (but just once per cell line, as definded in new_uniq)}
+\NormalTok{DriverMutation =}\StringTok{ }\NormalTok{DriverMutation[}\KeywordTok{which}\NormalTok{(DriverMutation}\OperatorTok{$}\NormalTok{Freq }\OperatorTok{>}\StringTok{ }\DecValTok{4}\NormalTok{), ] }\CommentTok{# extract all mutations that occur more than 4 times among our cell lines in total}
+\NormalTok{DriverMutation <-}\StringTok{ }\NormalTok{DriverMutation[}\KeywordTok{order}\NormalTok{(DriverMutation}\OperatorTok{$}\NormalTok{Freq, }\DataTypeTok{decreasing =} \OtherTok{TRUE}\NormalTok{),] }\CommentTok{# order the genes in the data frame according to their frequency}
+\KeywordTok{barplot}\NormalTok{(DriverMutation}\OperatorTok{$}\NormalTok{Freq, }\DataTypeTok{names.arg =}\NormalTok{ DriverMutation}\OperatorTok{$}\NormalTok{Var1, }\DataTypeTok{xlab=}\StringTok{"mutated Gene"}\NormalTok{, }\DataTypeTok{las =} \DecValTok{1}\NormalTok{, }\DataTypeTok{horiz=}\OtherTok{FALSE}\NormalTok{, }\DataTypeTok{cex.axis =} \DecValTok{1}\NormalTok{,}\DecValTok{2}\NormalTok{, }\DataTypeTok{col =} \StringTok{"lightblue"}\NormalTok{, }\DataTypeTok{main =} \StringTok{"mutations present in more than four cell lines"}\NormalTok{, }\DataTypeTok{ylab =} \StringTok{"frequency"}\NormalTok{) }\CommentTok{# create a barplot of the most frequent mutations, displaying their occurence}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project_3_Ovarian_Cancer_files/figure-latex/unnamed-chunk-16-1.pdf}
+
+\hypertarget{co-existing-mutations}{%
+\subsection{4. Co-existing Mutations}\label{co-existing-mutations}}
+
+Here, we want to investigate whether there are certain mutations that
+often occur together and are therefore possibly linked to each other in
+their genesis. The goal will be to create a symmetrical matrix whose
+columns AND rows are our genes; the cells' content will be the counts of
+how often two corresponding genes turn up in the same cell line
+together. Next, maximum values can be extracted and tested for
+significance.
+
+To get a short overview about how many co existing Drivermutations are
+common in the data we perform a heatmap:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#creating a new matrix containing every cell line that has at least one of our 7 Drivermutations. We check if the name of our Drivermutation occurs in the Drivermutation matrix}
+
+\NormalTok{dm <-}\StringTok{ }\NormalTok{new_uniq[}\KeywordTok{which}\NormalTok{(new_uniq}\OperatorTok{$}\NormalTok{Hugo_Symbol }\OperatorTok{%in%}\StringTok{ }\NormalTok{DriverMutation}\OperatorTok{$}\NormalTok{Var1), ]}
+
+
+
+\CommentTok{#lets check out how many Drivermutations are common in the cell lines}
+\KeywordTok{table}\NormalTok{(dm}\OperatorTok{$}\NormalTok{DepMap_ID)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## ACH-000116 ACH-000123 ACH-000132 ACH-000237 ACH-000278 ACH-000308 
+##          1          2          1          2          3          1 
+## ACH-000460 ACH-000520 ACH-000527 ACH-000584 ACH-000608 ACH-000646 
+##          3          6          4          1          2          1 
+## ACH-000657 ACH-000663 ACH-000696 ACH-000713 ACH-000811 ACH-000885 
+##          1          1          1          2          3          2 
+## ACH-000936 ACH-000947 ACH-001048 ACH-001278 ACH-001374 
+##          2          3          1          1          1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#to get acces to the single cell lines we have to create single matrices for every Drivermutation which contain the cell lines with that Mutation}
+
+\NormalTok{dmTP53 =}\StringTok{ }\NormalTok{dm[}\KeywordTok{which}\NormalTok{(dm}\OperatorTok{$}\NormalTok{Hugo_Symbol }\OperatorTok{==}\StringTok{ "TP53"}\NormalTok{), ]}
+\NormalTok{dmARID1A =}\StringTok{ }\NormalTok{dm[}\KeywordTok{which}\NormalTok{(dm}\OperatorTok{$}\NormalTok{Hugo_Symbol }\OperatorTok{==}\StringTok{ "ARID1A"}\NormalTok{), ]}
+\NormalTok{dmATM =}\StringTok{ }\NormalTok{dm[}\KeywordTok{which}\NormalTok{(dm}\OperatorTok{$}\NormalTok{Hugo_Symbol }\OperatorTok{==}\StringTok{ "ATM"}\NormalTok{), ]}
+\NormalTok{dmBAI1 =}\StringTok{ }\NormalTok{dm[}\KeywordTok{which}\NormalTok{(dm}\OperatorTok{$}\NormalTok{Hugo_Symbol }\OperatorTok{==}\StringTok{ "BAI1"}\NormalTok{), ]}
+\NormalTok{dmPTPRF =}\StringTok{ }\NormalTok{dm[}\KeywordTok{which}\NormalTok{(dm}\OperatorTok{$}\NormalTok{Hugo_Symbol }\OperatorTok{==}\StringTok{ "PTPRF"}\NormalTok{), ]}
+\NormalTok{dmSYNE1 =}\StringTok{ }\NormalTok{dm[}\KeywordTok{which}\NormalTok{(dm}\OperatorTok{$}\NormalTok{Hugo_Symbol }\OperatorTok{==}\StringTok{ "SYNE1"}\NormalTok{), ]}
+\NormalTok{dmTHBS3 =}\StringTok{ }\NormalTok{dm[}\KeywordTok{which}\NormalTok{(dm}\OperatorTok{$}\NormalTok{Hugo_Symbol }\OperatorTok{==}\StringTok{ "THBS3"}\NormalTok{), ]}
+
+
+\CommentTok{#now we add new colums to the annotation matrix containing information about which cell line contains which Drivermutation}
+\NormalTok{annotation}\OperatorTok{$}\NormalTok{TP53 <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(annotation) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dmTP53}\OperatorTok{$}\NormalTok{DepMap_ID, }\OtherTok{TRUE}\NormalTok{, }\OtherTok{FALSE}\NormalTok{)}
+\NormalTok{annotation}\OperatorTok{$}\NormalTok{ARID1A <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(annotation) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dmARID1A}\OperatorTok{$}\NormalTok{DepMap_ID, }\OtherTok{TRUE}\NormalTok{, }\OtherTok{FALSE}\NormalTok{)}
+\NormalTok{annotation}\OperatorTok{$}\NormalTok{ATM <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(annotation) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dmATM}\OperatorTok{$}\NormalTok{DepMap_ID, }\OtherTok{TRUE}\NormalTok{, }\OtherTok{FALSE}\NormalTok{)}
+\NormalTok{annotation}\OperatorTok{$}\NormalTok{PTPRF <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(annotation) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dmPTPRF}\OperatorTok{$}\NormalTok{DepMap_ID, }\OtherTok{TRUE}\NormalTok{, }\OtherTok{FALSE}\NormalTok{)}
+\NormalTok{annotation}\OperatorTok{$}\NormalTok{SYNE1 <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(annotation) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dmSYNE1}\OperatorTok{$}\NormalTok{DepMap_ID, }\OtherTok{TRUE}\NormalTok{, }\OtherTok{FALSE}\NormalTok{)}
+\NormalTok{annotation}\OperatorTok{$}\NormalTok{BAI1 <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(annotation) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dmBAI1}\OperatorTok{$}\NormalTok{DepMap_ID, }\OtherTok{TRUE}\NormalTok{, }\OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Now we can see which cell line has which Drivermutation by just looking
+at the annotation matrix. For the further steps we copy the annotation
+marix because we will do some larger changes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#performing a heatmap}
+
+\CommentTok{#at first we copy the annotation matrix and delete columns which are unesessary for this step}
+\NormalTok{anno <-}\StringTok{ }\NormalTok{annotation[, }\OperatorTok{-}\KeywordTok{which}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(annotation) }\OperatorTok{%in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"CCLE_Name"}\NormalTok{, }\StringTok{"Subtype.Disease"}\NormalTok{))]}
+
+\CommentTok{#now we change the boolean variables into integer values: TRUE = 1, FALSE = 0}
+\NormalTok{anno <-}\StringTok{ }\KeywordTok{apply}\NormalTok{(anno, }\DecValTok{2}\NormalTok{, }\ControlFlowTok{function}\NormalTok{(x) \{ }\KeywordTok{ifelse}\NormalTok{(x }\OperatorTok{==}\StringTok{ }\OtherTok{TRUE}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{)\})}
+
+\CommentTok{#for the further steps we have to convert the matrix back to a data frame}
+\NormalTok{anno <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(anno)}
+
+\CommentTok{#to get a better overview at the end we replace the cell line names into numbers}
+\KeywordTok{rownames}\NormalTok{(anno) <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\DecValTok{34}\NormalTok{)}
+
+\CommentTok{#now we sum up how many TRUE occur in each cell line}
+\NormalTok{anno}\OperatorTok{$}\NormalTok{summe <-}\StringTok{ }\KeywordTok{apply}\NormalTok{(anno, }\DecValTok{1}\NormalTok{, }\ControlFlowTok{function}\NormalTok{(x) \{ }\KeywordTok{sum}\NormalTok{(x)\})}
+
+\CommentTok{#we remove cell lines whitout any of the 7 Drivermutations}
+\NormalTok{rmv.rows =}\StringTok{ }\KeywordTok{apply}\NormalTok{(anno, }\DecValTok{1}\NormalTok{, }\ControlFlowTok{function}\NormalTok{(x) \{}
+    \KeywordTok{ifelse}\NormalTok{(anno}\OperatorTok{$}\NormalTok{summe }\OperatorTok{==}\StringTok{ }\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{) \})}
+
+\NormalTok{anno =}\StringTok{ }\NormalTok{anno[}\OperatorTok{-}\KeywordTok{which}\NormalTok{(rmv.rows }\OperatorTok{>}\StringTok{ }\DecValTok{0}\NormalTok{), ]}
+
+\CommentTok{#the next step is done to order the cell lines after tp53 to have a better view at the end}
+\NormalTok{anno}\OperatorTok{$}\NormalTok{order <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(anno}\OperatorTok{$}\NormalTok{TP53 }\OperatorTok{==}\StringTok{ }\DecValTok{1} \OperatorTok{&}\StringTok{ }\NormalTok{anno}\OperatorTok{$}\NormalTok{ARID1A }\OperatorTok{==}\StringTok{ }\DecValTok{0}\NormalTok{, }\DecValTok{5}\NormalTok{, }\KeywordTok{ifelse}\NormalTok{(anno}\OperatorTok{$}\NormalTok{TP53 }\OperatorTok{==}\StringTok{ }\DecValTok{1} \OperatorTok{&}\StringTok{ }\NormalTok{anno}\OperatorTok{$}\NormalTok{ARID1A }\OperatorTok{==}\StringTok{ }\DecValTok{1}\NormalTok{, }\DecValTok{4}\NormalTok{, (}\KeywordTok{ifelse}\NormalTok{(anno}\OperatorTok{$}\NormalTok{ARID1A }\OperatorTok{==}\StringTok{ }\DecValTok{1}\NormalTok{, }\DecValTok{3}\NormalTok{,}\KeywordTok{ifelse}\NormalTok{(anno}\OperatorTok{$}\NormalTok{ATM }\OperatorTok{==}\StringTok{ }\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{, }\KeywordTok{ifelse}\NormalTok{(anno}\OperatorTok{$}\NormalTok{PTPRF }\OperatorTok{==}\StringTok{ }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{))))))}
+
+\NormalTok{anno <-}\StringTok{ }\NormalTok{anno[}\KeywordTok{order}\NormalTok{(anno}\OperatorTok{$}\NormalTok{order, }\DataTypeTok{decreasing =} \OtherTok{TRUE}\NormalTok{),]}
+
+\CommentTok{#we remove columns which should not be plotted}
+\NormalTok{anno <-}\StringTok{ }\NormalTok{anno[, }\OperatorTok{-}\KeywordTok{which}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(anno) }\OperatorTok{%in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"order"}\NormalTok{, }\StringTok{"summe"}\NormalTok{))]}
+
+\CommentTok{#and bring the matrix in a format the function "heatmap" can plot}
+\NormalTok{anno <-}\StringTok{ }\KeywordTok{data.matrix}\NormalTok{(anno)}
+
+\CommentTok{#we create a color palette containing the colors we want to use}
+\NormalTok{cols <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"forestgreen"}\NormalTok{, }\StringTok{"firebrick"}\NormalTok{ )}
+\NormalTok{mypalette <-}\StringTok{ }\KeywordTok{colorRampPalette}\NormalTok{(cols)(}\DecValTok{2}\NormalTok{)}
+\NormalTok{co <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(cols)}
+\NormalTok{co}\OperatorTok{$}\NormalTok{kat <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"not mutated"}\NormalTok{, }\StringTok{"mutated"}\NormalTok{)}
+
+
+
+\CommentTok{#plotting the heatmap}
+\KeywordTok{heatmap}\NormalTok{(anno, }\DataTypeTok{Rowv =} \OtherTok{NA}\NormalTok{, }\DataTypeTok{Colv =} \OtherTok{NA}\NormalTok{, }\DataTypeTok{main =} \StringTok{"occuring Drivermutations"}\NormalTok{,}\DataTypeTok{xlab =} \StringTok{"Mutated Gene"}\NormalTok{, }\DataTypeTok{ylab =} \StringTok{"cell line"}\NormalTok{, }\DataTypeTok{col =}\NormalTok{ mypalette,  }\DataTypeTok{cexCol =} \FloatTok{1.1}\NormalTok{)}
+
+\KeywordTok{legend}\NormalTok{(}\StringTok{"topright"}\NormalTok{, }\DataTypeTok{pch =} \DecValTok{15}\NormalTok{, }\DataTypeTok{col =}\NormalTok{ cols, }\DataTypeTok{legend =}\NormalTok{ co}\OperatorTok{$}\NormalTok{kat, }\DataTypeTok{bty =} \StringTok{'n'}\NormalTok{, }\DataTypeTok{cex =} \DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project_3_Ovarian_Cancer_files/figure-latex/unnamed-chunk-18-1.pdf}
+
+The next step is only possible with less than seven Mutations. Because
+otherwise there would be too many combinations of Drivermutations. In
+the Tree-Diagramm we performed in step 4 it is visible that many
+Drivermutations, especially the ones that occur only five times in our
+cell lines, occur very randomly along the cell lines. Caused by this
+fact we validated our seven mutations and choosed the ones that were
+mentioned in an Ovarian cancer context in literature. The following are
+our chosen ones: TP53, ARID1A, ATM and PTPRF. We continue the PCA
+analysis:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations}
+\NormalTok{annodm <-}\StringTok{ }\NormalTok{annotation[, }\OperatorTok{-}\KeywordTok{which}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(annotation) }\OperatorTok{%in%}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"CCLE_Name"}\NormalTok{, }\StringTok{"Subtype.Disease"}\NormalTok{, }\StringTok{"BAI1"}\NormalTok{, }\StringTok{"SYNE1"}\NormalTok{, }\StringTok{"THBS3"}\NormalTok{))]}
+
+
+\CommentTok{#to seperate the cell lines in groups with similar Mutations we give every Drivermutation a specific value: If TP53 is True in the cell line it gets a "1000" , if it isnt ther will be a "0"}
+\NormalTok{annodm}\OperatorTok{$}\NormalTok{TP53 <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(annotation) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dmTP53}\OperatorTok{$}\NormalTok{DepMap_ID, }\DecValTok{1000}\NormalTok{, }\DecValTok{0}\NormalTok{)}
+
+
+\CommentTok{#same here, ARID1A gets a "100" for True and a "0" for FALSE}
+\NormalTok{annodm}\OperatorTok{$}\NormalTok{ARID1A <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(annotation) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dmARID1A}\OperatorTok{$}\NormalTok{DepMap_ID, }\DecValTok{100}\NormalTok{, }\DecValTok{0}\NormalTok{)}
+
+\CommentTok{#and the same for the next Mutations}
+\NormalTok{annodm}\OperatorTok{$}\NormalTok{ATM <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(annotation) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dmATM}\OperatorTok{$}\NormalTok{DepMap_ID, }\DecValTok{10}\NormalTok{, }\DecValTok{0}\NormalTok{)}
+\NormalTok{annodm}\OperatorTok{$}\NormalTok{PTPRF <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(annotation) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dmPTPRF}\OperatorTok{$}\NormalTok{DepMap_ID, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{)}
+
+
+\CommentTok{#we can now sum up these values in a new column}
+\NormalTok{annodm}\OperatorTok{$}\NormalTok{summe <-}\StringTok{ }\KeywordTok{apply}\NormalTok{(annodm, }\DecValTok{1}\NormalTok{, }\ControlFlowTok{function}\NormalTok{(x) \{ }\KeywordTok{sum}\NormalTok{(x)\})}
+\end{Highlighting}
+\end{Shaded}
+
+We can now use the following order to take a look at our co existing
+Mutations
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{View}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe)}
+\end{Highlighting}
+\end{Shaded}
+
+We can now see that many cell lines dont even have one of our chosen
+mutations because their sum is zero. At many others we can see that they
+have the same combination of Drivermutations because they have the same
+value at ``annodm\$summe''. In the following step we gave the different
+combinations a specific category
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#we picked the most common combinations and gave them different categories by their sums}
+
+\NormalTok{annodm}\OperatorTok{$}\NormalTok{kat <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{==}\StringTok{ }\DecValTok{1000}\NormalTok{, }\StringTok{"TP53 only"}\NormalTok{, }\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{>}\StringTok{ }\DecValTok{1099}\NormalTok{, }\StringTok{"TP53 & ARID1A"}\NormalTok{, }\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{==}\StringTok{ }\DecValTok{100}\NormalTok{, }\StringTok{"ARID1A only"}\NormalTok{, }\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{==}\StringTok{ }\DecValTok{110}\NormalTok{, }\StringTok{"ARID1A & sec. Mu"}\NormalTok{, }\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{==}\StringTok{ }\DecValTok{101}\NormalTok{, }\StringTok{"ARID1A & sec. Mu"}\NormalTok{, }\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{<}\StringTok{ }\DecValTok{100}\NormalTok{, }\StringTok{"no TP53 & no ARID1A"}\NormalTok{, }\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{==}\StringTok{ }\DecValTok{0}\NormalTok{, }\StringTok{"no TP53 & no ARID1A"}\NormalTok{, }\StringTok{"TP53 & sec. Mu"}\NormalTok{)))))))}
+
+
+
+\CommentTok{#we also gave them different colors by using the same function as before}
+
+\NormalTok{pcb <-}\StringTok{ }\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{==}\StringTok{ }\DecValTok{1000}\NormalTok{, }\StringTok{"blue"}\NormalTok{, }\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{>}\StringTok{ }\DecValTok{1099}\NormalTok{, }\StringTok{"green"}\NormalTok{,  }\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{==}\StringTok{ }\DecValTok{100}\NormalTok{, }\StringTok{"orange"}\NormalTok{,  }\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{==}\StringTok{ }\DecValTok{110}\NormalTok{, }\StringTok{"red"}\NormalTok{, }\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{==}\StringTok{ }\DecValTok{101}\NormalTok{, }\StringTok{"red"}\NormalTok{,  }\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{<}\StringTok{ }\DecValTok{100}\NormalTok{, }\StringTok{"grey"}\NormalTok{,}\KeywordTok{ifelse}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{summe }\OperatorTok{==}\StringTok{ }\DecValTok{0}\NormalTok{, }\StringTok{"grey"}\NormalTok{,}\StringTok{"darkblue"}\NormalTok{)))))))}
+
+
+\CommentTok{#and we added another column to the matrix containing that colors}
+
+\NormalTok{annodm}\OperatorTok{$}\NormalTok{col <-}\StringTok{ }\NormalTok{pcb}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{synthetic-lethality-interactions}{%
+\subsection{5. Synthetic Lethality
+Interactions}\label{synthetic-lethality-interactions}}
+
+After identifying our most common driver mutations, we used this
+information to find possible synthetic lethality interaction partners
+First of all, we want to calculate the variance of the cell survival
+(kd.ceres) and estimated cell survival probability (kd.prob) when
+knocking out specific genes. We hereby assume that genes that display
+high variances when knocked out are more likely to have specific
+synthetic lethality interactions since genes that broadly lead to cell
+death in most cell lines are probably essential for survival on their
+own. Therefore, we will conduct the search for synthetic lethality
+interaction partners with genes whose variances are greater than the
+75\% quantile.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{topVar =}\StringTok{ }\KeywordTok{apply}\NormalTok{(kd.prob, }\DecValTok{1}\NormalTok{, var) }\CommentTok{# calculate variance over all rows (genes)}
+\KeywordTok{summary}\NormalTok{(topVar)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+## 0.0000000 0.0002761 0.0015938 0.0080999 0.0078247 0.1797299
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{kd.prob.topVar =}\StringTok{ }\NormalTok{kd.prob[topVar }\OperatorTok{>}\StringTok{ }\KeywordTok{quantile}\NormalTok{(topVar, }\DataTypeTok{probs =} \FloatTok{0.75}\NormalTok{), ] }\CommentTok{# new data frame with just the genes whose knockout leads to highly variant cell death events -> perhaps our synthetic lethality interaction partners?}
+\KeywordTok{dim}\NormalTok{(kd.prob.topVar) }\CommentTok{# show me how many genes we are looking at now}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 4409   34
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#we do the same for the kd.ceres matrix for later analysis}
+\NormalTok{topVar =}\StringTok{ }\KeywordTok{apply}\NormalTok{(kd.ceres, }\DecValTok{1}\NormalTok{, var)}
+\NormalTok{kd.ceres.topVar =}\StringTok{ }\NormalTok{kd.ceres[topVar }\OperatorTok{>}\StringTok{ }\KeywordTok{quantile}\NormalTok{(topVar, }\DataTypeTok{probs =} \FloatTok{0.75}\NormalTok{), ]}
+
+
+\NormalTok{mean.survival.prob <-}\StringTok{ }\KeywordTok{apply}\NormalTok{(kd.prob.topVar, }\DecValTok{1}\NormalTok{, mean) }\CommentTok{# calculate the mean cell survival probability of the remaining genes}
+\KeywordTok{summary}\NormalTok{(mean.survival.prob) }\CommentTok{# show me the mean survival distribution of the genes whose knockout leads to the most variant cell survival}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## 0.02145 0.14495 0.23453 0.32902 0.47202 0.97181
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#plot(density(as.matrix(mean.survival.prob))) # plot me the distribution of cell survival probability of most variant survivals}
+
+\CommentTok{#wei? noch nicht, wie sinnvoll das alles ist :D mal sehen}
+\CommentTok{# ja lass des mal drin ich hab des f?r den n?chsten step der PCA benutzt... also die kd.prob.topVar  mfG Marco}
+\end{Highlighting}
+\end{Shaded}
+
+Alternative Idea: Wir nehmen unsere 7 Driver mutations (TP53, ARID1A,
+ATM, BAI1, PTPRF, SYNE1, THBS3) und teilen die Matrix kd.prob in zwei
+Submatrizen: eine, in der alle Zelllinien enthalten sind, die Driver
+mutations besitzen (23 von 34); und eine, wo die restlichen Zelllinien
+drin sind (11 von 34). Als n?chstes werden ?hnliche ``Verhaltensmuster''
+unter den DM-Zelllinien gesucht: Erst werden alle Gene aussortiert, die
+eine hohe Varianz (oder hohe Differenz zw. Max und Min-Wert) haben
+(schlie?lich suchen wir SL partner, die m?glichst oft zum Tod f?hren),
+und dann jene, wo das mittlere ?berleben hoch ist =\textgreater{} Man
+hat nur noch Gene, deren Knockout m?glichst oft t?dlich ist.
+
+Jedoch muss gew?hrleistet sein, dass diese potenziellen SL partner keine
+allgemein essentiellen Gene sind, die auch ohne die Existenz von Driver
+mutations zum Zelltod f?hren. Daher behandelt man die Matrix mit den
+non-Driver-mutations-Zelllinien genauso, sodass man am Ende auch hier
+die Gene beh?lt, deren Knockout durchg?ngig t?dlich ist. Nun kann man
+beide Data frames vergleichen - jene Gene, die in beiden Matrizen zum
+Tod f?hren, k?nnen keine spezifischen SL partner f?r die Driver
+mutations sein. Jedoch besteht die Chance, dass der Knockout jener Gene,
+die nur in der DM Matrix auftauchen, auch nur dort (und wegen der DM)
+t?dlich wirkt. Das w?ren dann die SL partner. Genauere Analysen k?nnte
+man noch mit Subsetten durchf?hren, indem man aufteilt in ``Zelllinien
+mit TP53-Mutation'' (ersetze jeweils mit einer anderen DM) und
+``Zelllinien ohne TP53-Mutation''.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{nonDM <-}\StringTok{ }\NormalTok{kd.prob[, }\OperatorTok{-}\KeywordTok{which}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(kd.prob) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dm}\OperatorTok{$}\NormalTok{DepMap_ID)] }\CommentTok{# prob Matrix with cell lines that do not have at least one of the 7 driver mutations}
+\NormalTok{yesDM <-}\StringTok{ }\NormalTok{kd.prob[, }\KeywordTok{which}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(kd.prob) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dm}\OperatorTok{$}\NormalTok{DepMap_ID)] }\CommentTok{# prob matrix with cell lines that do have driver mutations}
+
+\CommentTok{# Steps:}
+\CommentTok{# 1. clean out high variance or those genes that have high difference between min and max survival}
+
+\NormalTok{Var.nonDM =}\StringTok{ }\KeywordTok{apply}\NormalTok{(nonDM, }\DecValTok{1}\NormalTok{, var) }\CommentTok{# calculate variance over all rows (genes)}
+\NormalTok{low.nonDM =}\StringTok{ }\NormalTok{nonDM[Var.nonDM }\OperatorTok{<}\StringTok{ }\KeywordTok{quantile}\NormalTok{(Var.nonDM, }\DataTypeTok{probs =} \FloatTok{0.5}\NormalTok{), ] }\CommentTok{# low variance in behaviour (live or die) upon knockout}
+
+\NormalTok{Var.yesDM =}\StringTok{ }\KeywordTok{apply}\NormalTok{(yesDM, }\DecValTok{1}\NormalTok{, var) }\CommentTok{# calculate variance over all rows (genes) for the knockout matrix with dm containing cell lines}
+\NormalTok{low.yesDM =}\StringTok{ }\NormalTok{yesDM[Var.yesDM }\OperatorTok{<}\StringTok{ }\KeywordTok{quantile}\NormalTok{(Var.yesDM, }\DataTypeTok{probs =} \FloatTok{0.5}\NormalTok{), ] }\CommentTok{# low variance in behaviour (live or die) upon knockout}
+
+\CommentTok{# 2. Clean out genes with high survival rates (we want lethal knockouts)}
+
+\NormalTok{Mean =}\StringTok{ }\KeywordTok{rowMeans}\NormalTok{(low.nonDM) }\CommentTok{# calculate mean survival probability (high values: essential gene, knowckout is deadly)}
+\NormalTok{low.nonDM <-}\StringTok{ }\NormalTok{low.nonDM[}\KeywordTok{which}\NormalTok{(Mean }\OperatorTok{>}\StringTok{ }\FloatTok{0.5}\NormalTok{), ] }\CommentTok{# exclude genes that lead to survival upon knockout}
+
+\NormalTok{Mean2 =}\StringTok{ }\KeywordTok{rowMeans}\NormalTok{(low.yesDM) }\CommentTok{# calculate mean survival probability (high values: essential gene, knowckout is deadly)}
+\NormalTok{low.yesDM <-}\StringTok{ }\NormalTok{low.yesDM[}\KeywordTok{which}\NormalTok{(Mean2 }\OperatorTok{>}\StringTok{ }\FloatTok{0.5}\NormalTok{), ] }\CommentTok{# exclude genes that lead to survival upon knockout}
+
+\CommentTok{# 3. compare both matrixes: genes that only lead to death in yesDM but not in nonDM could possibly be our synthetic lethality partners}
+
+\CommentTok{# Only genes, who are present in all dataframes, can be included for the linear regression model. There for we first established a list, which contains all three dataframes. This step allows to extract the shared genes in both dataframes in a more effectiv way.}
+
+\NormalTok{common.genes <-}\StringTok{ }\KeywordTok{list}\NormalTok{(nonDM, yesDM ) }\CommentTok{# bind dataframes in one list}
+\KeywordTok{names}\NormalTok{(common.genes) <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"nonDM"}\NormalTok{,}\StringTok{"yesDM"}\NormalTok{ ) }\CommentTok{# rename the elements of the list}
+
+\CommentTok{# Next we will only extraxt genes, that are common in all three dataframes. Therefore all identical rownames/ genes were collated in one object/value}
+
+\NormalTok{common.names =}\StringTok{ }\KeywordTok{Reduce}\NormalTok{(intersect, }\KeywordTok{lapply}\NormalTok{(common.genes, row.names)) }\CommentTok{# all common rownames in the three dataframes}
+
+\StringTok{'%ni%'}\NormalTok{ <-}\StringTok{ }\KeywordTok{Negate}\NormalTok{(}\StringTok{'%in%'}\NormalTok{)}
+\NormalTok{not.common.genes <-}\StringTok{ }\KeywordTok{lapply}\NormalTok{(common.genes, }\ControlFlowTok{function}\NormalTok{(x) \{x[}\KeywordTok{row.names}\NormalTok{(x) }\OperatorTok{%ni%}\StringTok{ }\NormalTok{common.names,]\}) }\CommentTok{# new list reduced to only the unshared genes/ rownames}
+
+\KeywordTok{dim}\NormalTok{(not.common.genes}\OperatorTok{$}\NormalTok{nonDM) }\CommentTok{# find out if there are genes that don't belong to the respective other list}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1]  0 11
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{rm}\NormalTok{(nonDM, yesDM, Var.nonDM, Var.yesDM, low.nonDM, low.yesDM, Mean, Mean2, common.genes, common.names, not.common.genes)}
+\end{Highlighting}
+\end{Shaded}
+
+Sadly, there do not seem to be any genes among our data that lead to
+more cell death in cells with designated driver mutations. However, it
+remains to be checked whether the experimentally found synthetic
+lethality interaction partner from our literature for ARID1A - BRD2 -
+can be affirmed here. We will therefore divide all cell lines into the
+two groups ``yesARID1A'' and ``nonARID1A''.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dmARID1A =}\StringTok{ }\NormalTok{dm[}\KeywordTok{which}\NormalTok{(dm}\OperatorTok{$}\NormalTok{Hugo_Symbol }\OperatorTok{==}\StringTok{ "ARID1A"}\NormalTok{), ]}
+\NormalTok{nonARID1A <-}\StringTok{ }\NormalTok{kd.prob[, }\OperatorTok{-}\KeywordTok{which}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(kd.prob) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dmARID1A}\OperatorTok{$}\NormalTok{DepMap_ID)] }\CommentTok{# prob Matrix with cell lines that do not have the ARID1A mutation}
+\NormalTok{yesARID1A <-}\StringTok{ }\NormalTok{kd.prob[, }\KeywordTok{which}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(kd.prob) }\OperatorTok{%in%}\StringTok{ }\NormalTok{dmARID1A}\OperatorTok{$}\NormalTok{DepMap_ID)] }\CommentTok{# prob matrix with cell lines that do have driver mutations}
+
+\CommentTok{# Steps:}
+\CommentTok{# 1. clean out high variance or those genes that have high difference between min and max survival}
+
+\NormalTok{Var.nonARID1A =}\StringTok{ }\KeywordTok{apply}\NormalTok{(nonARID1A, }\DecValTok{1}\NormalTok{, var) }\CommentTok{# calculate variance over all rows (genes)}
+\NormalTok{low.nonARID1A =}\StringTok{ }\NormalTok{nonARID1A[Var.nonARID1A }\OperatorTok{<}\StringTok{ }\KeywordTok{quantile}\NormalTok{(Var.nonARID1A, }\DataTypeTok{probs =} \FloatTok{0.3}\NormalTok{), ] }\CommentTok{# low variance in behaviour (live or die) upon knockout}
+
+\NormalTok{Var.yesARID1A =}\StringTok{ }\KeywordTok{apply}\NormalTok{(yesARID1A, }\DecValTok{1}\NormalTok{, var) }\CommentTok{# calculate variance over all rows (genes) for the knockout matrix with dm containing cell lines}
+\NormalTok{low.yesARID1A =}\StringTok{ }\NormalTok{yesARID1A[Var.yesARID1A }\OperatorTok{<}\StringTok{ }\KeywordTok{quantile}\NormalTok{(Var.yesARID1A, }\DataTypeTok{probs =} \FloatTok{0.3}\NormalTok{), ] }\CommentTok{# low variance in behaviour (live or die) upon knockout}
+
+\CommentTok{# 2. Clean out genes with high survival rates (we want lethal knockouts)}
+
+\NormalTok{Mean =}\StringTok{ }\KeywordTok{rowMeans}\NormalTok{(low.nonARID1A) }\CommentTok{# calculate mean survival probability (high values: essential gene, knowckout is deadly)}
+\NormalTok{low.nonARID1A <-}\StringTok{ }\NormalTok{low.nonARID1A[}\KeywordTok{which}\NormalTok{(Mean }\OperatorTok{>}\StringTok{ }\FloatTok{0.7}\NormalTok{), ] }\CommentTok{# exclude genes that lead to survival upon knockout}
+
+\NormalTok{Mean2 =}\StringTok{ }\KeywordTok{rowMeans}\NormalTok{(low.yesARID1A) }\CommentTok{# calculate mean survival probability (high values: essential gene, knowckout is deadly)}
+\NormalTok{low.yesARID1A <-}\StringTok{ }\NormalTok{low.yesARID1A[}\KeywordTok{which}\NormalTok{(Mean2 }\OperatorTok{>}\StringTok{ }\FloatTok{0.7}\NormalTok{), ] }\CommentTok{# exclude genes that lead to survival upon knockout}
+
+\CommentTok{# 3. compare both matrixes: genes that only lead to death in yesDM but not in nonDM could possibly be our synthetic lethality partners}
+
+\CommentTok{# Only genes, who are present in all dataframes, can be included for the linear regression model. There for we first established a list, which contains all three dataframes. This step allows to extract the shared genes in both dataframes in a more effectiv way.}
+
+\NormalTok{common.genes <-}\StringTok{ }\KeywordTok{list}\NormalTok{(nonARID1A, yesARID1A ) }\CommentTok{# bind dataframes in one list}
+\KeywordTok{names}\NormalTok{(common.genes) <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"nonARID1A"}\NormalTok{,}\StringTok{"yesARID1A"}\NormalTok{ ) }\CommentTok{# rename the elements of the list}
+
+\CommentTok{# Next we will only extraxt genes, that are common in all three dataframes. Therefore all identical rownames/ genes were collated in one object/value}
+
+\NormalTok{common.names =}\StringTok{ }\KeywordTok{Reduce}\NormalTok{(intersect, }\KeywordTok{lapply}\NormalTok{(common.genes, row.names)) }\CommentTok{# all common rownames in the three dataframes}
+
+\StringTok{'%ni%'}\NormalTok{ <-}\StringTok{ }\KeywordTok{Negate}\NormalTok{(}\StringTok{'%in%'}\NormalTok{)}
+\NormalTok{not.common.genes <-}\StringTok{ }\KeywordTok{lapply}\NormalTok{(common.genes, }\ControlFlowTok{function}\NormalTok{(x) \{x[}\KeywordTok{row.names}\NormalTok{(x) }\OperatorTok{%ni%}\StringTok{ }\NormalTok{common.names,]\}) }\CommentTok{# new list reduced to only the unshared genes/ rownames}
+
+\KeywordTok{dim}\NormalTok{(not.common.genes}\OperatorTok{$}\NormalTok{nonARID1A) }\CommentTok{# find out if there are genes that don't belong to the respective other list}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1]  0 26
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{rm}\NormalTok{(Var.nonARID1A, Var.yesARID1A, low.nonARID1A, low.yesARID1A, Mean, Mean2, common.genes, common.names, not.common.genes)}
+\end{Highlighting}
+\end{Shaded}
+
+Since BRD2 cannot be identified as an SL partner this way, it remains to
+be found out which difference it makes for cancer cells to lose BRD2
+expression when ARID1A is defect.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{no <-}\StringTok{ }\NormalTok{nonARID1A[}\KeywordTok{which}\NormalTok{(}\KeywordTok{row.names}\NormalTok{(nonARID1A) }\OperatorTok{==}\StringTok{ "BRD2"}\NormalTok{), ]}
+\KeywordTok{apply}\NormalTok{(no, }\DecValTok{1}\NormalTok{, mean)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     BRD2 
+## 0.521879
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{yes <-}\StringTok{ }\NormalTok{yesARID1A[}\KeywordTok{which}\NormalTok{(}\KeywordTok{row.names}\NormalTok{(yesARID1A) }\OperatorTok{==}\StringTok{ "BRD2"}\NormalTok{), ]}
+\KeywordTok{apply}\NormalTok{(yes, }\DecValTok{1}\NormalTok{, mean)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##      BRD2 
+## 0.6395188
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{rm}\NormalTok{(no, yes)}
+\end{Highlighting}
+\end{Shaded}
+
+The output says that BRD2 is about 10\% more essential in ARID1A mutated
+cells\ldots{} Perhaps this is due to the fact that in the literature,
+BRD2 was mentioned as a SL partner explicitly in clear cell carcinomas.
+Our data comprise of different types of Ovarian cancer.
+
+Other idea to find SL partners: calculate mean gene essentiality
+probability for both initially defined groups with/without driver
+mutations and then ask for significant differences (with statistical
+test!).
+
+Performing Principal Component Analysis
+
+To reduce the information of the kd.prob matrix we perform a PCA. The
+Analysis creates groups of cell lines with similar lethality partners.
+We use the variable TopVar created before.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#we use the colors defined in step 4 for our co existing mutations}
+\NormalTok{pcb <-}\StringTok{ }\KeywordTok{cbind}\NormalTok{(}\StringTok{`}\DataTypeTok{TP}\StringTok{`}\NormalTok{ =}\StringTok{ }\NormalTok{pcb)}
+
+\CommentTok{#keine Ahnung warum ich das machen muss ich frag david noch... aber ohne gehts net}
+
+
+\CommentTok{#this function calculates the PCA with the variance calculated before}
+\NormalTok{pca.prob =}\StringTok{ }\KeywordTok{prcomp}\NormalTok{(kd.prob.topVar, }\DataTypeTok{center =}\NormalTok{ F, }\DataTypeTok{scale. =}\NormalTok{ F)}
+
+\CommentTok{#we plot the pca with the different colors for cell lines with similar Driver Mutations}
+\KeywordTok{plot}\NormalTok{(pca.prob}\OperatorTok{$}\NormalTok{rotation[, }\DecValTok{1}\NormalTok{], pca.prob}\OperatorTok{$}\NormalTok{rotation[, }\DecValTok{2}\NormalTok{], }\DataTypeTok{col =}\NormalTok{ pcb[, }\DecValTok{1}\NormalTok{], }\DataTypeTok{pch =} \DecValTok{19}\NormalTok{, }\DataTypeTok{xlab =} \StringTok{"PC1"}\NormalTok{, }\DataTypeTok{ylab =} \StringTok{"PC2"}\NormalTok{)}
+
+\CommentTok{#we also add a legend to the plot}
+\CommentTok{#to add the right colors to that legend we create a new dataframe containing the colors and the categories defined in step 4:}
+
+\NormalTok{colors <-}\StringTok{ }\KeywordTok{unique}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{col)}
+\NormalTok{cl <-}\StringTok{ }\KeywordTok{c}\NormalTok{(colors)}
+\NormalTok{ca <-}\StringTok{ }\KeywordTok{unique}\NormalTok{(annodm}\OperatorTok{$}\NormalTok{kat)}
+
+\KeywordTok{legend}\NormalTok{(}\StringTok{"topright"}\NormalTok{, }\DataTypeTok{pch =} \DecValTok{20}\NormalTok{, }\DataTypeTok{col=}\NormalTok{ cl, }\DataTypeTok{legend =}\NormalTok{ ca, }\DataTypeTok{bty=}\StringTok{'n'}\NormalTok{, }\DataTypeTok{cex=}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project_3_Ovarian_Cancer_files/figure-latex/unnamed-chunk-26-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#to have a comparisson we perform another PCA for the kd.ceres matrix}
+\CommentTok{#therefore we use the kd.ceres.topvar value generated before}
+
+\NormalTok{pca.ceres =}\StringTok{ }\KeywordTok{prcomp}\NormalTok{(kd.ceres.topVar, }\DataTypeTok{center =}\NormalTok{ F, }\DataTypeTok{scale. =}\NormalTok{ F)}
+
+\KeywordTok{plot}\NormalTok{(pca.ceres}\OperatorTok{$}\NormalTok{rotation[, }\DecValTok{1}\NormalTok{], pca.ceres}\OperatorTok{$}\NormalTok{rotation[, }\DecValTok{2}\NormalTok{], }\DataTypeTok{col =}\NormalTok{ pcb[, }\DecValTok{1}\NormalTok{], }\DataTypeTok{pch =} \DecValTok{19}\NormalTok{, }\DataTypeTok{xlab =} \StringTok{"PC1"}\NormalTok{, }\DataTypeTok{ylab =} \StringTok{"PC2"}\NormalTok{)}
+
+\KeywordTok{legend}\NormalTok{(}\StringTok{"topright"}\NormalTok{, }\DataTypeTok{pch =} \DecValTok{20}\NormalTok{, }\DataTypeTok{col=}\NormalTok{ cl, }\DataTypeTok{legend =}\NormalTok{ ca, }\DataTypeTok{bty=}\StringTok{'n'}\NormalTok{, }\DataTypeTok{cex=}\DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project_3_Ovarian_Cancer_files/figure-latex/unnamed-chunk-26-2.pdf}
+
+\hypertarget{linear-regression}{%
+\subsection{6. Linear Regression}\label{linear-regression}}
+
+In this step we wanted to investigate if it is possible to estimate the
+gene expression of a gene based on the copynumber. First a linear
+regression model should show if this issue can be applied to the
+totality of our data set independent of the differences between the
+single genes. Another regression model will focus on the relationship
+between the gene expression and copy number for the driver mutation
+individually.
+
+\hypertarget{regression-model-for-all-genes}{%
+\subsubsection{6.1 Regression model for all
+genes}\label{regression-model-for-all-genes}}
+
+\hypertarget{structuring-the-data}{%
+\paragraph{6.1.1 Structuring the data}\label{structuring-the-data}}
+
+In the first step the data frames copynumber, knock.down and expression
+were ordered alphabetically, this helps to gain a better overview of the
+reviewed genes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{copynumber <-}\StringTok{ }\NormalTok{copynumber[}\KeywordTok{order}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(copynumber)),]}
+\NormalTok{expression <-}\StringTok{ }\NormalTok{expression[}\KeywordTok{order}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(expression)),]}
+\NormalTok{kd.ceres <-}\StringTok{ }\NormalTok{kd.ceres[}\KeywordTok{order}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(kd.ceres)),]}
+\NormalTok{kd.prob <-}\StringTok{ }\NormalTok{kd.prob[}\KeywordTok{order}\NormalTok{(}\KeywordTok{rownames}\NormalTok{(kd.prob)),]}
+\end{Highlighting}
+\end{Shaded}
+
+Only genes, who are present in all dataframes, can be included for the
+linear regression model. There for we first established a list, which
+contains the two dataframes. This step allows to extract the shared
+genes in both dataframes in a more effectiv way.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{list_all.genes <-}\StringTok{ }\KeywordTok{list}\NormalTok{(expression,copynumber) }\CommentTok{# bind all the dataframes in one list}
+\KeywordTok{names}\NormalTok{(list_all.genes) <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"expression"}\NormalTok{,}\StringTok{"copynumber"}\NormalTok{) }\CommentTok{# rename the elements of the list}
+\end{Highlighting}
+\end{Shaded}
+
+Next we will only extraxt genes, that are common in both dataframes.
+Therefore all identical rownames/ genes were collated in one
+object/value
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{common_names =}\StringTok{ }\KeywordTok{Reduce}\NormalTok{(intersect, }\KeywordTok{lapply}\NormalTok{(list_all.genes, row.names)) }\CommentTok{# all common rownames in the three dataframes}
+\NormalTok{list_all.genes <-}\StringTok{ }\KeywordTok{lapply}\NormalTok{(list_all.genes, }\ControlFlowTok{function}\NormalTok{(x) \{x[}\KeywordTok{row.names}\NormalTok{(x) }\OperatorTok{%in%}\StringTok{ }\NormalTok{common_names,]\}) }\CommentTok{# new list reduced to only the shared genes/ rownames}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{checking-distribution}{%
+\paragraph{6.1.2 Checking distribution}\label{checking-distribution}}
+
+As a requirement for the regression model the data sets have to show a
+normal distribution. For an visual assessment a Q-Q-plot was used for
+each of the two variables. First all the expression values and
+copynumber vales of the different cell lines are fused to one long
+column. The new matrices exp1 and only contains only two columns. The
+first column shows the original cell line of the listed expression value
+in the second column.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{exp1 <-}\StringTok{ }\KeywordTok{melt.data.frame}\NormalTok{(list_all.genes}\OperatorTok{$}\NormalTok{expression, }\DataTypeTok{variable_name =} \StringTok{"cell line"}\NormalTok{) }\CommentTok{#fuse all expression values to one long column}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Using  as id variables
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cn1 <-}\StringTok{ }\KeywordTok{melt.data.frame}\NormalTok{(list_all.genes}\OperatorTok{$}\NormalTok{copynumber, }\DataTypeTok{variable_name =} \StringTok{"cellline"}\NormalTok{) }\CommentTok{# fuse all cell lines}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Using  as id variables
+\end{verbatim}
+
+The new matices will be used to check the distribution of the gene
+expression and the copynumber. The q-q-plot compairs the quantils of an
+normal distribution with the distribution of our data set and therefor
+can be used to check normality of the expression data
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plotex <-}\StringTok{ }\KeywordTok{ggplot}\NormalTok{() }\OperatorTok{+}\StringTok{ }\KeywordTok{geom_qq}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{sample =}\NormalTok{ exp1}\OperatorTok{$}\NormalTok{value), }\DataTypeTok{color=} \StringTok{"navy blue"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"Distribution of the gene expression"}\NormalTok{) }\CommentTok{# plot the quantils of the expression with the quantils of a gaussian distribution}
+\NormalTok{plotcn <-}\StringTok{ }\KeywordTok{ggplot}\NormalTok{() }\OperatorTok{+}\StringTok{ }\KeywordTok{geom_qq}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{sample =}\NormalTok{ cn1}\OperatorTok{$}\NormalTok{value), }\DataTypeTok{color=} \StringTok{"navy blue"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"Distribution of the copynumber"}\NormalTok{) }\CommentTok{# plot the quantils of the copynumber with the quantils of a gaussian distribution}
+\KeywordTok{grid.arrange}\NormalTok{(plotex, plotcn, }\DataTypeTok{ncol=}\DecValTok{2}\NormalTok{, }\DataTypeTok{top =} \StringTok{"Check for normality"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project_3_Ovarian_Cancer_files/figure-latex/unnamed-chunk-31-1.pdf}
+
+The left plot shows a high amount of expression values equal zero, which
+has a huge deviation of the ideal gaussian distribution for the
+expression data. In comparison to the perfect distribution the rest of
+the data points show a good fit for the regression model. To achieve a
+better fit the genes that contain expression values equal zero will be
+removed in the next step. The plot indicates a high deviation for vales
+approximately smaller than -1, to reduce the influence of this
+circumstance for the normality, all rows/ genes that show a value
+smaller than -2 or equal -2. There for we first created a vector with
+all genes, those contain one value smaller or equal -2
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{list_all.genes}\OperatorTok{$}\NormalTok{expression <-}\StringTok{ }\NormalTok{list_all.genes}\OperatorTok{$}\NormalTok{expression[}\KeywordTok{apply}\NormalTok{(list_all.genes}\OperatorTok{$}\NormalTok{expression }\OperatorTok{!=}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, all),] }\CommentTok{# removes all rows that contain a value = 0}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{rmv.rows =}\StringTok{ }\KeywordTok{apply}\NormalTok{(list_all.genes}\OperatorTok{$}\NormalTok{copynumber, }\DecValTok{1}\NormalTok{, }\ControlFlowTok{function}\NormalTok{(x) \{}\KeywordTok{sum}\NormalTok{(x }\OperatorTok{<=}\StringTok{ }\DecValTok{-2}\NormalTok{)\}) }\CommentTok{# find all genes with values <= -2}
+\NormalTok{list_all.genes}\OperatorTok{$}\NormalTok{copynumber <-}\StringTok{ }\NormalTok{list_all.genes}\OperatorTok{$}\NormalTok{copynumber[}\OperatorTok{-}\KeywordTok{which}\NormalTok{(rmv.rows }\OperatorTok{>}\StringTok{ }\DecValTok{0}\NormalTok{), ] }\CommentTok{# remove all rows, those contain more than one value <= -2}
+\end{Highlighting}
+\end{Shaded}
+
+Before checking the distribution once again the common genes of both
+dataframes have to be identified for a second time
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{common_names =}\StringTok{ }\KeywordTok{Reduce}\NormalTok{(intersect, }\KeywordTok{lapply}\NormalTok{(list_all.genes, row.names)) }\CommentTok{# identify shared rownames}
+\NormalTok{list_all.genes <-}\StringTok{ }\KeywordTok{lapply}\NormalTok{(list_all.genes, }\ControlFlowTok{function}\NormalTok{(x) \{x[}\KeywordTok{row.names}\NormalTok{(x) }\OperatorTok{%in%}\StringTok{ }\NormalTok{common_names,]\}) }\CommentTok{# only keep the common rownames in the new list}
+\end{Highlighting}
+\end{Shaded}
+
+With the melt function the reduced data set is fused to one column of
+values agian
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{exp1 <-}\StringTok{ }\KeywordTok{melt.data.frame}\NormalTok{(list_all.genes}\OperatorTok{$}\NormalTok{expression, }\DataTypeTok{variable_name =} \StringTok{"cell line"}\NormalTok{) }\CommentTok{#fuse all expression values to one long column}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Using  as id variables
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cn1 <-}\StringTok{ }\KeywordTok{melt.data.frame}\NormalTok{(list_all.genes}\OperatorTok{$}\NormalTok{copynumber, }\DataTypeTok{variable_name =} \StringTok{"cellline"}\NormalTok{) }\CommentTok{# fuse all cell lines}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Using  as id variables
+\end{verbatim}
+
+A q-q-plot is peformed to check the normality of the expression data set
+once again and determine if the reduction process shows a improved
+result
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plotex <-}\StringTok{ }\KeywordTok{ggplot}\NormalTok{() }\OperatorTok{+}\StringTok{ }\KeywordTok{geom_qq}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{sample =}\NormalTok{ exp1}\OperatorTok{$}\NormalTok{value), }\DataTypeTok{color=} \StringTok{"navy blue"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"gene expression"}\NormalTok{) }\CommentTok{# plot the quantils of the expression with the quantils of a gaussian distribution}
+\NormalTok{plotcn <-}\StringTok{ }\KeywordTok{ggplot}\NormalTok{() }\OperatorTok{+}\StringTok{ }\KeywordTok{geom_qq}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{sample =}\NormalTok{ cn1}\OperatorTok{$}\NormalTok{value), }\DataTypeTok{color=} \StringTok{"navy blue"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"copynumber"}\NormalTok{) }\CommentTok{# plot the quantils of the copynumber with the quantils of a gaussian distribution}
+\KeywordTok{grid.arrange}\NormalTok{(plotex, plotcn, }\DataTypeTok{ncol=}\DecValTok{2}\NormalTok{, }\DataTypeTok{top =} \StringTok{"Distribution"}\NormalTok{) }\CommentTok{#arrange the to plots next to each other}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project_3_Ovarian_Cancer_files/figure-latex/unnamed-chunk-36-1.pdf}
+
+While the left plot for the gene expression indicates a higher accord
+with the peferct gaussian distribution, there is still a horizontal line
+pointing out a high amount of values near zero. The right qq-plot
+reveals a better fit of the copynumber data set after the reduction
+process, although for copynumbers higher than one a strong aberration is
+revealed.
+
+\hypertarget{checking-for-outliners}{%
+\paragraph{6.1.3 Checking for outliners}\label{checking-for-outliners}}
+
+To check for outliners ab boxplot is apllied for the expression data.
+Because outliners can have a major impact on the validity of the
+regression model, both columns are checked with a boxplot.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{boxplotex <-}\StringTok{ }\KeywordTok{qplot}\NormalTok{(}\DataTypeTok{y=}\NormalTok{exp1}\OperatorTok{$}\NormalTok{value, }\DataTypeTok{x=} \DecValTok{1}\NormalTok{, }\DataTypeTok{geom =} \StringTok{"boxplot"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"Gene expression"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{xlab}\NormalTok{(}\StringTok{""}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{ylab}\NormalTok{(}\StringTok{"expression"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text.x=}\KeywordTok{element_blank}\NormalTok{()) }\CommentTok{# remove the scaling of the x-axis}
+\NormalTok{boxplotcn <-}\StringTok{ }\KeywordTok{qplot}\NormalTok{(}\DataTypeTok{y=}\NormalTok{cn1}\OperatorTok{$}\NormalTok{value, }\DataTypeTok{x=} \DecValTok{1}\NormalTok{, }\DataTypeTok{geom =} \StringTok{"boxplot"}\NormalTok{)}\OperatorTok{+}\StringTok{ }\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"Copynumber"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{xlab}\NormalTok{(}\StringTok{""}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{ylab}\NormalTok{(}\StringTok{"copynumber"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text.x=}\KeywordTok{element_blank}\NormalTok{()) }\CommentTok{# remove the scaling of the x-axis}
+\KeywordTok{grid.arrange}\NormalTok{(boxplotex, boxplotcn, }\DataTypeTok{ncol=}\DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project_3_Ovarian_Cancer_files/figure-latex/unnamed-chunk-37-1.pdf}
+
+The graph indicates a high amount of outliners, this may lead to an
+inefficient model and therefore has two be considered in the testing
+process of the regression model. Even both dataframes do not indicate a
+good fit for normality and show a high amount of outliners, futher
+analysis will be performed with the data set.
+
+\hypertarget{correlation-between-the-two-variables}{%
+\paragraph{6.1.4 Correlation between the two
+variables}\label{correlation-between-the-two-variables}}
+
+In this step the correlation between the gene expression and copy number
+is tested, to decide wether a linear regression model can be applied for
+the problem. First the gene expression values and copynumber values are
+fused to one dataframe
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{regression.all.genes <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(}\KeywordTok{cbind}\NormalTok{(exp1}\OperatorTok{$}\NormalTok{value, cn1}\OperatorTok{$}\NormalTok{value)) }\CommentTok{# merge the colums}
+\KeywordTok{colnames}\NormalTok{(regression.all.genes) <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"expression"}\NormalTok{, }\StringTok{"copynumber"}\NormalTok{) }\CommentTok{# rename the colums}
+\end{Highlighting}
+\end{Shaded}
+
+To obtain a visual overview the correlation between the two variables is
+illustrated in a scatter plot.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(regression.all.genes, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ copynumber, }\DataTypeTok{y =}\NormalTok{ expression)) }\OperatorTok{+}\StringTok{ }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{color =} \StringTok{"navy blue"}\NormalTok{)}\OperatorTok{+}\StringTok{ }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{title =} \StringTok{"Correlation between the gene expression and copynumber"}\NormalTok{) }\CommentTok{# ingtegrate title}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project_3_Ovarian_Cancer_files/figure-latex/unnamed-chunk-39-1.pdf}
+
+To analyse the correlation between the gene expression and the
+copynumber futhermore, the person and spearman correlation coefficient
+is computed.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{cor}\NormalTok{(regression.all.genes}\OperatorTok{$}\NormalTok{expression, regression.all.genes}\OperatorTok{$}\NormalTok{copynumber) }\CommentTok{# compute person correlation }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.1396735
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{cor}\NormalTok{(regression.all.genes}\OperatorTok{$}\NormalTok{expression, regression.all.genes}\OperatorTok{$}\NormalTok{copynumber, }\DataTypeTok{method =} \StringTok{"spearman"}\NormalTok{) }\CommentTok{# compute spearman correlation coefficient}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.1329078
+\end{verbatim}
+
+Both correlation coefficients show a low correlation between the two
+varibles of approximately 0.07 to 0.08. The sligthly higher spearman
+correlation concludes, that the person correlation is lightly influenced
+by outliners. To verify the correlation a t-test for both correlation
+coefficient is performed. The null hypothesis indicates that there is no
+correlation between the copy number and the gene expression, while the
+alternativ hypothesis confirms a correlation between the two variables.
+As a common level of significance ?? = 0,05 is choosen and a p-value,
+which is smaller than the level of significance, will lead to a denial
+of the null hypothesis. First the p-value for the person correlation
+coefficient is verified
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{cor.test}\NormalTok{(regression.all.genes}\OperatorTok{$}\NormalTok{expression, regression.all.genes}\OperatorTok{$}\NormalTok{copynumber)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's product-moment correlation
+## 
+## data:  regression.all.genes$expression and regression.all.genes$copynumber
+## t = 90.024, df = 407318, p-value < 2.2e-16
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  0.1366611 0.1426833
+## sample estimates:
+##       cor 
+## 0.1396735
+\end{verbatim}
+
+With a p-value \textless{} 2.2e-16 the null hypothesis can be rejected,
+becaue the p-value shows a way smaller value that the level of
+significance. Only in the case of a p-value that is higher than the
+level of significance the null hypothesis would be retained. The same
+analysis is performed for the spearman correlation coefficient
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{cor.test}\NormalTok{(regression.all.genes}\OperatorTok{$}\NormalTok{expression, regression.all.genes}\OperatorTok{$}\NormalTok{copynumber, }\DataTypeTok{method =} \StringTok{"spearman"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in cor.test.default(regression.all.genes$expression,
+## regression.all.genes$copynumber, : Cannot compute exact p-value with ties
+\end{verbatim}
+
+\begin{verbatim}
+## 
+##  Spearman's rank correlation rho
+## 
+## data:  regression.all.genes$expression and regression.all.genes$copynumber
+## S = 9.7661e+15, p-value < 2.2e-16
+## alternative hypothesis: true rho is not equal to 0
+## sample estimates:
+##       rho 
+## 0.1329078
+\end{verbatim}
+
+The test also shows a p-value \textless{} 2.2e-16, concluding the
+rejection of the null hypothesis. Both test lead to the conclusion, that
+the variables expression and copynumber have a low correlation and
+therefore could possibly be applied for a linear regression model.
+
+To ensure a clean workspace the no longer needed data frames exp1 and
+cn1 are removed
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{remove}\NormalTok{(exp1, cn1, commonnames, rmv.rows) }\CommentTok{# noch die ganzen plots}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in remove(exp1, cn1, commonnames, rmv.rows): Objekt 'commonnames'
+## nicht gefunden
+\end{verbatim}
+
+\hypertarget{univariate-linear-regression}{%
+\paragraph{6.1.4 Univariate linear
+regression}\label{univariate-linear-regression}}
+
+Before using the regression.all.genes data for a regression model, a
+small amount of values have to be seperated for training purposes. 200
+rows are taken randomly of the regression.all.genes matrix and will
+later be used as trainings data for the model.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{testing.all.genes <-}\StringTok{ }\NormalTok{regression.all.genes[}\KeywordTok{sample}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(regression.all.genes), }\DecValTok{200}\NormalTok{),] }\CommentTok{# new dataframe with 200 rows of dataframe regression.all.genes}
+\end{Highlighting}
+\end{Shaded}
+
+Next the 200 rows are removed from the original to exclude them from the
+regression model.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{regression.all.genes <-}\StringTok{ }\NormalTok{regression.all.genes[ }\OperatorTok{-}\KeywordTok{sample}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(regression.all.genes), }\DecValTok{200}\NormalTok{),] }\CommentTok{# select 200 rows randomly }
+\end{Highlighting}
+\end{Shaded}
+
+After the reduction process the data is integrated in the regression
+model lrm.all.genes. The variable copynumber is used as a predictor for
+the variable gene expression.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lrm.all.genes <-}\StringTok{ }\KeywordTok{lm}\NormalTok{(expression }\OperatorTok{~}\StringTok{ }\NormalTok{copynumber, }\DataTypeTok{data =}\NormalTok{ regression.all.genes) }\CommentTok{#create linear regression model}
+\KeywordTok{summary}\NormalTok{(lrm.all.genes) }\CommentTok{# show regression model }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = expression ~ copynumber, data = regression.all.genes)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -5.7858 -1.4789  0.0177  1.3571 11.4915 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 3.874913   0.003365 1151.69   <2e-16 ***
+## copynumber  0.781090   0.008675   90.04   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2.147 on 407118 degrees of freedom
+## Multiple R-squared:  0.01952,    Adjusted R-squared:  0.01952 
+## F-statistic:  8107 on 1 and 407118 DF,  p-value: < 2.2e-16
+\end{verbatim}
+
+With the calculated intercept of 3.874921 and a slope of 0,780919 the
+equation for the regression is:
+
+gene expression = 3,874921 + 0,780919*copynumber
+
+With a p-value smaller that 2e-16 the t-test indicates that the slope of
+the regression line has a significant aberration from zero. Even with a
+level of significance of 0,01 (one per mill) the regression line shows a
+aberration, which leads to the denial of the null-hypothesis.
+
+The standard error for the residuals indicates an average aberration of
+2,147 between the predicted expression value and the expression value of
+the dataset. For a good fit of the model a error equal to zero is
+preferred.
+
+The R-squared statistic shows the proportion of variance and measures\\
+the linear relationship between the predictor variable (copynumber) and
+the response variable (expression). While a value near 1 would indicated
+a good fit of the model, the regression model for all genes has a value
+of 0.01951 --\textgreater{} near 0 represents a regression that does not
+explain the variance in the response variable well. (Adjusted R-squared:
+0.01951 --\textgreater{} nur für multiple regression relevant)
+
+For a good fit the residuals have to be distributed symmetric around a
+median of approximately 0. With a calculated value of 0.0177 the median
+is just above zero. Futhermore the first and third quantil indicate a
+similar value with reverse algebraic sign. The interquantile range is
+2,8359
+
+IQR = Q3-Q1 = 1,3571-(-1,4788) = 2,8359
+
+Both extrema show a higher value than the IQR (min = 2IQR and max =
+4IQR). This circumstances may indicate outlines wich is checkt with an
+boxplot
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{boxplot}\NormalTok{(}\KeywordTok{resid}\NormalTok{(lrm.all.genes))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project_3_Ovarian_Cancer_files/figure-latex/unnamed-chunk-47-1.pdf}
+
+While only value beneath (name suchen) is shown, over the (name?) a high
+number of outliners is indicated. This outliners will probably lead to a
+higher varation between the training values and the estimated values in
+a later step. Another requirement for the residuals is normality, which
+is checked with a histogramm
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{qplot}\NormalTok{(lrm.all.genes}\OperatorTok{$}\NormalTok{residuals, }\DataTypeTok{geom =} \StringTok{"histogram"}\NormalTok{, }\DataTypeTok{xlab =} \StringTok{"value residuals"}\NormalTok{, }\DataTypeTok{ylab =} \StringTok{"counts"}\NormalTok{, }\DataTypeTok{main =} \StringTok{"Distribution of the Residuals"}\NormalTok{, }\DataTypeTok{fill =} \KeywordTok{I}\NormalTok{(}\StringTok{"navy blue"}\NormalTok{), }\DataTypeTok{bins =} \DecValTok{30}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{geom_histogram}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{y =}\NormalTok{ ..density..)) }\OperatorTok{+}\StringTok{ }\KeywordTok{stat_function}\NormalTok{(}\DataTypeTok{fun =}\NormalTok{ dnorm, }\DataTypeTok{args =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{mean =} \KeywordTok{mean}\NormalTok{(lrm.all.genes}\OperatorTok{$}\NormalTok{residuals), }\DataTypeTok{sd =} \KeywordTok{sd}\NormalTok{(lrm.all.genes}\OperatorTok{$}\NormalTok{residuals)), }\DataTypeTok{color =} \StringTok{"red"}\NormalTok{) }\CommentTok{# warum keine Kurve für Normalverteilung}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+\end{verbatim}
+
+\includegraphics{Project_3_Ovarian_Cancer_files/figure-latex/unnamed-chunk-48-1.pdf}
+
+The histogram of the residuals show a good fit for normality, futhermore
+the distribution is checked with a quantil-quantil-plot.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{qqnorm}\NormalTok{(lrm.all.genes}\OperatorTok{$}\NormalTok{residuals)}
+\KeywordTok{qqline}\NormalTok{(lrm.all.genes}\OperatorTok{$}\NormalTok{residuals)}\CommentTok{# noch mit ggplot machen}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project_3_Ovarian_Cancer_files/figure-latex/unnamed-chunk-49-1.pdf}
+Next check the correlation between the predictor varibale (copynumber)
+and the residuals
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{cor}\NormalTok{(regression.all.genes}\OperatorTok{$}\NormalTok{copynumber ,lrm.all.genes}\OperatorTok{$}\NormalTok{residuals)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 2.689482e-16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{cor.test}\NormalTok{(regression.all.genes}\OperatorTok{$}\NormalTok{copynumber, lrm.all.genes}\OperatorTok{$}\NormalTok{residuals)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's product-moment correlation
+## 
+## data:  regression.all.genes$copynumber and lrm.all.genes$residuals
+## t = 1.716e-13, df = 407118, p-value = 1
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  -0.003071759  0.003071759
+## sample estimates:
+##          cor 
+## 2.689482e-16
+\end{verbatim}
+
+The correlation between the two variables is equal to zero and therefore
+indicate no correlation between the copynumber and the residuals. The
+t-Test with a p-value of 1 leads to the acceptance of the
+null-hypothesis. After all requierments are checked and the regression
+model is established a scatter plot with the regression line to gain a
+visual overview
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(regression.all.genes, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{copynumber, }\DataTypeTok{y=}\NormalTok{expression)) }\OperatorTok{+}\StringTok{ }\KeywordTok{geom_point}\NormalTok{(}\DataTypeTok{color =} \StringTok{"navy blue"}\NormalTok{)}\OperatorTok{+}\StringTok{ }\KeywordTok{geom_smooth}\NormalTok{(}\DataTypeTok{method=}\NormalTok{lm, }\DataTypeTok{se=}\OtherTok{FALSE}\NormalTok{, }\DataTypeTok{color =} \StringTok{"red"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{ggtitle}\NormalTok{(}\StringTok{"Regression model for all genes"}\NormalTok{) }\CommentTok{# title for the plot}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Project_3_Ovarian_Cancer_files/figure-latex/unnamed-chunk-51-1.pdf}
+
+The scatter plot shows a high aberration of the predicted values for the
+gene expression to the regression line. To check if the model can be
+applied to the issue, the testing data is used to examine the aberration
+between the predicted expression and the real expression of values, that
+were not used for the linear regression model. First the predicted
+values for gene expression are calculated base on the copynumber values
+for the testing dataset.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{prediction <-}\StringTok{ }\KeywordTok{predict}\NormalTok{(lrm.all.genes, }\DataTypeTok{newdata =}\NormalTok{ testing.all.genes) }\CommentTok{# calculate the predicted expression values based on the copynumber}
+\end{Highlighting}
+\end{Shaded}
+
+Next the standard error of the residuals is caculated for difference
+between the predicted values and the real values of the testing data
+set. For the calculation of the error the following formula was used
+
+--\textgreater{} einfügen
+
+In the formula n displays the number of rows in the given data frame. To
+calculate the residuals the difference between the real value and the
+predicted value of the gene expression is used.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{sqrt}\NormalTok{(}\DecValTok{1}\OperatorTok{/}\KeywordTok{nrow}\NormalTok{(testing.all.genes) }\OperatorTok{*}\StringTok{ }\KeywordTok{sum}\NormalTok{(testing.all.genes}\OperatorTok{$}\NormalTok{expression}\OperatorTok{-}\NormalTok{prediction}\OperatorTok{^}\DecValTok{2}\NormalTok{)) }\CommentTok{# compute standard error with 200 values (rows)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning in sqrt(1/nrow(testing.all.genes) *
+## sum(testing.all.genes$expression - : NaNs wurden erzeugt
+\end{verbatim}
+
+\begin{verbatim}
+## [1] NaN
+\end{verbatim}
+
+The value of 2.222435 is slightly higher than the residual standard
+error for the regression model, due to circumstance that the testing
+data did not account to the regression model.
+
+\hypertarget{significance-of-the-correlation-coefficient}{%
+\subsubsection{6.3 Significance of the correlation
+coefficient}\label{significance-of-the-correlation-coefficient}}
+
+\hypertarget{creation-of-a-linear-regression-model}{%
+\subsubsection{6.4 Creation of a linear regression
+model}\label{creation-of-a-linear-regression-model}}
+
+\hypertarget{verfication-of-the-model}{%
+\subsubsection{6.5 Verfication of the
+model}\label{verfication-of-the-model}}
+
+\hypertarget{summary-of-results}{%
+\subsection{7. Summary of Results}\label{summary-of-results}}
+
+\hypertarget{conclusion}{%
+\subsection{8. Conclusion}\label{conclusion}}
+
+
+\end{document}
