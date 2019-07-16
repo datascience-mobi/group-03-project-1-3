@@ -170,7 +170,16 @@ For a better overview, we solely plot genes that are mutated more than 4 times i
 
 ```{r}
 DriverMutation <- as.data.frame(table(new_uniq$Hugo_Symbol)) # Create a new data frame that contains the mutated genes (but just once per cell line, as definded in new_uniq)
-DriverMutation = DriverMutation[which(DriverMutation$Freq > 4), ] # extract all mutations that occur more than 4 times among our cell lines in total
+
+#we extract all mutations that occur at least one time for a later step
+dm_null = DriverMutation[which(DriverMutation$Freq > 0), ]
+dm_null = dm_null[order(dm_null$Freq, decreasing = TRUE),]
+rownames(dm_null) <- dm_null$Var1
+ 
+# extract all mutations that occur more than 4 times among our cell lines in total
+DriverMutation = DriverMutation[which(DriverMutation$Freq > 4), ] 
+
+
 DriverMutation <- DriverMutation[order(DriverMutation$Freq, decreasing = TRUE),] # order the genes in the data frame according to their frequency
 barplot(DriverMutation$Freq, names.arg = DriverMutation$Var1, xlab="mutated Gene", las = 1, horiz=FALSE, cex.axis = 1,2, col = "lightblue", main = "mutations present in more than four cell lines", ylab = "frequency") # create a barplot of the most frequent mutations, displaying their occurence
 
@@ -189,46 +198,25 @@ To get a short overview about how many co existing Drivermutations are common in
 ```{r}
 #creating a new matrix containing every cell line that has at least one of our 7 Drivermutations. We check if the name of our Drivermutation occurs in the Drivermutation matrix
 
-dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% DriverMutation$Var1), ]
+dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% dm_null$Var1), ]
 
-
+dm_drei <- dm_null[which(dm_null$Freq > 3), ]
 
 #lets check out how many Drivermutations are common in the cell lines
-table(dm$DepMap_ID)
-
-#to get acces to the single cell lines we have to create single matrices for every Drivermutation which contain the cell lines with that Mutation
-
-dmTP53 = dm[which(dm$Hugo_Symbol == "TP53"), ]
-dmARID1A = dm[which(dm$Hugo_Symbol == "ARID1A"), ]
-dmATM = dm[which(dm$Hugo_Symbol == "ATM"), ]
-dmBAI1 = dm[which(dm$Hugo_Symbol == "BAI1"), ]
-dmPTPRF = dm[which(dm$Hugo_Symbol == "PTPRF"), ]
-dmSYNE1 = dm[which(dm$Hugo_Symbol == "SYNE1"), ]
-dmTHBS3 = dm[which(dm$Hugo_Symbol == "THBS3"), ]
+#table(dm$DepMap_ID)
 
 
-#now we add new colums to the annotation matrix containing information about which cell line contains which Drivermutation
-annotation$TP53 <- ifelse(rownames(annotation) %in% dmTP53$DepMap_ID, TRUE, FALSE)
-annotation$ARID1A <- ifelse(rownames(annotation) %in% dmARID1A$DepMap_ID, TRUE, FALSE)
-annotation$ATM <- ifelse(rownames(annotation) %in% dmATM$DepMap_ID, TRUE, FALSE)
-annotation$PTPRF <- ifelse(rownames(annotation) %in% dmPTPRF$DepMap_ID, TRUE, FALSE)
-annotation$SYNE1 <- ifelse(rownames(annotation) %in% dmSYNE1$DepMap_ID, TRUE, FALSE)
-annotation$BAI1 <- ifelse(rownames(annotation) %in% dmBAI1$DepMap_ID, TRUE, FALSE)
-annotation$THBS3 <- ifelse(rownames(annotation) %in% dmTHBS3$DepMap_ID, TRUE, FALSE)
 
-```
+#rownames(DriverMutation) <- DriverMutation$Var1
 
-Now we can see which cell line has which Drivermutation by just looking at the annotation matrix.
-For the further steps we copy the annotation marix because we will do some larger changes.
 
-```{r}
-#performing a heatmap
+anno <- apply(dm_drei, 1, function(x) {annotation$ff[x]<- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% x), ]$DepMap_ID, TRUE, FALSE)})
 
-#at first we copy the annotation matrix and delete columns which are unesessary for this step
-anno <- annotation[, -which(colnames(annotation) %in% c("CCLE_Name", "Subtype.Disease"))]
 
-#to get a better overview at the end we replace the cell line names into numbers
-rownames(anno) <- c(1:34)
+
+
+anno <- as.data.frame(anno)
+
 
 #to keep the overview which name was transformed to which number we add the numbers to the annotation matrix in the column "transformed_Numbers""
 annotation$transformed_Numbers <- rownames(anno)
@@ -244,25 +232,23 @@ anno <- as.data.frame(anno)
 #now we sum up how many TRUE occur in each cell line
 anno$summe <- apply(anno, 1, function(x) { sum(x)})
 
-#we remove cell lines whitout any of the 7 Drivermutations
-rmv.rows = apply(anno, 1, function(x) {
-    ifelse(anno$summe == 0, 1,0) })
 
-anno = anno[-which(rmv.rows > 0), ]
 
-#the next step is done to order the cell lines after tp53 to have a better view at the end
-anno$order <- ifelse(anno$TP53 == 1 & anno$ARID1A == 0, 5, ifelse(anno$TP53 == 1 & anno$ARID1A == 1, 4, (ifelse(anno$ARID1A == 1, 3,ifelse(anno$ATM == 1, 2, ifelse(anno$PTPRF == 1, 1, 0))))))
+anno <- anno[order(anno$summe, decreasing = TRUE),]
 
-anno <- anno[order(anno$order, decreasing = TRUE),]
+summe <- anno$summe
 
 #we remove columns which should not be plotted
-anno <- anno[, -which(colnames(anno) %in% c("order", "summe"))]
+anno <- anno[, -which(colnames(anno) %in% c("summe"))]
+
+#to get a better overview at the end we replace the cell line names into numbers
+#rownames(anno) <- c(1:34)
 
 #and bring the matrix in a format the function "heatmap" can plot
 anno <- data.matrix(anno)
 
 #we create a color palette containing the colors we want to use
-cols <- c("forestgreen", "firebrick" )
+cols <- c("red", "yellow" )
 mypalette <- colorRampPalette(cols)(2)
 co <- as.data.frame(cols)
 co$kat <- c("not mutated", "mutated")
@@ -270,17 +256,25 @@ co$kat <- c("not mutated", "mutated")
 
 
 #plotting the heatmap
-heatmap(anno, Rowv = NA, Colv = NA, main = "occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = mypalette,  cexCol = 1.1)
+heatmap(anno, Rowv = NA, Colv = NA, main = "occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(10),  cexCol = 1.1)
 
 legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 1)
+```
 
+In the heatmap we can see cell lines with similar Drivermutations
+
+
+```{r}
+summe <- as.data.frame(summe)
+
+summe$kat <- ifelse(summe == 1000, "TP53 only", ifelse(annodm$summe > 1099, "TP53 & ARID1A", ifelse(annodm$summe == 100, "ARID1A only", ifelse(annodm$summe == 110, "ARID1A & sec. Mu", ifelse(annodm$summe == 101, "ARID1A & sec. Mu", ifelse(annodm$summe < 100, "no TP53 & no ARID1A", ifelse(annodm$summe == 0, "no TP53 & no ARID1A", "TP53 & sec. Mu")))))))
 
 ```
 
 The next step is only possible with less than seven Mutations. Because otherwise there would be too many combinations of Drivermutations. In the Tree-Diagramm we performed in step 4 it is visible that many Drivermutations, especially the ones that occur only five times in our cell lines, occur very randomly along the cell lines. Caused by this fact we validated our seven mutations and choosed the ones that were mentioned in an Ovarian cancer context in literature. The following are our chosen ones: TP53, ARID1A, ATM and PTPRF. We continue the PCA analysis:
 
 ```{r}
-#to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
+'#to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
 annodm <- annotation[, -which(colnames(annotation) %in% c("CCLE_Name", "Subtype.Disease", "BAI1", "SYNE1", "THBS3"))]
 
 
@@ -297,7 +291,7 @@ annodm$PTPRF <- ifelse(rownames(annotation) %in% dmPTPRF$DepMap_ID, 1, 0)
 
 
 #we can now sum up these values in a new column
-annodm$summe <- apply(annodm, 1, function(x) { sum(x)})
+annodm$summe <- apply(annodm, 1, function(x) { sum(x)})'
 
 ```
 We can now use the following order to take a look at our co existing Mutations
