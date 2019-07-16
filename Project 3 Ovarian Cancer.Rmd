@@ -214,6 +214,7 @@ annotation$ATM <- ifelse(rownames(annotation) %in% dmATM$DepMap_ID, TRUE, FALSE)
 annotation$PTPRF <- ifelse(rownames(annotation) %in% dmPTPRF$DepMap_ID, TRUE, FALSE)
 annotation$SYNE1 <- ifelse(rownames(annotation) %in% dmSYNE1$DepMap_ID, TRUE, FALSE)
 annotation$BAI1 <- ifelse(rownames(annotation) %in% dmBAI1$DepMap_ID, TRUE, FALSE)
+annotation$THBS3 <- ifelse(rownames(annotation) %in% dmTHBS3$DepMap_ID, TRUE, FALSE)
 
 ```
 
@@ -226,14 +227,19 @@ For the further steps we copy the annotation marix because we will do some large
 #at first we copy the annotation matrix and delete columns which are unesessary for this step
 anno <- annotation[, -which(colnames(annotation) %in% c("CCLE_Name", "Subtype.Disease"))]
 
+#to get a better overview at the end we replace the cell line names into numbers
+rownames(anno) <- c(1:34)
+
+#to keep the overview which name was transformed to which number we add the numbers to the annotation matrix in the column "transformed_Numbers""
+annotation$transformed_Numbers <- rownames(anno)
+
 #now we change the boolean variables into integer values: TRUE = 1, FALSE = 0
 anno <- apply(anno, 2, function(x) { ifelse(x == TRUE, 1, 0)})
 
 #for the further steps we have to convert the matrix back to a data frame
 anno <- as.data.frame(anno)
 
-#to get a better overview at the end we replace the cell line names into numbers
-rownames(anno) <- c(1:34)
+
 
 #now we sum up how many TRUE occur in each cell line
 anno$summe <- apply(anno, 1, function(x) { sum(x)})
@@ -356,11 +362,11 @@ summary(mean.survival.prob) # show me the mean survival distribution of the gene
 
 ```
 
-Alternative Idea: Wir nehmen unsere 7 Driver mutations (TP53, ARID1A, ATM, BAI1, PTPRF, SYNE1, THBS3) und teilen die Matrix kd.prob in zwei Submatrizen: eine, in der alle Zelllinien enthalten sind, die Driver mutations besitzen (23 von 34); und eine, wo die restlichen Zelllinien drin sind (11 von 34). Als n?chstes werden ?hnliche "Verhaltensmuster" unter den DM-Zelllinien gesucht: Erst werden alle Gene aussortiert, die eine hohe Varianz (oder hohe Differenz zw. Max und Min-Wert) haben (schlie?lich suchen wir SL partner, die m?glichst oft zum Tod f?hren), und dann jene, wo das mittlere ?berleben hoch ist => Man hat nur noch Gene, deren Knockout m?glichst oft t?dlich ist.
+Alternative Idea:
 
-Jedoch muss gew?hrleistet sein, dass diese potenziellen SL partner keine allgemein essentiellen Gene sind, die auch ohne die Existenz von Driver mutations zum Zelltod f?hren. Daher behandelt man die Matrix mit den non-Driver-mutations-Zelllinien genauso, sodass man am Ende auch hier die Gene beh?lt, deren Knockout durchg?ngig t?dlich ist.
-Nun kann man beide Data frames vergleichen - jene Gene, die in beiden Matrizen zum Tod f?hren, k?nnen keine spezifischen SL partner f?r die Driver mutations sein. Jedoch besteht die Chance, dass der Knockout jener Gene, die nur in der DM Matrix auftauchen, auch nur dort (und wegen der DM) t?dlich wirkt. Das w?ren dann die SL partner.
-Genauere Analysen k?nnte man noch mit Subsetten durchf?hren, indem man aufteilt in "Zelllinien mit TP53-Mutation" (ersetze jeweils mit einer anderen DM) und "Zelllinien ohne TP53-Mutation".
+We take our 7 Driver mutations (TP53, ARID1A, ATM, BAI1, PTPRF, SYNE1, THBS3) and divide the matrix kd.prob into two submatrices: the first one (yesDM group) contains all cell lines with Driver mutations (23 out of 34), the second one contains the remaining cell lines (11 out of 34). Next, similar "cellular behaviour" among the yesDM group is sought out: First, all genes with high variances are sorted out, since we are looking for SL partners that generally display high essentiality). Then, all genes with high mean survival are excluded since we are interested in genes whose knockout leads to cell death (high essentiality).
+However, synthetic lethality interactions are defined by being only lethal in cells that have a certain mutation. Therefore, the same procedure described above is also applied to the non-dm group (no driver mutations -> nonDM). Then, it is checked whether there are any genes that do not lead to cell death in both groups, but solely in the dm group - this would be a SL interaction partner.
+This method in general can also be specifically applied to other groups, e.g. all cell lines containing ARID1A mutation vs. cell lines without ARID1A mutation.
 
 ```{r}
 nonDM <- kd.prob[, -which(colnames(kd.prob) %in% dm$DepMap_ID)] # prob Matrix with cell lines that do not have at least one of the 7 driver mutations
@@ -455,11 +461,40 @@ apply(yes, 1, mean)
 rm(no, yes)
 
 ```
-The output says that BRD2 is about 10% more essential in ARID1A mutated cells...
-Perhaps this is due to the fact that in the literature, BRD2 was mentioned as a SL partner explicitly in clear cell carcinomas. Our data comprise of different types of Ovarian cancer.
+The output says that BRD2 is about 10% more essential in ARID1A mutated cells... This seems like a very low difference to be considered a "real" SL partner.
+Perhaps this is due to the fact that in the literature, BRD2 was mentioned as a SL partner explicitly in clear cell carcinomas. Our data comprises of different types of Ovarian cancer.
 
-Other idea to find SL partners: calculate mean gene essentiality probability for both initially defined groups with/without driver mutations
-and then ask for significant differences (with statistical test!).
+Other idea to find SL partners: calculate mean gene essentiality probability for both initially defined groups with/without driver mutations (TP53, ARID1A, ATM, BAI1, PTPRF, SYNE1, THBS3), plot them and then ask for significant differences (with statistical test!).
+
+```{r}
+dmARID1A = dm[which(dm$Hugo_Symbol == "ARID1A"), ]
+nonARID1A <- kd.prob[, -which(colnames(kd.prob) %in% dmARID1A$DepMap_ID)] # prob Matrix with cell lines that do not have the ARID1A mutation
+yesARID1A <- kd.prob[, which(colnames(kd.prob) %in% dmARID1A$DepMap_ID)] # prob matrix with cell lines that do have driver mutation
+
+# now calculate difference between gene essentiality
+
+m.ARID1A <- as.data.frame(apply(yesARID1A, 1, mean))
+m.nonARID1A <- as.data.frame(apply(nonARID1A, 1, mean))
+diffARID1A = m.ARID1A - m.nonARID1A # calculate difference in essentiality (really?)
+diffARIDA1$Mean <- diffARID1A$`apply(yesARID1A, 1, mean)` # wie mach ich das schlauer?
+diffARID1A <- diffARID1A[which(diffARID1A$Mean > 0.3), ]
+diffARID1A <- diffARID1A[order(diffARID1A, decreasing = TRUE),] # warum bei view auf einmal NA values? bei Marco hats doch auch geklappt
+barplot(diffARID1A$Mean, names.arg = diffARID1A$Var1, xlab="SL partner", las = 1, horiz=FALSE, cex.axis = 1,2, col = "lightblue", main = "SL partners for ARID1A mutation", ylab = "difference in essentiality") # funktioniert, aber noch mal gucken ob das wirklich sein kann. Erscheint mit irgendwie viel. Wie mach ich hier, dass unten die Gennamen angezeigt werden?
+
+# für andere dm fehlt das noch. muss dann nebeneinander am besten angezeigt werden. Dann diskussion!
+
+
+
+dmTP53 = dm[which(dm$Hugo_Symbol == "TP53"), ]
+nonTP53 <- kd.prob[, -which(colnames(kd.prob) %in% dmTP53$DepMap_ID)] # prob Matrix with cell lines that do not have the TP53 mutation
+yesTP53 <- kd.prob[, which(colnames(kd.prob) %in% dmTP53$DepMap_ID)] # prob matrix with cell lines that do have driver mutation
+
+dmATM = dm[which(dm$Hugo_Symbol == "ATM"), ]
+nonATM <- kd.prob[, -which(colnames(kd.prob) %in% dmATM$DepMap_ID)] # prob Matrix with cell lines that do not have the ATM mutation
+yesATM <- kd.prob[, which(colnames(kd.prob) %in% dmATM$DepMap_ID)] # prob matrix with cell lines that do have driver mutation
+```
+
+
 
 
 Performing Principal Component Analysis
