@@ -506,7 +506,7 @@ geom_col(mapping = aes(x = diffATM$sub, y = diffATM$Difference, fill = diffATM$s
 labs(x = "SL partners", y = "Difference in essentiality", title = "SL partners for ATM Driver mutation", caption = "(based on data from kd.prob)")
 
 ```
-Now: test significance of obtained values with a statistical test
+Now: test significance of obtained values with a statistical test (which one?)
 
 
 
@@ -772,6 +772,21 @@ sqrt(1/nrow(testing.all.genes) * sum(testing.all.genes$expression-prediction^2))
 The value of 2.222435 is slightly higher than the residual standard error for the regression model, due to circumstance that the testing data did not account to the regression model.
 
 ### 6.7 Discussion 
+Although the results of the linear regression model are somewhat sobering, this is not very surprising from the biological point of view. Initially, it was our goal to predict the gene expression by looking at the gene copy numbers, since it is known that many upregulations in cancer such as VEGF are due to gene amplifications.
+However, gene expression is a very strictly regulated process which is influenced by many different factors. The numerous steps in the pathway from DNA to RNA to protein comprise of
+- transcriptional control
+- RNA processing
+- RNA transport and localization control
+- protein activity control.
+Since the expression data from our dataset gives information about the quantity of RNA transcripts, the according control feature is transcriptional control, possibly also RNA processing and transport. Factors that influence the gene expression on DNA level are:
+.	Promotors, which can be active/inactive and whose affinity to transcription initiation factors can vary from gene to gene
+.	Transcription factors and regulators: These proteins specifically bind the DNA with their amino acid residues and make it accessible or inaccessible for the transcription machinery.
+.	Epigenetics:
+  o	DNA-methylation: Methylation of CpG nucleotides which are frequent in so-called CpG islands situated in genes' promotor regions leads to a transcriptional blockade in most cases (depending on binding characteristics of transcription regulator proteins).
+  o	Histone-methylation and acetylation: Chemical modification of the proteins that pack the DNA has a huge impact on binding of transcription machinery proteins and transcription factors.
+.	Non-coding RNA: There are approximately 9000 genes coding for RNA molecules that are not translated into proteins, but have regulatory functions. They often form complexes with other proteins and process or degrade other RNA transcripts. Other non-coding RNAs directly bind the DNA double helix and influence DNA conformation or the accessibility and binding affinity for other proteins such as transcription factors or RNA polymerases.
+In each cell, a complex interplay of all these regulations takes place. It is therefore impossible to predict gene expression alone by knowing the gene copy number - to obtain a more accurate model, we would need access to further information concerning the mentioned regulatory elements and processes.
+
 
 ## 7. Summary of Results
 ## 8. Conclusion
