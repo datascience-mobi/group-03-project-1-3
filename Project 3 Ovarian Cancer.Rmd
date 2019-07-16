@@ -1,9 +1,9 @@
 ---
 title: 'Project 3: Ovarian Cancer'
 output:
-  word_document: default
-  pdf_document: default
   html_document: default
+  pdf_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -530,11 +530,10 @@ plot(comp, pch=16, col= Borough)
 
 
 ## 6. Linear Regression
-In this step we wanted to investigate if it is possible to estimate the gene expression of a gene based on the copynumber. First a linear regression model should show if this issue can be applied to the totality of our data set independent of the differences between the single genes. Another regression model will focus on the relationship between the gene expression and copy number for the driver mutation individually.
+Independent of the previous analysis, this step will focus on the relationship between the gene expression and the copynumber. This approach will be performed with the totality of the given genes. Blub Literatur noch nutzen
+To investigate this issue a linear regression model will be applied to the question: If it is possible to estimate the gene expression based on the given value for the copy number of the certain gene.
 
-### 6.1 Regression model for all genes
-
-#### 6.1.1 Structuring the data
+#### 6.1 Structuring the data
 
 In the first step the data frames copynumber, knock.down and expression were ordered alphabetically, this helps to gain a better overview of the reviewed genes.
 
@@ -544,34 +543,37 @@ expression <- expression[order(rownames(expression)),]
 kd.ceres <- kd.ceres[order(rownames(kd.ceres)),]
 kd.prob <- kd.prob[order(rownames(kd.prob)),]
 ```
-Only genes, who are present in all dataframes, can be included for the linear regression model. There for we first established a list, which contains the two dataframes. This step allows to extract the shared genes in both dataframes in a more effectiv way.
+Before performing a linear regression, the data frames expression and copy number are bind to the list list_all.genes. This step will help in the following reduction process and ensure that the primary dataset is not changed. Only genes, who are present in all dataframes, can be included for the linear regression model. An extraction of those genes can be easier applied to a list than two separate data frames.  
 ```{r}
 list_all.genes <- list(expression,copynumber) # bind all the dataframes in one list
 names(list_all.genes) <- c("expression","copynumber") # rename the elements of the list
 ```
-Next we will only extraxt genes, that are common in both  dataframes. Therefore all identical rownames/ genes were collated in one object/value
+Next only the genes, that are common in both data frames, are kept in the objects of the list_all.genes.  This process allows, that for each copy number value a corresponding expression value does exists and can be plotted in a univariate linear regression model.
 ```{r}
 common_names = Reduce(intersect, lapply(list_all.genes, row.names)) # all common rownames in the three dataframes
 list_all.genes <- lapply(list_all.genes, function(x) {x[row.names(x) %in% common_names,]}) # new list reduced to only the shared genes/ rownames
 ```
 
-#### 6.1.2 Checking distribution 
+#### 6.2 Checking distribution 
 
-As a requirement for the regression model the data sets have to show a normal distribution. For an visual assessment  a Q-Q-plot was used for each of the two variables. First all the expression values and copynumber vales of the different cell lines are fused to one long column. 
-The  new matrices exp1 and only contains only two columns. The first column shows the original cell line of the listed expression value in the second column.
+As a requirement for the later performed t-Test to check the correlation between the two variables the data sets should show a normal distribution. For a visual assessment a Q-Q-plot was used for each of the two variables. First all the expression values and copynumber vales of the different cell lines are fused to one long column. The new matrices exp1 and cn1 only contains only two columns. The first column shows the original cell line of the listed expression value in the second column.
 ```{r}
-exp1 <- melt.data.frame(list_all.genes$expression, variable_name = "cell line") #fuse all expression values to one long column
-cn1 <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline") # fuse all cell lines
+exp1b <- melt.data.frame(list_all.genes$expression, variable_name = "cell line") #fuse all expression values to one long column
+cn1b <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline") # fuse all cell lines
 ```
-The new matices will be used to check the distribution of the gene expression and the copynumber. The q-q-plot compairs the quantils of an normal distribution with the distribution of our data set and therefor can be used to check normality of the expression data
+The new matrices can then be used to check the distribution of the gene expression and the copynumber. The Q-Q-plot compares the quantiles of a theoretical normal distribution (x-axis) with the distribution of our data set (y-axis) and can therefore be used to check normality of the expression and copy number data.
 ```{r}
-plotex <- ggplot() + geom_qq(aes(sample = exp1$value), color= "navy blue") + ggtitle("Distribution of the gene expression") # plot the quantils of the expression with the quantils of a gaussian distribution
-plotcn <- ggplot() + geom_qq(aes(sample = cn1$value), color= "navy blue") + ggtitle("Distribution of the copynumber") # plot the quantils of the copynumber with the quantils of a gaussian distribution
-grid.arrange(plotex, plotcn, ncol=2, top = "Check for normality")
+plotexb <- ggplot() + geom_qq(aes(sample = exp1b$value), color= "navy blue") + ggtitle("Gene expression") # plot the quantils of the expression with the quantils of a gaussian distribution
+
+plotcnb <- ggplot() + geom_qq(aes(sample = cn1b$value), color= "navy blue") + ggtitle("Copy number") # plot the quantils of the copynumber with the quantils of a gaussian distribution
+
+grid.arrange(plotexb, plotcnb, ncol=2, top = "Checking normality")
 
 ```
 
-The left plot shows a high amount of expression values equal zero, which has a huge deviation of the ideal gaussian distribution for the expression data. In comparison to the perfect distribution the rest of the data points show a good fit for the regression model.  To achieve a better fit the genes that contain expression values equal zero will be removed in the next step. The plot indicates a high deviation for vales approximately smaller than -1, to reduce the influence of this circumstance for the normality, all rows/ genes that show a value smaller than -2 or equal -2. There for we first created a vector with all genes, those contain one value smaller or equal -2
+The left plot shows a high amount of expression values equal zero, which leads to a huge deviation from the ideal gaussian distribution for the expression data. In comparison to the perfect distribution, the rest of the data points show a good fit for the regression model.  This leads to a high skew on the right side and result in a higher frequency for values in the lower tail compared to the normal distribution. To achieve a better fit the genes that contain expression values equal zero will be removed in the next step. 
+The right plot indicates a high deviation for copy number vales smaller than -1, to reduce the influence of this circumstance, all rows that obtain a value smaller than -2 or equal -2 are removed of the data set.  This process leads to a limitation of the predictor variable of the regression models. Predictions will only be possible for genes with a copy number higher than -2.
+
 ```{r}
 list_all.genes$expression <- list_all.genes$expression[apply(list_all.genes$expression !=0, 1, all),] # removes all rows that contain a value = 0
 ```
@@ -579,39 +581,40 @@ list_all.genes$expression <- list_all.genes$expression[apply(list_all.genes$expr
 rmv.rows = apply(list_all.genes$copynumber, 1, function(x) {sum(x <= -2)}) # find all genes with values <= -2
 list_all.genes$copynumber <- list_all.genes$copynumber[-which(rmv.rows > 0), ] # remove all rows, those contain more than one value <= -2
 ```
-Before checking the distribution once again the common genes of both dataframes have to be identified for a second time
+Before checking the distribution once again the common genes of both dataframes must be identified for a second time.
 ```{r}
 common_names = Reduce(intersect, lapply(list_all.genes, row.names)) # identify shared rownames
 list_all.genes <- lapply(list_all.genes, function(x) {x[row.names(x) %in% common_names,]}) # only keep the common rownames in the new list
 ```
-With the melt function the reduced data set is fused to one column of values agian
+With the melt function the reduced data set is fused to one column of values again. This process is applied to both matrices (expression and copynumber).
 ```{r}
 exp1 <- melt.data.frame(list_all.genes$expression, variable_name = "cell line") #fuse all expression values to one long column
 cn1 <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline") # fuse all cell lines
 ```
-A q-q-plot is peformed to check the normality of the expression data set once again and determine if the reduction process shows a improved result
+A Q-Q-plot is peformed to check the normality of the gene expression and copy number data set once again and determine if the reduction process shows an improved result for the distribution.
 ```{r}
 plotex <- ggplot() + geom_qq(aes(sample = exp1$value), color= "navy blue") + ggtitle("gene expression") # plot the quantils of the expression with the quantils of a gaussian distribution
 plotcn <- ggplot() + geom_qq(aes(sample = cn1$value), color= "navy blue") + ggtitle("copynumber") # plot the quantils of the copynumber with the quantils of a gaussian distribution
 grid.arrange(plotex, plotcn, ncol=2, top = "Distribution") #arrange the to plots next to each other
 ```
 
-While the left plot for the gene expression indicates a higher accord with the peferct gaussian distribution, there is still a horizontal line pointing out a high amount of values near zero. The right qq-plot reveals a better fit of the copynumber data set after the reduction process, although for copynumbers higher than one a strong aberration is revealed.
+While the left plot for the gene expression indicates a higher accord with the peferct gaussian distribution, there is still a horizontal line pointing out a high amount of values near zero. 
+The right Q-Q-plot reveals a better fit for the copy number data set after the reduction process, although for copy numbers higher than one a strong aberration is revealed.
+The effect of this circumstances has to be considered as a possible error for the regression model 
 
-#### 6.1.3 Checking for outliners
 
-To check for outliners ab boxplot is apllied for the expression data.
-Because outliners can have a major impact on the validity of the regression model, both columns are checked with a boxplot.
+#### 6.3 Checking for outliners
+
+Also, the presents of outliners (datapoints that lay outside the 1,5 IQR) can have a huge impact on the validity of the regression model. Therefore, the predictor variable and the dependent variable for the model are checked for outliners with a boxplot.  
 ```{r}
-boxplotex <- qplot(y=exp1$value, x= 1, geom = "boxplot") + ggtitle("Gene expression") + xlab("") + ylab("expression") + theme(axis.text.x=element_blank()) # remove the scaling of the x-axis
-boxplotcn <- qplot(y=cn1$value, x= 1, geom = "boxplot")+ ggtitle("Copynumber") + xlab("") + ylab("copynumber") + theme(axis.text.x=element_blank()) # remove the scaling of the x-axis
+boxplotex <- qplot(y=exp1$value, x= 1, geom = "boxplot") + ggtitle("Gene expression") + xlab("") + ylab("gene expression") + theme(axis.text.x=element_blank()) # remove the scaling of the x-axis
+boxplotcn <- qplot(y=cn1$value, x= 1, geom = "boxplot")+ ggtitle("Copy number") + xlab("") + ylab("copy number") + theme(axis.text.x=element_blank()) # remove the scaling of the x-axis
 grid.arrange(boxplotex, boxplotcn, ncol=2)
 ```
 
-The graph indicates a high amount of outliners, this may lead to an inefficient model and therefore has two be considered in the testing process of the regression model.
-Even both dataframes do not indicate a good fit for normality and show a high amount of outliners, futher analysis will be performed with the data set.
+The left graph indicates a high number of outliners above the boxplot for the gene expression, while no outliners are shown for the area lower than 1,5 IQR (Interquatile-range). This circumstance is mainly due to the previous reduction process (removement of all values that are equal zero). The right boxplot reveals many outliners for each side of the 1,5 IQR, while the Interquartile. Having a large number of outliners in the predictor variable can effect the slope for the regression model and may lead to a low accuracy of the predictions based on the model.   
 
-#### 6.1.4 Correlation between the two variables
+#### 6.4 Correlation between the two variables
 In this step the correlation between the gene expression and copy number is tested, to decide wether a linear regression model can be applied for the problem. First the gene expression values and copynumber values are fused to one dataframe
 
 ```{r}
@@ -645,7 +648,7 @@ To ensure a clean workspace the no longer needed data frames exp1 and cn1 are re
 remove(exp1, cn1, commonnames, rmv.rows) # noch die ganzen plots
 ```
 
-#### 6.1.4 Univariate linear regression
+#### 6.5 Univariate linear regression
 Before using the regression.all.genes data for a regression model, a small amount of values have to be seperated for training purposes. 200 rows are taken randomly of the regression.all.genes matrix and will later be used as trainings data for the model. 
 ```{r}
 testing.all.genes <- regression.all.genes[sample(1:nrow(regression.all.genes), 200),] # new dataframe with 200 rows of dataframe regression.all.genes
@@ -701,7 +704,10 @@ After all requierments are checked and the regression model is established a sca
 ggplot(regression.all.genes, aes(x=copynumber, y=expression)) + geom_point(color = "navy blue")+ geom_smooth(method=lm, se=FALSE, color = "red") + ggtitle("Regression model for all genes") # title for the plot
 ```
 
-The scatter plot shows a high aberration of the predicted values for the gene expression to the regression line. To check if the model can be applied to the issue, the testing data is used to examine the aberration between the predicted expression and the real expression of values, that were not used for the linear regression model. First the predicted values for gene expression are calculated base on the copynumber values for the testing dataset.
+The scatter plot shows a high aberration of the predicted values for the gene expression to the regression line.
+
+### 6.6 Testing the model
+To check if the model can be applied to the issue, the testing data is used to examine the aberration between the predicted expression and the real expression of values, that were not used for the linear regression model. First the predicted values for gene expression are calculated base on the copynumber values for the testing dataset.
 ```{r}
 prediction <- predict(lrm.all.genes, newdata = testing.all.genes) # calculate the predicted expression values based on the copynumber
 ```
@@ -715,8 +721,7 @@ sqrt(1/nrow(testing.all.genes) * sum(testing.all.genes$expression-prediction^2))
 ```
 The value of 2.222435 is slightly higher than the residual standard error for the regression model, due to circumstance that the testing data did not account to the regression model.
 
-### 6.3 Significance of the correlation coefficient
-### 6.4 Creation of a linear regression model
-### 6.5 Verfication of the model
+### 6.7 Discussion 
+
 ## 7. Summary of Results
 ## 8. Conclusion
