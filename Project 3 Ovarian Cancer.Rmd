@@ -475,11 +475,11 @@ yesARID1A <- kd.prob[, which(colnames(kd.prob) %in% dmARID1A$DepMap_ID)] # prob 
 
 m.ARID1A <- as.data.frame(apply(yesARID1A, 1, mean))
 m.nonARID1A <- as.data.frame(apply(nonARID1A, 1, mean))
-diffARID1A = m.ARID1A - m.nonARID1A # calculate difference in essentiality (really?)
-diffARIDA1$Mean <- diffARID1A$`apply(yesARID1A, 1, mean)` # wie mach ich das schlauer?
-diffARID1A <- diffARID1A[which(diffARID1A$Mean > 0.3), ]
-diffARID1A <- diffARID1A[order(diffARID1A, decreasing = TRUE),] # warum bei view auf einmal NA values? bei Marco hats doch auch geklappt
-barplot(diffARID1A$Mean, names.arg = diffARID1A$Var1, xlab="SL partner", las = 1, horiz=FALSE, cex.axis = 1,2, col = "lightblue", main = "SL partners for ARID1A mutation", ylab = "difference in essentiality") # funktioniert, aber noch mal gucken ob das wirklich sein kann. Erscheint mit irgendwie viel. Wie mach ich hier, dass unten die Gennamen angezeigt werden?
+diffARID1A <- m.ARID1A - m.nonARID1A # calculate difference in essentiality (really?)
+diffARID1A$Difference <- diffARID1A$`apply(yesARID1A, 1, mean)` # wie mach ich das schlauer?
+diffARID1A <- diffARID1A[which(diffARID1A$Difference > 0.3), ]
+diffARID1A <- diffARID1A[order(diffARID1A$Difference, decreasing = TRUE),] # warum bei view auf einmal NA values? bei Marco hats doch auch geklappt
+barplot(diffARID1A$Difference, names.arg = rownames(diffARID1A), xlab="SL partner", las = 1, horiz=FALSE, cex.axis = 1,2, col = "lightblue", main = "SL partners for ARID1A mutation", ylab = "difference in essentiality") # funktioniert, aber noch mal gucken ob das wirklich sein kann. Erscheint mit irgendwie viel. Wie mach ich hier, dass unten die Gennamen angezeigt werden?
 
 # für andere dm fehlt das noch. muss dann nebeneinander am besten angezeigt werden. Dann diskussion!
 
