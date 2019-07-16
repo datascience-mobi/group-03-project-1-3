@@ -181,10 +181,16 @@ rownames(dm_null) <- dm_null$Var1
 DriverMutation = DriverMutation[which(DriverMutation$Freq > 4), ] 
 
 # order the genes in the data frame according to their frequency
-DriverMutation <- DriverMutation[order(DriverMutation$Freq, decreasing = TRUE),]
+# DriverMutation <- DriverMutation[order(DriverMutation$Freq, decreasing = TRUE),]
 
 # create a barplot of the most frequent mutations, displaying their occurence
-barplot(DriverMutation$Freq, names.arg = DriverMutation$Var1, xlab="mutated Gene", las = 1, horiz=FALSE, cex.axis = 1,2, col = "lightblue", main = "mutations present in more than four cell lines", ylab = "frequency") 
+# barplot(DriverMutation$Freq, names.arg = DriverMutation$Var1, xlab="mutated Gene", las = 1, horiz=FALSE, cex.axis = 1,2, col = "lightblue", main = "mutations present in more than four cell lines", ylab = "frequency")
+
+DriverMutation$sub <- with(DriverMutation, reorder(DriverMutation$Var1, -DriverMutation$Freq, mean, na.rm = T))
+
+ggplot(data = DriverMutation) +
+geom_col(mapping = aes(x = DriverMutation$sub, y = DriverMutation$Freq, fill = DriverMutation$sub), show.legend = F) +
+labs(x = "Mutated gene", y = "Frequency", title = "Driver mutations in Ovarian Cancer", subtitle = "(present in more than 4 cell lines)", caption = "(based on data from mutation matrix)") # create a barplot of the most frequent mutations, displaying their occurence
 
 
 ```
@@ -447,13 +453,18 @@ yesARID1A <- kd.prob[, which(colnames(kd.prob) %in% dmARID1A$DepMap_ID)] # prob 
 
 m.ARID1A <- as.data.frame(apply(yesARID1A, 1, mean))
 m.nonARID1A <- as.data.frame(apply(nonARID1A, 1, mean))
-diffARID1A <- m.ARID1A - m.nonARID1A # calculate difference in essentiality (really?)
+diffARID1A <- m.ARID1A - m.nonARID1A # calculate difference in essentiality
 diffARID1A$Difference <- diffARID1A$`apply(yesARID1A, 1, mean)` # wie mach ich das schlauer?
 diffARID1A <- diffARID1A[which(diffARID1A$Difference > 0.3), ]
-diffARID1A <- diffARID1A[order(diffARID1A$Difference, decreasing = TRUE),] # warum bei view auf einmal NA values? bei Marco hats doch auch geklappt
-barplot(diffARID1A$Difference, names.arg = rownames(diffARID1A), xlab="SL partner", las = 1, horiz=FALSE, cex.axis = 1,2, col = "lightblue", main = "SL partners for ARID1A mutation", ylab = "difference in essentiality") # funktioniert, aber noch mal gucken ob das wirklich sein kann. Erscheint mit irgendwie viel. Wie mach ich hier, dass unten die Gennamen angezeigt werden?
 
-# für andere dm fehlt das noch. muss dann nebeneinander am besten angezeigt werden. Dann diskussion!
+
+diffARID1A$sub <- with(diffARID1A, reorder(rownames(diffARID1A), -diffARID1A$Difference, mean, na.rm = T))
+
+ggplot(data = diffARID1A) +
+geom_col(mapping = aes(x = diffARID1A$sub, y = diffARID1A$Difference, fill = diffARID1A$sub), show.legend = F) +
+labs(x = "SL partners", y = "Difference in essentiality", title = "SL partners for ARID1A Driver mutation", caption = "(based on data from kd.prob)")
+
+# Muss dann nebeneinander am besten angezeigt werden. Dann diskussion!
 
 
 
@@ -461,11 +472,41 @@ dmTP53 = dm[which(dm$Hugo_Symbol == "TP53"), ]
 nonTP53 <- kd.prob[, -which(colnames(kd.prob) %in% dmTP53$DepMap_ID)] # prob Matrix with cell lines that do not have the TP53 mutation
 yesTP53 <- kd.prob[, which(colnames(kd.prob) %in% dmTP53$DepMap_ID)] # prob matrix with cell lines that do have driver mutation
 
+m.TP53 <- as.data.frame(apply(yesTP53, 1, mean))
+m.nonTP53 <- as.data.frame(apply(nonTP53, 1, mean))
+diffTP53 <- m.TP53 - m.nonTP53 # calculate difference in essentiality
+diffTP53$Difference <- diffTP53$`apply(yesTP53, 1, mean)` 
+diffTP53 <- diffTP53[which(diffTP53$Difference > 0.219), ]
+
+# make a barplot for the genes whose knockout leads to biggest difference in survival probability
+
+diffTP53$sub <- with(diffTP53, reorder(rownames(diffTP53), -diffTP53$Difference, mean, na.rm = T))
+
+ggplot(data = diffTP53) +
+geom_col(mapping = aes(x = diffTP53$sub, y = diffTP53$Difference, fill = diffTP53$sub), show.legend = F) +
+labs(x = "SL partners", y = "Difference in essentiality", title = "SL partners for TP53 Driver mutation", caption = "(based on data from kd.prob)")
+
+
 dmATM = dm[which(dm$Hugo_Symbol == "ATM"), ]
 nonATM <- kd.prob[, -which(colnames(kd.prob) %in% dmATM$DepMap_ID)] # prob Matrix with cell lines that do not have the ATM mutation
 yesATM <- kd.prob[, which(colnames(kd.prob) %in% dmATM$DepMap_ID)] # prob matrix with cell lines that do have driver mutation
-```
 
+m.ATM <- as.data.frame(apply(yesATM, 1, mean))
+m.nonATM <- as.data.frame(apply(nonATM, 1, mean))
+diffATM <- m.ATM - m.nonATM # calculate difference in essentiality
+diffATM$Difference <- diffATM$`apply(yesATM, 1, mean)` # wie mach ich das schlauer?
+diffATM <- diffATM[which(diffATM$Difference > 0.3), ]
+
+# make a barplot for the genes whose knockout leads to biggest difference in survival probability
+
+diffATM$sub <- with(diffATM, reorder(rownames(diffATM), -diffATM$Difference, mean, na.rm = T))
+
+ggplot(data = diffATM) +
+geom_col(mapping = aes(x = diffATM$sub, y = diffATM$Difference, fill = diffATM$sub), show.legend = F) +
+labs(x = "SL partners", y = "Difference in essentiality", title = "SL partners for ATM Driver mutation", caption = "(based on data from kd.prob)")
+
+```
+Now: test significance of obtained values with a statistical test
 
 
 
