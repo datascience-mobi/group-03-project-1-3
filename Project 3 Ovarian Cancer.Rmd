@@ -175,7 +175,7 @@ DriverMutation <- as.data.frame(table(new_uniq$Hugo_Symbol)) # Create a new data
 dm_null = DriverMutation[which(DriverMutation$Freq > 0), ]
 dm_null = dm_null[order(dm_null$Freq, decreasing = TRUE),]
 rownames(dm_null) <- dm_null$Var1
- 
+
 # extract all mutations that occur more than 4 times among our cell lines in total
 DriverMutation = DriverMutation[which(DriverMutation$Freq > 4), ] 
 
@@ -210,7 +210,7 @@ dm_drei <- dm_null[which(dm_null$Freq > 3), ]
 #rownames(DriverMutation) <- DriverMutation$Var1
 
 
-anno <- apply(dm_drei, 1, function(x) {annotation$ff[x]<- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% x), ]$DepMap_ID, TRUE, FALSE)})
+anno <- apply(dm_null, 1, function(x) {annotation$ff[x]<- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% x), ]$DepMap_ID, TRUE, FALSE)})
 
 
 
@@ -234,14 +234,17 @@ anno$summe <- apply(anno, 1, function(x) { sum(x)})
 
 
 
-anno <- anno[order(anno$summe, decreasing = TRUE),]
+
 
 summe <- anno$summe
 
-#we remove columns which should not be plotted
-anno <- anno[, -which(colnames(anno) %in% c("summe"))]
+anno <- anno[, which(colnames(anno) %in% rownames(dm_drei))]
 
+anno$summe <- apply(anno, 1, function(x) { sum(x)})
+#we remove columns which should not be plotted
+anno <- anno[order(anno$summe, decreasing = TRUE),]
 #to get a better overview at the end we replace the cell line names into numbers
+anno <- anno[, -which(colnames(anno) == "summe")]
 #rownames(anno) <- c(1:34)
 
 #and bring the matrix in a format the function "heatmap" can plot
@@ -256,9 +259,12 @@ co$kat <- c("not mutated", "mutated")
 
 
 #plotting the heatmap
-heatmap(anno, Rowv = NA, Colv = NA, main = "occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(10),  cexCol = 1.1)
+heatmap(anno, Rowv = NA, Colv = NA, main = "occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(10),  cexCol = 0.9)
 
 legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 1)
+
+
+
 ```
 
 In the heatmap we can see cell lines with similar Drivermutations
@@ -266,32 +272,35 @@ In the heatmap we can see cell lines with similar Drivermutations
 
 ```{r}
 summe <- as.data.frame(summe)
+rownames(summe) <- rownames(annotation)
 
-summe$kat <- ifelse(summe == 1000, "TP53 only", ifelse(annodm$summe > 1099, "TP53 & ARID1A", ifelse(annodm$summe == 100, "ARID1A only", ifelse(annodm$summe == 110, "ARID1A & sec. Mu", ifelse(annodm$summe == 101, "ARID1A & sec. Mu", ifelse(annodm$summe < 100, "no TP53 & no ARID1A", ifelse(annodm$summe == 0, "no TP53 & no ARID1A", "TP53 & sec. Mu")))))))
+
+summe$kat <- ifelse(summe$summe > 100, "blue", ifelse(summe$summe > 70, "lightblue", ifelse(summe$summe > 50, "pink", ifelse(summe$summe > 40, "red", ifelse(summe$summe > 30, "orange", ifelse(summe$summe > 20, "yellow", "grey"))))))
 
 ```
 
 The next step is only possible with less than seven Mutations. Because otherwise there would be too many combinations of Drivermutations. In the Tree-Diagramm we performed in step 4 it is visible that many Drivermutations, especially the ones that occur only five times in our cell lines, occur very randomly along the cell lines. Caused by this fact we validated our seven mutations and choosed the ones that were mentioned in an Ovarian cancer context in literature. The following are our chosen ones: TP53, ARID1A, ATM and PTPRF. We continue the PCA analysis:
 
 ```{r}
-'#to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
-annodm <- annotation[, -which(colnames(annotation) %in% c("CCLE_Name", "Subtype.Disease", "BAI1", "SYNE1", "THBS3"))]
+#to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
+annodm <- as.data.frame(anno[, which(colnames(annotation) %in% c("nix"))])
+
 
 
 #to seperate the cell lines in groups with similar Mutations we give every Drivermutation a specific value: If TP53 is True in the cell line it gets a "1000" , if it isnt ther will be a "0"
-annodm$TP53 <- ifelse(rownames(annotation) %in% dmTP53$DepMap_ID, 1000, 0)
+annodm$TP53 <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "TP53"), ]$DepMap_ID, 1000, 0)
 
 
 #same here, ARID1A gets a "100" for True and a "0" for FALSE
-annodm$ARID1A <- ifelse(rownames(annotation) %in% dmARID1A$DepMap_ID, 100, 0)
+annodm$ARID1A <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "ARID1A"), ]$DepMap_ID, 100, 0)
 
 #and the same for the next Mutations
-annodm$ATM <- ifelse(rownames(annotation) %in% dmATM$DepMap_ID, 10, 0)
-annodm$PTPRF <- ifelse(rownames(annotation) %in% dmPTPRF$DepMap_ID, 1, 0)
+annodm$ATM <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "ATM"), ]$DepMap_ID, 10, 0)
+annodm$PTPRF <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "PTPRF"), ]$DepMap_ID, 1, 0)
 
 
 #we can now sum up these values in a new column
-annodm$summe <- apply(annodm, 1, function(x) { sum(x)})'
+annodm$summe <- apply(annodm, 1, function(x) { sum(x)})
 
 ```
 We can now use the following order to take a look at our co existing Mutations
@@ -313,12 +322,12 @@ annodm$kat <- ifelse(annodm$summe == 1000, "TP53 only", ifelse(annodm$summe > 10
 
 #we also gave them different colors by using the same function as before
 
-pcb <- ifelse(annodm$summe == 1000, "blue", ifelse(annodm$summe > 1099, "green",  ifelse(annodm$summe == 100, "orange",  ifelse(annodm$summe == 110, "red", ifelse(annodm$summe == 101, "red",  ifelse(annodm$summe < 100, "grey",ifelse(annodm$summe == 0, "grey","darkblue")))))))
+pcc <- ifelse(annodm$summe == 1000, "blue", ifelse(annodm$summe > 1099, "green",  ifelse(annodm$summe == 100, "orange",  ifelse(annodm$summe == 110, "red", ifelse(annodm$summe == 101, "red",  ifelse(annodm$summe < 100, "grey",ifelse(annodm$summe == 0, "grey","darkblue")))))))
 
 
 #and we added another column to the matrix containing that colors
 
-annodm$col <- pcb
+annodm$col <- pcc
 
 
 ```
@@ -339,10 +348,6 @@ topVar = apply(kd.prob, 1, var) # calculate variance over all rows (genes)
 summary(topVar)
 kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] # new data frame with just the genes whose knockout leads to highly variant cell death events -> perhaps our synthetic lethality interaction partners?
 dim(kd.prob.topVar) # show me how many genes we are looking at now
-
-#we do the same for the kd.ceres matrix for later analysis
-topVar = apply(kd.ceres, 1, var)
-kd.ceres.topVar = kd.ceres[topVar > quantile(topVar, probs = 0.75), ]
 
 
 mean.survival.prob <- apply(kd.prob.topVar, 1, mean) # calculate the mean cell survival probability of the remaining genes
@@ -499,6 +504,7 @@ To reduce the information of the kd.prob matrix we perform a PCA. The Analysis c
 
 #we use the colors defined in step 4 for our co existing mutations
 pcb <- cbind(`TP` = pcb)
+pcc <- cbind(`TP` = pcc)
 
 #keine Ahnung warum ich das machen muss ich frag david noch... aber ohne gehts net
 
@@ -509,7 +515,7 @@ pcb <- cbind(`TP` = pcb)
 pca.prob = prcomp(kd.prob.topVar, center = F, scale. = F)
 
 #we plot the pca with the different colors for cell lines with similar Driver Mutations
-plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1", ylab = "PC2")
+plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcc[, 1], pch = 19, xlab = "PC1", ylab = "PC2")
 
 #we also add a legend to the plot
 #to add the right colors to that legend we create a new dataframe containing the colors and the categories defined in step 4:
@@ -520,10 +526,17 @@ ca <- unique(annodm$kat)
 
 legend("topright", pch = 20, col= cl, legend = ca, bty='n', cex=1)
 
+
+
+#we defined another cluster in the step before which was created about he heatmap, we can plot the same PCA with different colors 
+plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1", ylab = "PC2")
+
+
 #we can also check the differnt principal components
-comp <- data.frame(pca.prob$rotation[,1:4])
+comp <- data.frame(pca.prob$rotation[,1:3])
 plot(comp, pch=16, col= pcb)
 ```
+
 We can see that our cluster doesn't really fit to the results of the PCA. In the next step we perform a kmeans cluster and check if that fits better
 
 ```{r}
@@ -542,15 +555,15 @@ plot(2:7, wss, type = "b", pch = 19, xlab = "Number of clusters K")
 km <- kmeans(kd.prob.top, 5)
 
 #extracting the colors
-Borough <- as.factor(km$cluster)
+pcd <- as.factor(km$cluster)
 
 
 #plotting PCA as before
-plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = Borough, pch = 19, xlab = "PC1", ylab = "PC2")
+plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcd, pch = 19, xlab = "PC1", ylab = "PC2")
 
 #check the other principal components
 comp <- data.frame(pca.prob$rotation[,1:4])
-plot(comp, pch=16, col= Borough)
+plot(comp, pch=16, col= pcd)
 
 ```
 
