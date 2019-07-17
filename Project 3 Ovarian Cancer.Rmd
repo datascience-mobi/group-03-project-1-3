@@ -22,25 +22,25 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### 1.1 General facts
 
-Ovarian cancer is the one of the leading cancer death causes in women. One of 71 women will be diagnosed with this disease at some point during her lifetime. When treated in early stages, OC has relatively high survival rates. However, symptomes mostly start to develop when the tumour has already progressed to advanced stages, which is why the overall 5-year survival rate for OC lies under 50%.
+Ovarian cancer (OC) is the one of the leading cancer death causes in women. One of 71 women will be diagnosed with this disease at some point during her lifetime. When treated in early stages, OC has relatively high survival rates. However, symptomes mostly start to develop when the tumour has already progressed to advanced stages, which is why the overall 5-year survival rate for OC lies under 50%.
 
 Ovarian cancer is a very heterogenous disease and mostly represented by epithelial tumours. There are four main subtypes: serous, endometrioid, mucinous and clear cell. Furthermore, tumours can be classified dependent on their state of differentiation. Low grade (LG) Ovarian cancer is well differentiated and therefore not invasive; high grade (HG) tumours are often aggressive and frequently metastasize.
 
 Standard therapy approaches include surgery and chemotherapy with DNA-damaging agents. Personalized immunotherapeutic approaches often target special features of cancer cell genome and proteome such as over-expressed surface receptors.
 
-### 1.2 Common mutations in OC (literature)
+### 1.2 Common mutations in OC
 
 Literature on Ovarian cancer states that the most common mutations are found in the DNA repair-related genes BRCA1 and BRCA2. Abnormalities in other DNA and mismatch repair genes have been found too, as well as TP53, which is also known as "guardian of the genome". According to Testa et al., TP53 accounts for most mutations found in high grade serous Ovarian cancer.
 It will be our task to verify this information and to gain insight on potential driver mutations in Ovarian cancer.
 
 ## 2. Data Cleanup
 
-At first we download the dataset and load it into R-Studio
+At first the dataset need to be downloaded into R-Studio.
 ```{r}
 allDepMapData <- readRDS("~/GitHub/project-01-group-03/DepMap19Q1_allData.RDS")
 ```
 
-We gave each matrix a new, simple name, so it is easier to work with them.
+The matrices were renamed so it is easier to work with them.
 
 ```{r}
 copynumber = allDepMapData[["copynumber"]]
@@ -52,7 +52,7 @@ expression = allDepMapData[["expression"]]
 
 ```
 
-After that we had to extract the ovarian cancer cell lines, so we only have the cell lines which are important for our project.
+After that, we had to extract the ovarian cancer cell lines, so we only have the cell lines which are important for our project.
 ```{r}
 annotation = annotation[which(annotation$Primary.Disease == "Ovarian Cancer"), ] # The annotation matrix now only consists of Ovarian Cancer cell lines
 ID = annotation$DepMap_ID # DepMap_ID is the column name for the Ovarian Cancer cell lines
@@ -62,7 +62,7 @@ kd.ceres = kd.ceres [ , which(colnames(kd.ceres) %in% ID)]
 kd.prob = kd.prob [ , which(colnames(kd.prob) %in% ID)]
 mutation = mutation [ ID]
 ```
-The dataframes, which contains the gene names as rows are ordered alphabetically. This step will later be usefull to compare the different variables for a certain gene.
+The dataframe, which contains the gene names as rows are ordered alphabetically. This step will later be usefull to compare the different variables for a certain gene.
 ```{r}
 copynumber <- copynumber[order(rownames(copynumber)),] # order the rownames alphabetically 
 expression <- expression[order(rownames(expression)),]
@@ -76,7 +76,7 @@ For further work with the annotation matrix it makes it a lot easier to rename t
 rownames(annotation) = annotation$DepMap_ID
 ```
 
-Further we remove columns of the annotation matrix we dont need and unnecessary objects as well.
+Further. we remove columns of the annotation matrix we do not need and unnecessary objects as well.
 
 ```{r}
 # removing unecessary columns
@@ -87,7 +87,7 @@ rm(allDepMapData)
 
 ```
 
-Many functions don't work with NA values. That's why we check the matrices for NA values
+Many functions do not work with NA values. That is why we check the matrices for NA values
 
 ```{r}
 #summary(copynumber) hier m?ssen wirs hinkriegen dass er den output net reinhaut
@@ -126,7 +126,7 @@ library(gridExtra)
 ## 3. Driver Mutations
 
 
-Fuse mutation lists to one matrix
+Fuse mutation lists to one matrix.
 ```{r}
 mutation.all = as.data.frame(rbindlist(mutation))
 ```
@@ -139,7 +139,8 @@ There are different types of mutations. Some of them are silent, which means tha
 ```{r}
 mutation.all = mutation.all[which(mutation.all$isDeleterious == "TRUE"), ] # only include rows (=genes) that have deleterious mutations in data frame "mutation.all"
 ```
-Order matrix alphabetically
+
+To simplify work the matrix mutation.all was ordered alphabetically.
 
 ```{r}
 mutation.all <- mutation.all[order(mutation.all$Hugo_Symbol),]
@@ -151,7 +152,7 @@ Find most frequently mutated genes by summing up all "mutation events" found in 
 mutation.all$Hugo_Symbol = factor(mutation.all$Hugo_Symbol)
 ```
 
-The most common mutation is found in ARID1A (16 times). Surprisingly, BRCA1 and BRCA2 are only mutated twice and once, respectively.
+The most common mutation mutation found is ARID1A (16 times). Surprisingly, BRCA1 and BRCA2 are only mutated twice and once, respectively.
 
 Problem: Many mutations occur several times in one cell line, but in different DNA loci. If we want to identify the most frequent mutations among all cell lines, these duplicates should not be included. We want to extract mutations that occur frequently in different cell lines. Therefore, we use the "duplicated" function from the dplyr package and define a new data frame called new_uniq that only contains one mutation of a gene per cell line for simplicity (since the type of mutation is not relevant here).
 
@@ -193,11 +194,11 @@ labs(x = "Mutated gene", y = "Frequency", title = "Driver mutations in Ovarian C
 
 Here, we want to investigate whether there are certain mutations that often occur together and are therefore possibly linked to each other in their genesis. The goal will be to create a symmetrical matrix whose columns AND rows are our genes; the cells' content will be the counts of how often two corresponding genes turn up in the same cell line together. Next, maximum values can be extracted and tested for significance.
 
-To get a short overview about how many co existing Drivermutations are common in the data we perform a heatmap:
+To get a short overview about how many co existing drivermutations are common in the data we perform a heatmap:
 
 
 ```{r echo=TRUE, results='hide'}
-#creating a new matrix containing every cell line that has at least one of our 7 Drivermutations. We check if the name of our Drivermutation occurs in the Drivermutation matrix
+#creating a new matrix containing every cell line that has at least one of our 7 drivermutations. We check if the name of our Drivermutation occurs in the Drivermutation matrix
 dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% dm_null$Var1), ]
 
 #function to find out if the Mutation occurs in the cell lines: "1" means yes and "0" means no
@@ -216,7 +217,7 @@ anno$summe <- apply(anno, 1, function(x) { sum(x)})
 summe <- anno$summe
 
 
-#to get a better overview we use only the Drivermutations that occur in more than 3 cell lines (the other two are needed in step 5)
+#to get a better overview we use only the drivermutations that occur in more than 3 cell lines (the other two are needed in step 5)
 dm_drei <- dm_null[which(dm_null$Freq > 3), ]
 dm_zwei <- dm_null[which(dm_null$Freq > 2), ]
 dm_eins <- dm_null[which(dm_null$Freq > 1), ]
@@ -257,7 +258,7 @@ heatmap(anno, Rowv = NA, Colv = NA, main = "Occuring Drivermutations",xlab = "Mu
 legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 1)
 ```
 
-In the heatmap we can see cell lines with similar Drivermutations. As you can see the Mutations are very random. There are some similar mutated cell lines all the way down in the plot. We can plot a heatmap like this with all Mutations we find in the cell lines as well. But the heatmap would be too big to get any impression. so we use all mutations to create a cluster to investigate if the number of mutations in one cell line has an impact on the synthetic lethality partners. (we will see in a later step how useful this step is) 
+The heatmap shows cell lines with similar drivermutations. As you can see, the mutations are very random. There are some similar mutated cell lines all the way down in the plot. We can plot a heatmap like this with all mutations we find in the cell lines as well. But the heatmap would be too big to get any impression. All mutations were used to create a cluster to investigate if the number of mutations in one cell line has an impact on the synthetic lethality partners. (we will see in a later step how useful this step is) 
 
 ```{r}
 #therefore we use the data extracted in the chunk before
@@ -272,7 +273,7 @@ summe$kat <- ifelse(summe$summe > 100, "blue", ifelse(summe$summe > 70, "lightbl
 pcb <- summe$kat
 ```
 
-The next step is only possible with less than four Mutations. Because otherwise there would be too many combinations of Drivermutations. In the heatmap we performed in step 4 it is visible that many Drivermutations, especially the ones that occur less than five times in our cell lines, occur very randomly along the cell lines. Caused by this fact we validated our seven mutations and choosed the ones that were mentioned in an Ovarian cancer context in literature. The following are our chosen ones: TP53, ARID1A, ATM and PTPRF. We continue the PCA analysis:
+The next step is only possible with less than four Mutations. Because otherwise there would be too many combinations of drivermutations. In the heatmap we performed in step 4 it is visible that many drivermutations, especially the ones that occur less than five times in our cell lines, occur very randomly along the cell lines. Caused by this fact we validated our seven mutations and choosed the ones that were mentioned in an Ovarian cancer context in literature. The following are our chosen ones: TP53, ARID1A, ATM and PTPRF. We continue the PCA analysis:
 
 ```{r}
 #to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
@@ -297,7 +298,7 @@ annodm$summe <- apply(annodm, 1, function(x) { sum(x)})
 
 ```
 
-We can now see that many cell lines dont even have one of our chosen mutations because their sum is zero. At many others we can see that they have the same combination of Drivermutations because they have the same value at "annodm$summe".
+Many cell lines do not even have one of our chosen mutations because their sum is zero. At many others we can see that they have the same combination of Drivermutations because they have the same value at "annodm$summe".
 In the following step we gave the different combinations a specific category
 
 ```{r}
@@ -316,7 +317,7 @@ annodm$col <- pcc
 
 
 ## 5. Synthetic Lethality Interactions
-After identifying our most common driver mutations, we used this information to find possible synthetic lethality interaction partners
+After identifying our most common driver mutations, we used this information to find possible synthetic lethality interaction partners.
 First of all, we want to calculate the variance of the cell survival (kd.ceres) and estimated cell survival probability (kd.prob) when knocking out specific genes. We hereby assume that genes that display high variances when knocked out are more likely to have specific synthetic lethality interactions since genes that broadly lead to cell death in most cell lines are probably essential for survival on their own. Therefore, we will conduct the search for synthetic lethality interaction partners with genes whose variances are greater than the 75% quantile. (Hier fehlt noch etwas)
 
 It remains to be found out which difference in survival probability the SL interaction partner for ARID1A mutations mentioned in the literature, BRD2, displays.
@@ -337,7 +338,7 @@ rm(no, yes)
 The output says that BRD2 is about 10% more essential in ARID1A mutated cells... This seems like a very low difference to be considered a "real" SL partner.
 Perhaps this is due to the fact that in the literature, BRD2 was mentioned as a SL partner explicitly in clear cell carcinomas. Our data comprises of different types of Ovarian cancer.
 
-Other idea to find SL partners: calculate mean gene essentiality probability for both initially defined groups with/without driver mutations (TP53, ARID1A, ATM, BAI1, PTPRF, SYNE1, THBS3), plot them and then ask for significant differences (with statistical test!).
+An other idea to find SL partners: calculate mean gene essentiality probability for both initially defined groups with/without driver mutations (TP53, ARID1A, ATM, BAI1, PTPRF, SYNE1, THBS3), plot them and then ask for significant differences (with statistical test!).
 
 ```{r}
 dmARID1A = dm[which(dm$Hugo_Symbol == "ARID1A"), ]
@@ -407,7 +408,7 @@ Now: test significance of obtained values with a statistical test (which one?)
 
 ### Performing Principal Component Analysis
 
-To reduce the information of the kd.prob matrix we perform a PCA. The Analysis creates groups of cell lines with similar lethality partners. We use the variable TopVar created before.
+To reduce the information of the kd.prob matrix we perform a PCA. The analysis creates groups of cell lines with similar lethality partners. We use the variable TopVar created before.
 
 ```{r}
 
@@ -444,7 +445,7 @@ comp <- data.frame(pca.prob$rotation[,1:3])
 plot(comp, pch=16, col= pcb)
 ```
 
-We can see that both of our clusters don't really fit to the results of the PCA. In the next step we perform a kmeans cluster and check if that fits better
+We can see that both of our clusters do not really fit to the results of the PCA. In the next step, we perform a kmeans cluster and check if that fits better
 
 ```{r}
 #we have to transpose the data frame
@@ -541,7 +542,7 @@ To investigate this issue a linear regression model will be applied to the quest
 
 #### 6.1 Structuring the data
 
-Before performing a linear regression, the data frames expression and copy number are bind to the list list_all.genes. This step will help in the following reduction process and ensure that the primary dataset is not changed. Only genes, who are present in all dataframes, can be included for the linear regression model. An extraction of those genes can be easier applied to a list than two separate data frames.  
+Before performing a linear regression, the data frames expression and copy number are bound to the list list_all.genes. This step will help in the following reduction process and ensure that the primary dataset is not changed. Only genes, who are present in all dataframes, can be included for the linear regression model. An extraction of those genes can be easier applied to a list than two separate data frames.  
 ```{r}
 list_all.genes <- list(expression,copynumber) # bind the two data frames in one list
 names(list_all.genes) <- c("expression","copynumber") # rename the elements of the list
@@ -615,7 +616,7 @@ grid.arrange(boxplotex, boxplotcn, ncol=2) # show both plots side by side
 The left graph indicates a high number of outliners above the boxplot for the gene expression, while no outliners are shown for the area lower than 1,5 IQR (Interquatile-range). This circumstance is mainly due to the previous reduction process (removement of all values that are equal zero). The right boxplot reveals many outliners for each side of the 1,5 IQR, while the Interquartile. Having a large number of outliners in the predictor variable can effect the slope for the regression model and may lead to a low accuracy of the predictions based on the model.   
 
 #### 6.4 Correlation between the two variables
-In this step the correlation between the gene expression and copy number is tested, to decide wether a linear regression model can be applied for the problem. First the gene expression values and copy number values are fused a single data frame.
+In this step the correlation between the gene expression and copy number was tested, to decide wether a linear regression model can be applied for the problem. First. the gene expression values and copy number values are fused a single data frame.
 ```{r}
 regression.all.genes <- as.data.frame(cbind(exp1$value, cn1$value)) # merge the colums
 colnames(regression.all.genes) <- c("expression", "copynumber") # rename the colums
