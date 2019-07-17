@@ -349,6 +349,11 @@ summary(mean.survival.prob) # show me the mean survival distribution of the gene
 
 It remains to be found out which difference in survival probability the SL interaction partner for ARID1A mutations mentioned in the literature, BRD2, displays.
 ```{r}
+dmARID1A = dm[which(dm$Hugo_Symbol == "ARID1A"), ]
+nonARID1A <- kd.prob[, -which(colnames(kd.prob) %in% dmARID1A$DepMap_ID)] # prob Matrix with cell lines that do not have the ARID1A mutation
+yesARID1A <- kd.prob[, which(colnames(kd.prob) %in% dmARID1A$DepMap_ID)] # prob matrix with cell lines that do have driver mutations
+
+
 no <- nonARID1A[which(row.names(nonARID1A) == "BRD2"), ] # select BRD2 from submatrix comprising of cell lines without ARID1A mutations
 apply(no, 1, mean) # calculate mean of BRD2 survival probability
 yes <- yesARID1A[which(row.names(yesARID1A) == "BRD2"), ]
