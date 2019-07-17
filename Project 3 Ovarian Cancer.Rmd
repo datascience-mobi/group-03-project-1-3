@@ -16,8 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 4. co-existing Mutations
 5. Synthetic Lethality Interactions
 6. Linear Regression
-7. Summary of Results
-8. Conclusion
+7. Conclusion
 
 ## 1. Overview Ovarian Cancer
 
@@ -150,15 +149,7 @@ mutation.all <- mutation.all[order(mutation.all$Hugo_Symbol),]
 Find most frequently mutated genes by summing up all "mutation events" found in all cell lines. To do this, the names of the genes were converted to factors.
 ```{r}
 mutation.all$Hugo_Symbol = factor(mutation.all$Hugo_Symbol)
-
-summary(mutation.all$Hugo_Symbol)
-
 ```
-Plot all mutations to see most frequently mutated genes
-```{r}
-plot(mutation.all$Hugo_Symbol)
-```
-
 
 The most common mutation is found in ARID1A (16 times). Surprisingly, BRCA1 and BRCA2 are only mutated twice and once, respectively.
 
@@ -166,7 +157,7 @@ Problem: Many mutations occur several times in one cell line, but in different D
 
 ```{r}
 duplicates <- which(duplicated(mutation.all[c('Hugo_Symbol', 'DepMap_ID')]), ) #find all identical combinations of mutated gene and cell line
-duplicates # show all genes that are duplicated
+
 new_uniq <- mutation.all[!duplicated(mutation.all[c('Hugo_Symbol', 'DepMap_ID')]),] #do not include duplicates in data frame new_uniq
 summary(new_uniq)
 
@@ -187,12 +178,6 @@ rownames(dm_null) <- dm_null$Var1
 # extract all mutations that occur more than 4 times among our cell lines in total
 DriverMutation = DriverMutation[which(DriverMutation$Freq > 4), ] 
 
-# order the genes in the data frame according to their frequency
-# DriverMutation <- DriverMutation[order(DriverMutation$Freq, decreasing = TRUE),]
-
-# create a barplot of the most frequent mutations, displaying their occurence
-# barplot(DriverMutation$Freq, names.arg = DriverMutation$Var1, xlab="mutated Gene", las = 1, horiz=FALSE, cex.axis = 1,2, col = "lightblue", main = "mutations present in more than four cell lines", ylab = "frequency")
-
 DriverMutation$sub <- with(DriverMutation, reorder(DriverMutation$Var1, -DriverMutation$Freq, mean, na.rm = T))
 
 ggplot(data = DriverMutation) +
@@ -211,7 +196,7 @@ Here, we want to investigate whether there are certain mutations that often occu
 To get a short overview about how many co existing Drivermutations are common in the data we perform a heatmap:
 
 
-```{r}
+```{r echo=TRUE, results='hide'}
 #creating a new matrix containing every cell line that has at least one of our 7 Drivermutations. We check if the name of our Drivermutation occurs in the Drivermutation matrix
 dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% dm_null$Var1), ]
 
@@ -251,15 +236,14 @@ mypalette <- colorRampPalette(cols)(2)
 #we also add a second column to the matrix to include color associated Explanations for the legend
 co <- as.data.frame(cols)
 co$kat <- c("not mutated", "mutated (>9)", "mutated (>3)", "mutated (>1)", "mutated (=1)")
+```
 
+```{r}
 #plotting the heatmap
 heatmap(anno, Rowv = NA, Colv = NA, main = "Occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(5),  cexCol = 0.9, cexRow = 0.6)
 
 #adding a legend
 legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 1)
-
-
-
 ```
 
 In the heatmap we can see cell lines with similar Drivermutations. As you can see the Mutations are very random. There are some similar mutated cell lines all the way down in the plot. We can plot a heatmap like this with all Mutations we find in the cell lines as well. But the heatmap would be too big to get any impression. so we use all mutations to create a cluster to investigate if the number of mutations in one cell line has an impact on the synthetic lethality partners. (we will see in a later step how useful this step is) 
@@ -301,11 +285,6 @@ annodm$PTPRF <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "P
 annodm$summe <- apply(annodm, 1, function(x) { sum(x)})
 
 ```
-We can now use the following order to take a look at our co existing Mutations
-
-```{r}
-View(annodm$summe)
-```
 
 We can now see that many cell lines dont even have one of our chosen mutations because their sum is zero. At many others we can see that they have the same combination of Drivermutations because they have the same value at "annodm$summe".
 In the following step we gave the different combinations a specific category
@@ -327,25 +306,7 @@ annodm$col <- pcc
 
 ## 5. Synthetic Lethality Interactions
 After identifying our most common driver mutations, we used this information to find possible synthetic lethality interaction partners
-First of all, we want to calculate the variance of the cell survival (kd.ceres) and estimated cell survival probability (kd.prob) when knocking out specific genes. We hereby assume that genes that display high variances when knocked out are more likely to have specific synthetic lethality interactions since genes that broadly lead to cell death in most cell lines are probably essential for survival on their own. Therefore, we will conduct the search for synthetic lethality interaction partners with genes whose variances are greater than the 75% quantile.
-
-```{r}
-topVar = apply(kd.prob, 1, var) # calculate variance over all rows (genes)
-summary(topVar)
-kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] # new data frame with just the genes whose knockout leads to highly variant cell death events -> perhaps our synthetic lethality interaction partners?
-dim(kd.prob.topVar) # show me how many genes we are looking at now
-
-
-mean.survival.prob <- apply(kd.prob.topVar, 1, mean) # calculate the mean cell survival probability of the remaining genes
-summary(mean.survival.prob) # show me the mean survival distribution of the genes whose knockout leads to the most variant cell survival
-
-#plot(density(as.matrix(mean.survival.prob))) # plot me the distribution of cell survival probability of most variant survivals
-
-#wei? noch nicht, wie sinnvoll das alles ist :D mal sehen
-# ja lass des mal drin ich hab des f?r den n?chsten step der PCA benutzt... also die kd.prob.topVar  mfG Marco
-
-
-```
+First of all, we want to calculate the variance of the cell survival (kd.ceres) and estimated cell survival probability (kd.prob) when knocking out specific genes. We hereby assume that genes that display high variances when knocked out are more likely to have specific synthetic lethality interactions since genes that broadly lead to cell death in most cell lines are probably essential for survival on their own. Therefore, we will conduct the search for synthetic lethality interaction partners with genes whose variances are greater than the 75% quantile. (Hier fehlt noch etwas)
 
 It remains to be found out which difference in survival probability the SL interaction partner for ARID1A mutations mentioned in the literature, BRD2, displays.
 ```{r}
@@ -429,15 +390,19 @@ geom_col(mapping = aes(x = diffATM$sub, y = diffATM$Difference, fill = diffATM$s
 labs(x = "SL partners", y = "Difference in essentiality", title = "SL partners for ATM Driver mutation", caption = "(based on data from kd.prob)")
 
 ```
+
 Now: test significance of obtained values with a statistical test (which one?)
 
 
-
-Performing Principal Component Analysis
+### Performing Principal Component Analysis
 
 To reduce the information of the kd.prob matrix we perform a PCA. The Analysis creates groups of cell lines with similar lethality partners. We use the variable TopVar created before.
 
 ```{r}
+
+topVar = apply(kd.prob, 1, var) # calculate variance over all rows (genes)
+
+kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] # new data frame with just the genes whose knockout leads to highly variant cell death events -> perhaps our synthetic lethality interaction partners?
 
 #we use the colors defined in step 4 for our co existing mutations
 pcb <- cbind(`TP` = pcb)
@@ -480,7 +445,7 @@ kme = sapply(2:7, function(k) {
 })
 plot(2:7, kme, type = "b", pch = 19, xlab = "Number of clusters K")
 
-#the silhuette plot isn't very clearly, but we will use five centers
+#the elbow plot does not give clear information about the ideal number of clusters, but we will use five centers (silhouette plot is in progress)
 
 #performing clustering
 km <- kmeans(kd.prob.top, 5)
@@ -498,7 +463,7 @@ plot(comp, pch=16, col= pcd)
 
 ```
 
-
+Hier fehlt noch die Interpretation der PCA bzw der Cluster.
 
 
 
@@ -522,7 +487,7 @@ list_all.genes <- lapply(list_all.genes, function(x) {x[row.names(x) %in% common
 #### 6.2 Checking distribution 
 
 As a requirement for the later performed t-Test to check the correlation between the two variables the data sets should show a normal distribution. For a visual assessment a Q-Q-plot was used for each of the two variables. First all the expression values and copynumber vales of the different cell lines are fused to one long column. The new matrices exp1 and cn1 only contains only two columns. The first column shows the original cell line of the listed expression value in the second column.
-```{r, results="hide"}
+```{r, echo=T, results='hide'}
 exp1b <- melt.data.frame(list_all.genes$expression, variable_name = "cell line") #fuse all expression values to one long column
 cn1b <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline") # fuse all cell lines
 ```
@@ -535,6 +500,7 @@ plotcnb <- ggplot() + geom_qq(aes(sample = cn1b$value), color= "navy blue") + gg
 grid.arrange(plotexb, plotcnb, ncol=2, top = "Checking normality")
 
 ```
+#### Wie kann ich die qqline Funktion in ggplot nutzen, David :) ?
 
 The left plot shows a high amount of expression values equal zero, which leads to a huge deviation from the ideal gaussian distribution for the expression data. In comparison to the perfect distribution, the rest of the data points show a good fit for the regression model.  This leads to a high skew on the right side and result in a higher frequency for values in the lower tail compared to the normal distribution. To achieve a better fit the genes that contain expression values equal zero will be removed in the next step. 
 The right plot indicates a high deviation for copy number vales smaller than -1, to reduce the influence of this circumstance, all rows that obtain a value smaller than -2 or equal -2 are removed of the data set.  This process leads to a limitation of the predictor variable of the regression models. Predictions will only be possible for genes with a copy number higher than -2.
@@ -552,9 +518,9 @@ common_names = Reduce(intersect, lapply(list_all.genes, row.names)) # identify s
 list_all.genes <- lapply(list_all.genes, function(x) {x[row.names(x) %in% common_names,]}) # only keep the common rownames in the list
 ```
 With the melt function the reduced data set is fused to one column of values again. This process is applied to both matrices (expression and copynumber).
-```{r, results="hide"}
+```{r, echo=T, results='hide'}
 exp1 <- melt.data.frame(list_all.genes$expression, variable_name = "cell line") #fuse all expression values to one long column
-cn1 <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline") # fuse all cell lines
+cn1 <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline") # fuse all cell lines 
 ```
 A Q-Q-plot is peformed to check the normality of the gene expression and copy number data set once again and determine if the reduction process shows an improved result for the distribution.
 ```{r}
@@ -602,7 +568,7 @@ Both correlation coefficients show a low correlation between the two varibles of
 cor.test(regression.all.genes$expression, regression.all.genes$copynumber)
 ```
 The p-value shows the possibility that an equal or higher t-value is observed under the null hypothesis. With a p-value < 2.2e-16 the null hypothesis can be rejected, becaue the p-value shows smaller value than the level of significance and therefore it is unlikely to observe the calculated correlation coefficient without a correlation between the two variables. Only in the case of a p-value that is higher than the level of significance the null hypothesis would be retained. The same analysis is performed for the spearman correlation coefficient.
-```{r, error=FALSE}
+```{r}
 cor.test(regression.all.genes$expression, regression.all.genes$copynumber, method = "spearman")
 ```
 The test also shows a p-value < 2.2e-16, concluding the rejection of the null hypothesis. Both test lead to the conclusion, that the variables expression and copynumber have a weak correlation and therefore can be applied for a linear regression model.
@@ -692,21 +658,19 @@ sqrt(1/nrow(testing.all.genes) * sum((testing.all.genes$expression-prediction)^2
 The value of 2.222435 is slightly higher than the residual standard error for the regression model, due to circumstance that the testing data did not account to the regression model.
 
 ### 6.7 Discussion 
-Although the results of the linear regression model are somewhat sobering, this is not very surprising from the biological point of view. Initially, it was our goal to predict the gene expression by looking at the gene copy numbers, since it is known that many upregulations in cancer such as VEGF are due to gene amplifications.
-However, gene expression is a very strictly regulated process which is influenced by many different factors. The numerous steps in the pathway from DNA to RNA to protein comprise of
-- transcriptional control
-- RNA processing
-- RNA transport and localization control
-- protein activity control.
-Since the expression data from our dataset gives information about the quantity of RNA transcripts, the according control feature is transcriptional control, possibly also RNA processing and transport. Factors that influence the gene expression on DNA level are:
-.	Promotors, which can be active/inactive and whose affinity to transcription initiation factors can vary from gene to gene
-.	Transcription factors and regulators: These proteins specifically bind the DNA with their amino acid residues and make it accessible or inaccessible for the transcription machinery.
-.	Epigenetics:
-  o	DNA-methylation: Methylation of CpG nucleotides which are frequent in so-called CpG islands situated in genes' promotor regions leads to a transcriptional blockade in most cases (depending on binding characteristics of transcription regulator proteins).
-  o	Histone-methylation and acetylation: Chemical modification of the proteins that pack the DNA has a huge impact on binding of transcription machinery proteins and transcription factors.
-.	Non-coding RNA: There are approximately 9000 genes coding for RNA molecules that are not translated into proteins, but have regulatory functions. They often form complexes with other proteins and process or degrade other RNA transcripts. Other non-coding RNAs directly bind the DNA double helix and influence DNA conformation or the accessibility and binding affinity for other proteins such as transcription factors or RNA polymerases.
-In each cell, a complex interplay of all these regulations takes place. It is therefore impossible to predict gene expression alone by knowing the gene copy number - to obtain a more accurate model, we would need access to further information concerning the mentioned regulatory elements and processes.
+Although the results of the linear regression model are somewhat sobering, this is not very surprising from the biological point of view. Initially, it was our goal to predict the gene expression by looking at the gene copy numbers, since it is known that many upregulations in cancer such as VEGF are due to gene amplifications.  
+However, gene expression is a very strictly regulated process which is influenced by many different factors. The numerous steps in the pathway from DNA to RNA to protein comprise of  
+* transcriptional control
+* RNA processing
+* RNA transport and localization control
+* protein activity control.  
+Since the expression data from our dataset gives information about the quantity of RNA transcripts, the according control feature is transcriptional control, possibly also RNA processing and transport. Factors that influence the gene expression on DNA level are:  
+* Promotors, which can be active/inactive and whose affinity to transcription initiation factors can vary from gene to gene
+* Transcription factors and regulators: These proteins specifically bind the DNA with their amino acid residues and make it accessible or inaccessible for the transcription machinery.
+* Epigenetics:
+  + DNA-methylation: Methylation of CpG nucleotides which are frequent in so-called CpG islands situated in genes' promotor regions leads to a transcriptional blockade in most cases (depending on binding characteristics of transcription regulator proteins).
+  + Histone-methylation and acetylation: Chemical modification of the proteins that pack the DNA has a huge impact on binding of transcription machinery proteins and transcription factors.
+* Non-coding RNA: There are approximately 9000 genes coding for RNA molecules that are not translated into proteins, but have regulatory functions. They often form complexes with other proteins and process or degrade other RNA transcripts. Other non-coding RNAs directly bind the DNA double helix and influence DNA conformation or the accessibility and binding affinity for other proteins such as transcription factors or RNA polymerases.  
+In each cell, a complex interplay of all these regulations takes place. It is therefore impossible to predict gene expression alone by knowing the gene copy number - to obtain a more accurate model, we would need access to further information concerning the mentioned regulatory elements and processes.  
 
-
-## 7. Summary of Results
-## 8. Conclusion
+## 7. Conclusion
