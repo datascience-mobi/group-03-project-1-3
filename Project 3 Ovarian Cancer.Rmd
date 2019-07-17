@@ -215,10 +215,21 @@ anno$summe <- apply(anno, 1, function(x) { sum(x)})
 #and extract the sums for further steps
 summe <- anno$summe
 
-#to get a better overview we use only the Drivermutations that occur in more than 3 cell lines
-dm_drei <- dm_null[which(dm_null$Freq > 3), ]
-anno <- anno[, which(colnames(anno) %in% rownames(dm_drei))]
 
+#to get a better overview we use only the Drivermutations that occur in more than 3 cell lines (the other two are needed in step 5)
+dm_drei <- dm_null[which(dm_null$Freq > 3), ]
+dm_zwei <- dm_null[which(dm_null$Freq > 2), ]
+dm_eins <- dm_null[which(dm_null$Freq > 1), ]
+
+
+
+#these two are extracted for step 5
+anno_zwei <- anno[, which(colnames(anno) %in% rownames(dm_zwei))]
+anno_zwei <- data.matrix(anno_zwei)
+anno_eins <- anno[, which(colnames(anno) %in% rownames(dm_eins))]
+anno_eins <- data.matrix(anno_eins)
+
+anno <- anno[, which(colnames(anno) %in% rownames(dm_drei))]
 #we have to bring the cell lines in a better order: so we put the cell lines with the most mutations together and decrease it upwards. 
 anno$summe <- apply(anno, 1, function(x) { sum(x)})
 anno <- anno[order(anno$summe, decreasing = TRUE),]
@@ -461,6 +472,63 @@ plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcd, pch = 19, xlab =
 comp <- data.frame(pca.prob$rotation[,1:4])
 plot(comp, pch=16, col= pcd)
 
+```
+
+clustered by kmeans there are five groups which fit to the pca very well. In the next step it is investigated which cell lines are grouped by kmeans and what they have in common. Therefore a heatmap for each group is created containing the mutated genes. Maybe it will be visible if there are genes which are mutated in each cell line of that group. the same analysis is done by the computer and the common genes will be printed
+
+```{r}
+#at first the group numbers are extracted from the kmeans function
+kem <- (km[["cluster"]])
+
+#a data frame is created
+kem <- as.data.frame(kem)
+
+#we add the cell line numbers for the loop in the next steps
+kem$id <- rownames(annotation)
+
+#and order the matrix after the group
+kem <- kem[order(kem$`km[["cluster"]]`, decreasing = TRUE),]
+
+#we create a matrix for further analysis in the loop
+kp <- c(1:5)
+kp <- as.data.frame(kp)
+
+#we need a loop to check each of the five clusters
+apply(kp, 1, function(x) {
+  
+  #at first the variable has to be loaded with the Drivermutaions that occur three or more times in the cell lines
+  kp <- anno_zwei[which(rownames(anno_zwei) %in% kem[which(kem$kem %in% x),]$id),];
+  
+  kp <- data.matrix(kp)
+  #then a heatmap is plotted containing the cell lines of the group with its Drivermutations
+  heatmap(kp, Rowv = NA,   main = x ,xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(2),  cexCol = 0.9,    cexRow = 0.6); 
+  
+  #we add a legend
+  legend("topright", pch = 15, col = heat.colors(2), legend = c("not mutated", "mutated"), bty = 'n', cex = 1); 
+  
+  #for the computer analysis every Drivermutation that occurs two or more times is used
+  kp <- anno_eins[which(rownames(anno_eins) %in% kem[which(kem$kem %in% x),]$id),];
+  
+  #we transpose kp for a easier workflow and transform it to a data frame
+  kp <- t(kp);
+  kp <- as.data.frame(kp);
+  
+  #we count the celllines of each group
+  cn <- ncol(kp);
+  
+  #and we count the number how often the mutation occurs in that group
+  kp$summe <- apply(kp, 1, function(x) { sum(x)});
+  
+  #now we delete genes that are mutated in less than 67% of the cell lines
+  kp <- kp[which(kp$summe > 0.67*cn),];
+  
+  #and we print the genes which are mutated in more than 67%
+  print(rownames(kp));
+  
+  })
+
+#we add the column subtype desease to the matrix
+kem$sd <- annotation$Subtype.Disease
 ```
 
 Hier fehlt noch die Interpretation der PCA bzw der Cluster.
