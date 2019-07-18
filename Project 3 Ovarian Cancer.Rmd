@@ -458,35 +458,56 @@ kp <- c(1:5)
 kp <- as.data.frame(kp)
 
 #we need a loop to check each of the five clusters
-for(i in 1:5) {
-  
-  #at first the variable has to be loaded with the Drivermutaions that occur two or more times in the cell lines
-  kp <- anno_eins[which(rownames(anno_eins) %in% kem[which(kem$kem %in% i),]$id),];
-  
-  #we transpose kp for a easier workflow and transform it to a data frame
-  kp <- t(kp);
-  kp <- as.data.frame(kp);
-  
-  #we count the celllines of each group
-  cn <- ncol(kp);
-  
-  #and we count the number how often the mutation occurs in that group
-  kp$summe <- apply(kp, 1, function(x) { sum(x)});
-  
-  #now we delete genes that are mutated in less than 67% of the cell lines
-  kp <- kp[which(kp$summe > 0.67*cn),];
-  
-  #and we print the genes which are mutated in more than 67%
-  cat("group", i)
-  if (nrow(kp) == 0) {
-    print("no similar mutations in this group")}
-  else {
-    print(rownames(kp))
-    
-    }
-  
-  }
+#mlist <- list()
+po <- as.data.frame(1)
+for (j in 0:1000) {
 
+  km <- kmeans(kd.prob.top, 5)
+  kem <- (km[["cluster"]])
+  kem <- as.data.frame(kem)
+  kem$id <- rownames(annotation)
+  for(i in 1:5) {
+  
+    #at first the variable has to be loaded with the Drivermutaions that occur two or more times in the cell lines
+    kp <- anno_eins[which(rownames(anno_eins) %in% kem[which(kem$kem %in% i),]$id),];
+  
+    #we transpose kp for a easier workflow and transform it to a data frame
+    kp <- t(kp);
+    kp <- as.data.frame(kp);
+  
+   
+  
+    #and we count the number how often the mutation occurs in that group
+    kp$summe <- apply(kp, 1, function(x) { sum(x)});
+  #print(kp)
+    #now we delete genes that are mutated in less than 67% of the cell lines
+    kp <- kp[which(kp$summe > 0.4*NCOL(kp)),];
+  
+    #and we print the genes which are mutated in more than 67%
+    
+    kp <- kp[, -which(colnames(kp) %in% "summe")] 
+    
+    #we count the celllines of each group
+    #cn <- ncol(kp);
+#print(ncol(kp))
+    h <- j*5+i
+    if (NCOL(kp) > 1) { 
+      if (NROW(kp) > 1) {
+    
+    
+      
+    #name <- paste('item:',h,sep='')
+   
+    po[h] <- toString(rownames(kp))
+    
+      } else {po[h] <- "nein"}
+    }else {po[h] <- "nein"}
+  } 
+}
+
+po <- t(po)
+  
+kot <- table(po)
 
 #we add the column subtype desease to the matrix
 kem$sd <- annotation$Subtype.Disease
