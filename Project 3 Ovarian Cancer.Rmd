@@ -185,6 +185,8 @@ labs(x = "Mutated gene", y = "Frequency", title = "Driver mutations in Ovarian C
 
 ## 4. Co-existing Mutations
 
+#### 4.1 Investigation of co-existing driver mutations via heatmap
+
 Here, we want to investigate whether there are certain mutations that often occur together and are therefore possibly linked to each other in their genesis. The goal will be to create a symmetrical matrix whose columns AND rows are our genes; the cells' content will be the counts of how often two corresponding genes turn up in the same cell line together. Next, maximum values can be extracted and tested for significance.
 
 To get a short overview about how many co existing drivermutations are common in the data we perform a heatmap:
@@ -206,16 +208,10 @@ rownames(anno) <- rownames(annotation)
 #now we sum up how many TRUE occur in each cell line
 anno$summe <- apply(anno, 1, function(x) { sum(x)})
 
-#and extract the sums for further steps
-summe <- anno$summe
-
-
 #to get a better overview we use only the drivermutations that occur in more than 3 cell lines (the other two are needed in step 5)
 dm_drei <- dm_null[which(dm_null$Freq > 3), ]
 dm_zwei <- dm_null[which(dm_null$Freq > 2), ]
 dm_eins <- dm_null[which(dm_null$Freq > 1), ]
-
-
 
 #these two are extracted for step 5
 anno_zwei <- anno[, which(colnames(anno) %in% rownames(dm_zwei))]
@@ -243,13 +239,19 @@ co <- as.data.frame(cols)
 co$kat <- c("not mutated", "mutated (> 9 mutations)", "mutated (> 3 mutations)", "mutated (> 1 mutations)", "mutated (1 mutation)")
 
 #plotting the heatmap
-heatmap(anno, Rowv = NA, Colv = NA, main = "Occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(5),  cexCol = 0.9, cexRow = 0.6)
+heatmap(anno, Rowv = NA, Colv = NA, main = "Occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(5),  cexCol = 0.9, cexRow = 0.3)
 
 #adding a legend
-legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 0.5)
+legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 0.6)
 ```
 
+### 4.2 Creating a cluster according to the driver mutations
+
+#### 4.2.1 Validation of drivermutations in literature
+
 In the heatmap it is visible that many drivermutations, especially the ones that occur less than five times in our cell lines, occur very randomly along the cell lines. Caused by this fact we choosed another way to find groups that fit together. To validate our seven main Driver Mutations it was checked if they were mentioned in an Ovarian cancer context in literature. And the ones which were common are: TP53, ARID1A, ATM and PTPRF. In the next step the cell lines are investigated if these Mutations occur in them and we groups are defined:
+
+#### 4.2.2 Creating a cluster
 
 ```{r}
 #to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
@@ -382,7 +384,10 @@ labs(x = "SL partners", y = "Difference in essentiality", title = "SL partners f
 Now: test significance of obtained values with a statistical test (which one?)
 
 
-### Performing Principal Component Analysis
+### 5.2 Performing Principal Component Analysis
+
+
+#### 5.2.1 PCA combined with cluster after drivermutations
 
 To reduce the information of the kd.prob matrix we perform a PCA. The analysis creates groups of cell lines with similar lethality partners. We use the variable TopVar created before.
 
@@ -411,6 +416,8 @@ ggplot(PCi,aes(x=PC1,y=PC2,col=annodm$kat))+geom_point(size=3)
 
 ```
 
+#### 5.2.2 PCA combined with kmeans cluster
+
 We can see that the cluster does not really fit to the results of the PCA. In the next step, we perform a kmeans cluster and check if that fits better
 
 ```{r}
@@ -432,6 +439,8 @@ group <- as.factor(km$cluster)
 #plotting PCA as before
 ggplot(PCi,aes(x=PC1,y=PC2,col=group))+geom_point(size=3)
 ```
+
+#### 5.2.3 PCA results
 
 clustered by kmeans there are five groups which fit to the pca very well. In the next step it is investigated which cell lines are grouped by kmeans and what they have in common. Therefore a heatmap for each group is created containing the mutated genes. Maybe it will be visible if there are genes which are mutated in each cell line of that group. the same analysis is done by the computer and the common genes will be printed
 
