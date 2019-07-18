@@ -387,37 +387,11 @@ Now: test significance of obtained values with a statistical test (which one?)
 To reduce the information of the kd.prob matrix we perform a PCA. The analysis creates groups of cell lines with similar lethality partners. We use the variable TopVar created before.
 
 ```{r}
+# calculate variance over all rows (genes)
+topVar = apply(kd.prob, 1, var) 
 
-topVar = apply(kd.prob, 1, var) # calculate variance over all rows (genes)
-
-kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] # new data frame with just the genes whose knockout leads to highly variant cell death events -> perhaps our synthetic lethality interaction partners?
-
-#we have to transpose the data frame
-kd.prob.top <- t(kd.prob.topVar)
-
-#we use the colors defined in step 4 for our co existing mutations
-pcc <- cbind(`TP` = pcc)
-
-#we also add a legend to the plot
-#to add the right colors to that legend we create a new dataframe containing the colors and the categories defined in step 4:
-#colors <- unique(annodm$col)
-#cl <- c(colors)
-#ca <- unique(annodm$kat)
-
-#this function calculates the PCA with the variance calculated before
-#pca.prob = prcomp(kd.prob.topVar, center = F, scale. = F)
-#we plot the pca with the different colors for cell lines with similar Driver Mutations
-#plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcc[, 1], pch = 19, xlab = "PC1", ylab = "PC2")
-
-data<-kd.prob.top
-df<-kd.prob.top
-PC<-prcomp(df)
-PCi<-data.frame(PC$x)
-
-
-topVar = apply(kd.prob, 1, var) # calculate variance over all rows (genes)
-
-kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] # new data frame with just the genes whose knockout leads to highly variant cell death events -> perhaps our synthetic lethality interaction partners?
+# new data frame with just the genes whose knockout leads to highly variant cell death events -> perhaps our synthetic lethality interaction partners?
+kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] 
 
 #we have to transpose the data frame
 kd.prob.top <- t(kd.prob.topVar)
@@ -425,36 +399,21 @@ kd.prob.top <- t(kd.prob.topVar)
 #we use the colors defined in step 4 for our co existing mutations
 pcc <- cbind(`TP` = pcc)
 
-#we also add a legend to the plot
-#to add the right colors to that legend we create a new dataframe containing the colors and the categories defined in step 4:
-#colors <- unique(annodm$col)
-#cl <- c(colors)
-#ca <- unique(annodm$kat)
-
 #this function calculates the PCA with the variance calculated before
-#pca.prob = prcomp(kd.prob.topVar, center = F, scale. = F)
-#we plot the pca with the different colors for cell lines with similar Driver Mutations
-#plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcc[, 1], pch = 19, xlab = "PC1", ylab = "PC2")
-
 data<-kd.prob.top
 df<-kd.prob.top
 PC<-prcomp(df)
 PCi<-data.frame(PC$x)
 
-
+#we plot the pca with the different colors for cell lines with similar Driver Mutations
 ggplot(PCi,aes(x=PC1,y=PC2,col=annodm$kat))+geom_point(size=3)
-#and we add the legend
-#legend("topright", pch = 20,
-#and we add the legend
-#legend("topright", pch = 20, col= cl, legend = ca, bty='n', cex=1)
+
 
 ```
 
 We can see that the cluster does not really fit to the results of the PCA. In the next step, we perform a kmeans cluster and check if that fits better
 
 ```{r}
-
-
 #at first we need to find out how many centers we use for the clustering
 kme = sapply(2:7, function(k) {
     kmeans(kd.prob.top, centers = k)$tot.withinss
@@ -471,13 +430,7 @@ group <- as.factor(km$cluster)
 
 
 #plotting PCA as before
-#plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcd, pch = 19, xlab = "PC1", ylab = "PC2")
-
 ggplot(PCi,aes(x=PC1,y=PC2,col=group))+geom_point(size=3)
-
-
-
-
 ```
 
 clustered by kmeans there are five groups which fit to the pca very well. In the next step it is investigated which cell lines are grouped by kmeans and what they have in common. Therefore a heatmap for each group is created containing the mutated genes. Maybe it will be visible if there are genes which are mutated in each cell line of that group. the same analysis is done by the computer and the common genes will be printed
