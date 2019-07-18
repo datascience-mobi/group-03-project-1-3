@@ -344,6 +344,8 @@ Now: test significance of obtained values with a statistical test (which one?)
 
 ### 5.2 Performing Principal Component Analysis
 
+
+#### 5.2.1 Creating groups with similar drivermutations
 In step 4.2.1 the drivermutations were validated with literature.
 And the ones which were common are: TP53, ARID1A, ATM and PTPRF. In the next step the cell lines are investigated if these Mutations occur in them and which groups can be defined:
 
@@ -420,7 +422,7 @@ ggplot(PCi,aes(x=PC1,y=PC2,col=annodm$kat))+geom_point(size=3)
 
 ```
 
-#### 5.2.2 PCA combined with kmeans cluster
+#### 5.2.3 PCA combined with kmeans cluster
 
 We can see that the cluster does not really fit to the results of the PCA. In the next step, we perform a kmeans cluster and check if that fits better
 
@@ -444,7 +446,7 @@ group <- as.factor(km$cluster)
 ggplot(PCi,aes(x=PC1,y=PC2,col=group))+geom_point(size=3)
 ```
 
-#### 5.2.3 PCA results
+#### 5.2.4 PCA results
 
 clustered by kmeans there are five groups which fit to the pca very well. In the next step it is investigated which cell lines are grouped by kmeans and what they have in common. Therefore a heatmap for each group is created containing the mutated genes. Maybe it will be visible if there are genes which are mutated in each cell line of that group. the same analysis is done by the computer and the common genes will be printed
 
