@@ -441,9 +441,6 @@ pcd <- as.factor(km$cluster)
 #plotting PCA as before
 plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcd, pch = 19, xlab = "PC1", ylab = "PC2")
 
-#check the other principal components
-comp <- data.frame(pca.prob$rotation[,1:4])
-plot(comp, pch=16, col= pcd)
 
 ```
 
@@ -483,6 +480,7 @@ for(i in 1:5) {
   kp <- kp[which(kp$summe > 0.67*cn),];
   
   #and we print the genes which are mutated in more than 67%
+  print(i)
   print(rownames(kp));
   
   }
