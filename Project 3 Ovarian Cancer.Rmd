@@ -354,22 +354,18 @@ And the ones which were common are: TP53, ARID1A, ATM and PTPRF. In the next ste
 #to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
 annodm <- as.data.frame(anno[, which(colnames(annotation) %in% c("nix"))])
 
-
-
 #to seperate the cell lines in groups with similar Mutations we give every Drivermutation a specific value: If TP53 is True in the cell line it gets a "1000" , if it isnt ther will be a "0"
-annodm$TP53 <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "TP53"), ]$DepMap_ID, 1000, 0)
-
+annodm$TP53   <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "TP53"), ]$DepMap_ID, 1000, 0)
 
 #same here, ARID1A gets a "100" for True and a "0" for FALSE
 annodm$ARID1A <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "ARID1A"), ]$DepMap_ID, 100, 0)
 
 #and the same for the next Mutations
-annodm$ATM <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "ATM"), ]$DepMap_ID, 10, 0)
-annodm$PTPRF <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "PTPRF"), ]$DepMap_ID, 1, 0)
-
+annodm$ATM    <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "ATM"), ]$DepMap_ID, 10, 0)
+annodm$PTPRF  <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "PTPRF"), ]$DepMap_ID, 1, 0)
 
 #we can now sum up these values in a new column
-annodm$summe <- apply(annodm, 1, function(x) { sum(x)})
+annodm$summe  <- apply(annodm, 1, function(x) { sum(x)})
 
 ```
 
@@ -379,8 +375,14 @@ In the following step we gave the different combinations a specific category
 ```{r}
 
 #we picked the most common combinations and gave them different categories by their sums
-annodm$kat <- ifelse(annodm$summe == 1000, "TP53 only", ifelse(annodm$summe > 1099, "TP53 & ARID1A", ifelse(annodm$summe == 100, "ARID1A only", ifelse(annodm$summe == 110, "ARID1A & sec. Mu", ifelse(annodm$summe == 101, "ARID1A & sec. Mu", ifelse(annodm$summe < 100, "no TP53 & no ARID1A", ifelse(annodm$summe == 0, "no TP53 & no ARID1A", "TP53 & sec. Mu")))))))
-
+annodm$kat <- ifelse(annodm$summe == 1000, "TP53 only", 
+              ifelse(annodm$summe > 1099, "TP53 & ARID1A", 
+              ifelse(annodm$summe == 100, "ARID1A only", 
+              ifelse(annodm$summe == 110, "ARID1A & sec. Mu", 
+              ifelse(annodm$summe == 101, "ARID1A & sec. Mu", 
+              ifelse(annodm$summe < 100, "no TP53 & no ARID1A", 
+              ifelse(annodm$summe == 0, "no TP53 & no ARID1A", "TP53 & sec. Mu"
+)))))))
 ```
 
 
@@ -517,7 +519,9 @@ ko <- ko[-which(ko$po %in% "nein"),]
 similar_mutations <- ko$po
 ggplot(data = ko) +
 geom_col(mapping = aes(x = ko$po, y = ko$Freq, fill = similar_mutations), show.legend = T) +
-labs(x = "Mutated gene", y = "Frequency", title = "Frequency of specific kmeans cluster")
+
+  theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) +
+  labs(x = "Mutated gene", y = "Frequency", title = "Frequency of specific kmeans cluster")
 
 #we add the column subtype desease to the matrix
 kem$sd <- annotation$Subtype.Disease
