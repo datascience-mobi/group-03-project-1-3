@@ -381,13 +381,6 @@ In the following step we gave the different combinations a specific category
 #we picked the most common combinations and gave them different categories by their sums
 annodm$kat <- ifelse(annodm$summe == 1000, "TP53 only", ifelse(annodm$summe > 1099, "TP53 & ARID1A", ifelse(annodm$summe == 100, "ARID1A only", ifelse(annodm$summe == 110, "ARID1A & sec. Mu", ifelse(annodm$summe == 101, "ARID1A & sec. Mu", ifelse(annodm$summe < 100, "no TP53 & no ARID1A", ifelse(annodm$summe == 0, "no TP53 & no ARID1A", "TP53 & sec. Mu")))))))
 
-#we also gave them different colors by using the same function as before
-pcc <- ifelse(annodm$summe == 1000, "blue", ifelse(annodm$summe > 1099, "green",  ifelse(annodm$summe == 100, "orange",  ifelse(annodm$summe == 110, "red", ifelse(annodm$summe == 101, "red",  ifelse(annodm$summe < 100, "grey",ifelse(annodm$summe == 0, "grey","darkblue")))))))
-
-#and we added another column to the matrix containing that colors
-annodm$col <- pcc
-
-
 ```
 
 
@@ -395,7 +388,7 @@ annodm$col <- pcc
 
 #### 5.2.2 PCA combined with cluster after drivermutations
 
-To reduce the information of the kd.prob matrix we perform a PCA. The analysis creates groups of cell lines with similar lethality partners. We use the variable TopVar created before.
+To reduce the information of the kd.prob matrix we perform a PCA. The analysis creates groups of cell lines with similar lethality partners.
 
 ```{r}
 # calculate variance over all rows (genes)
@@ -408,7 +401,7 @@ kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ]
 kd.prob.top <- t(kd.prob.topVar)
 
 #we use the colors defined in step 4 for our co existing mutations
-pcc <- cbind(`TP` = pcc)
+mutation <- annodm$kat
 
 #this function calculates the PCA with the variance calculated before
 data<-kd.prob.top
@@ -417,7 +410,7 @@ PC<-prcomp(df)
 PCi<-data.frame(PC$x)
 
 #we plot the pca with the different colors for cell lines with similar Driver Mutations
-ggplot(PCi,aes(x=PC1,y=PC2,col=annodm$kat))+geom_point(size=3)
+ggplot(PCi,aes(x=PC1,y=PC2,col=mutation))+geom_point(size=2.5)
 
 
 ```
@@ -443,7 +436,7 @@ group <- as.factor(km$cluster)
 
 
 #plotting PCA as before
-ggplot(PCi,aes(x=PC1,y=PC2,col=group))+geom_point(size=3)
+ggplot(PCi,aes(x=PC1,y=PC2,col=group))+geom_point(size=2.5)
 ```
 
 #### 5.2.4 PCA results
@@ -484,8 +477,13 @@ for(i in 1:5) {
   kp <- kp[which(kp$summe > 0.67*cn),];
   
   #and we print the genes which are mutated in more than 67%
-  print(i)
-  print(rownames(kp));
+  cat("group", i)
+  if (nrow(kp) == 0) {
+    print("no similar mutations in this group")}
+  else {
+    print(rownames(kp))
+    
+    }
   
   }
 
