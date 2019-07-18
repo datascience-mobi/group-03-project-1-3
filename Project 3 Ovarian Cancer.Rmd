@@ -441,31 +441,26 @@ ggplot(PCi,aes(x=PC1,y=PC2,col=group))+geom_point(size=2.5)
 
 #### 5.2.4 PCA results
 
-clustered by kmeans there are five groups which fit to the pca very well. In the next step it is investigated which cell lines are grouped by kmeans and what they have in common. Therefore a heatmap for each group is created containing the mutated genes. Maybe it will be visible if there are genes which are mutated in each cell line of that group. the same analysis is done by the computer and the common genes will be printed
+clustered by kmeans there are five groups which fit to the pca very well. In the next step it is investigated which cell lines are grouped by kmeans and what they have in common. But there comes up a problem: every time our code runs, the function kmeans will create a new cluster. Caused by that it in impossible to interpret exacly the groups which were formed in the chunk before. To get a good interpretation of the kmeans data a loop is created which forms a new kmeans cluster every single round that will be analysed. 
 
 ```{r}
-#at first the group numbers are extracted from the kmeans function
-kem <- (km[["cluster"]])
-
-#a data frame is created
-kem <- as.data.frame(kem)
-
-#we add the cell line numbers for the loop in the next steps
-kem$id <- rownames(annotation)
-
-#we create a matrix for further analysis in the loop
-kp <- c(1:5)
-kp <- as.data.frame(kp)
-
-#we need a loop to check each of the five clusters
-#mlist <- list()
+#a data frame is created to print the results in
 po <- as.data.frame(1)
-for (j in 0:1000) {
 
+#the loop will create 10000 kmeans cluster
+for (j in 0:2000) {   #!!!!!!! hier bevor ihrs abgebt 10000 eintragen, dauert dann nur bissl länger zu knitten!!!!!
+
+  #a kmeans cluster is formed
   km <- kmeans(kd.prob.top, 5)
+  
+  #the number of the cluster is extracted (1 to 5)
   kem <- (km[["cluster"]])
   kem <- as.data.frame(kem)
+  
+  #we add the rownames from the annotation matrix to validate the cell lines have the right assignment
   kem$id <- rownames(annotation)
+  
+  #we need another loop to check each of the five clusters
   for(i in 1:5) {
   
     #at first the variable has to be loaded with the Drivermutaions that occur two or more times in the cell lines
@@ -475,39 +470,54 @@ for (j in 0:1000) {
     kp <- t(kp);
     kp <- as.data.frame(kp);
   
-   
-  
     #and we count the number how often the mutation occurs in that group
     kp$summe <- apply(kp, 1, function(x) { sum(x)});
-  #print(kp)
+ 
     #now we delete genes that are mutated in less than 67% of the cell lines
-    kp <- kp[which(kp$summe > 0.4*NCOL(kp)),];
+    kp <- kp[which(kp$summe > 0.666*NCOL(kp)),];
   
-    #and we print the genes which are mutated in more than 67%
-    
+    #we remove the column "summe""
     kp <- kp[, -which(colnames(kp) %in% "summe")] 
     
-    #we count the celllines of each group
-    #cn <- ncol(kp);
-#print(ncol(kp))
+    #at this point the data is extracted from the loop into the data frame created before
+    
+    #the following function counts the number of the round from 1 to 10000
     h <- j*5+i
+    
+    #we don't need groups that contain only one or two cell lines because the mutations would not be significant
     if (NCOL(kp) > 1) { 
+      
+      #groups with only one or without any gene in common aren't usefull as well
       if (NROW(kp) > 1) {
     
-    
-      
-    #name <- paste('item:',h,sep='')
-   
+    #the data is transformed to a string and written into the data frame
     po[h] <- toString(rownames(kp))
-    
-      } else {po[h] <- "nein"}
-    }else {po[h] <- "nein"}
+      }
+    #the next two step have to be done otherwise there would be empty colums in between and an error comes up
+      else {po[h] <- "nein"}
+    }
+    else {po[h] <- "nein"}
   } 
 }
 
+#the data frame is transposed to get a better overview and to perform further analysis
 po <- t(po)
-  
-kot <- table(po)
+
+#the combinations are counted and converted to a data frame
+ko <- table(po)
+ko <- as.data.frame(ko)
+
+#they are order after the most frequency
+ko <- ko[order(ko$Freq, decreasing = T),]
+
+#and the "nein" row is deleted
+ko <- ko[-which(ko$po %in% "nein"),]
+
+#a barplot is created to visualize the data
+similar_mutations <- ko$po
+ggplot(data = ko) +
+geom_col(mapping = aes(x = ko$po, y = ko$Freq, fill = similar_mutations), show.legend = T) +
+labs(x = "Mutated gene", y = "Frequency", title = "Frequency of specific kmeans cluster")
 
 #we add the column subtype desease to the matrix
 kem$sd <- annotation$Subtype.Disease
