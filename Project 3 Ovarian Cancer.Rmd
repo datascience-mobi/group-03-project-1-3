@@ -227,9 +227,9 @@ dm_eins <- dm_null[which(dm_null$Freq > 1), ]
 
 #these two are extracted for step 5
 anno_zwei <- anno[, which(colnames(anno) %in% rownames(dm_zwei))]
-anno_zwei <- data.matrix(anno_zwei)
+anno_zwei <- as.data.frame(anno_zwei)
 anno_eins <- anno[, which(colnames(anno) %in% rownames(dm_eins))]
-anno_eins <- data.matrix(anno_eins)
+anno_eins <- as.data.frame(anno_eins)
 
 anno <- anno[, which(colnames(anno) %in% rownames(dm_drei))]
 #we have to bring the cell lines in a better order: so we put the cell lines with the most mutations together and decrease it upwards. 
@@ -489,7 +489,7 @@ kem <- as.data.frame(kem)
 kem$id <- rownames(annotation)
 
 #and order the matrix after the group
-kem <- kem[order(kem$`km[["cluster"]]`, decreasing = TRUE),]
+kem <- kem[order(kem$kem, decreasing = TRUE),]
 
 #we create a matrix for further analysis in the loop
 kp <- c(1:5)
