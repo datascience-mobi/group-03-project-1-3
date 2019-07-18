@@ -245,53 +245,12 @@ heatmap(anno, Rowv = NA, Colv = NA, main = "Occuring Drivermutations",xlab = "Mu
 legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 0.6)
 ```
 
-### 4.2 Creating a cluster according to the driver mutations
+### 4.2 Driver mutations in literature
 
 #### 4.2.1 Validation of drivermutations in literature
 
-In the heatmap it is visible that many drivermutations, especially the ones that occur less than five times in our cell lines, occur very randomly along the cell lines. Caused by this fact we choosed another way to find groups that fit together. To validate our seven main Driver Mutations it was checked if they were mentioned in an Ovarian cancer context in literature. And the ones which were common are: TP53, ARID1A, ATM and PTPRF. In the next step the cell lines are investigated if these Mutations occur in them and we groups are defined:
+In the heatmap it is visible that many drivermutations, especially the ones that occur less than five times in our cell lines, occur very randomly along the cell lines. Caused by this fact another way to find SL partners is needed.To find out if the main drivermutations is important for a possible SL partner, the main driver muations have to be validated by checking which of them were mentioned in an Ovarian cancer context in literature.
 
-#### 4.2.2 Creating a cluster
-
-```{r}
-#to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
-annodm <- as.data.frame(anno[, which(colnames(annotation) %in% c("nix"))])
-
-
-
-#to seperate the cell lines in groups with similar Mutations we give every Drivermutation a specific value: If TP53 is True in the cell line it gets a "1000" , if it isnt ther will be a "0"
-annodm$TP53 <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "TP53"), ]$DepMap_ID, 1000, 0)
-
-
-#same here, ARID1A gets a "100" for True and a "0" for FALSE
-annodm$ARID1A <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "ARID1A"), ]$DepMap_ID, 100, 0)
-
-#and the same for the next Mutations
-annodm$ATM <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "ATM"), ]$DepMap_ID, 10, 0)
-annodm$PTPRF <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "PTPRF"), ]$DepMap_ID, 1, 0)
-
-
-#we can now sum up these values in a new column
-annodm$summe <- apply(annodm, 1, function(x) { sum(x)})
-
-```
-
-Many cell lines do not even have one of our chosen mutations because their sum is zero. At many others we can see that they have the same combination of Drivermutations because they have the same value at "annodm$summe".
-In the following step we gave the different combinations a specific category
-
-```{r}
-
-#we picked the most common combinations and gave them different categories by their sums
-annodm$kat <- ifelse(annodm$summe == 1000, "TP53 only", ifelse(annodm$summe > 1099, "TP53 & ARID1A", ifelse(annodm$summe == 100, "ARID1A only", ifelse(annodm$summe == 110, "ARID1A & sec. Mu", ifelse(annodm$summe == 101, "ARID1A & sec. Mu", ifelse(annodm$summe < 100, "no TP53 & no ARID1A", ifelse(annodm$summe == 0, "no TP53 & no ARID1A", "TP53 & sec. Mu")))))))
-
-#we also gave them different colors by using the same function as before
-pcc <- ifelse(annodm$summe == 1000, "blue", ifelse(annodm$summe > 1099, "green",  ifelse(annodm$summe == 100, "orange",  ifelse(annodm$summe == 110, "red", ifelse(annodm$summe == 101, "red",  ifelse(annodm$summe < 100, "grey",ifelse(annodm$summe == 0, "grey","darkblue")))))))
-
-#and we added another column to the matrix containing that colors
-annodm$col <- pcc
-
-
-```
 
 
 ## 5. Synthetic Lethality Interactions
@@ -383,11 +342,56 @@ labs(x = "SL partners", y = "Difference in essentiality", title = "SL partners f
 
 Now: test significance of obtained values with a statistical test (which one?)
 
-
 ### 5.2 Performing Principal Component Analysis
 
+In step 4.2.1 the drivermutations were validated with literature.
+And the ones which were common are: TP53, ARID1A, ATM and PTPRF. In the next step the cell lines are investigated if these Mutations occur in them and which groups can be defined:
 
-#### 5.2.1 PCA combined with cluster after drivermutations
+
+```{r}
+#to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
+annodm <- as.data.frame(anno[, which(colnames(annotation) %in% c("nix"))])
+
+
+
+#to seperate the cell lines in groups with similar Mutations we give every Drivermutation a specific value: If TP53 is True in the cell line it gets a "1000" , if it isnt ther will be a "0"
+annodm$TP53 <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "TP53"), ]$DepMap_ID, 1000, 0)
+
+
+#same here, ARID1A gets a "100" for True and a "0" for FALSE
+annodm$ARID1A <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "ARID1A"), ]$DepMap_ID, 100, 0)
+
+#and the same for the next Mutations
+annodm$ATM <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "ATM"), ]$DepMap_ID, 10, 0)
+annodm$PTPRF <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "PTPRF"), ]$DepMap_ID, 1, 0)
+
+
+#we can now sum up these values in a new column
+annodm$summe <- apply(annodm, 1, function(x) { sum(x)})
+
+```
+
+Many cell lines do not even have one of our chosen mutations because their sum is zero. At many others we can see that they have the same combination of Drivermutations because they have the same value at "annodm$summe".
+In the following step we gave the different combinations a specific category
+
+```{r}
+
+#we picked the most common combinations and gave them different categories by their sums
+annodm$kat <- ifelse(annodm$summe == 1000, "TP53 only", ifelse(annodm$summe > 1099, "TP53 & ARID1A", ifelse(annodm$summe == 100, "ARID1A only", ifelse(annodm$summe == 110, "ARID1A & sec. Mu", ifelse(annodm$summe == 101, "ARID1A & sec. Mu", ifelse(annodm$summe < 100, "no TP53 & no ARID1A", ifelse(annodm$summe == 0, "no TP53 & no ARID1A", "TP53 & sec. Mu")))))))
+
+#we also gave them different colors by using the same function as before
+pcc <- ifelse(annodm$summe == 1000, "blue", ifelse(annodm$summe > 1099, "green",  ifelse(annodm$summe == 100, "orange",  ifelse(annodm$summe == 110, "red", ifelse(annodm$summe == 101, "red",  ifelse(annodm$summe < 100, "grey",ifelse(annodm$summe == 0, "grey","darkblue")))))))
+
+#and we added another column to the matrix containing that colors
+annodm$col <- pcc
+
+
+```
+
+
+
+
+#### 5.2.2 PCA combined with cluster after drivermutations
 
 To reduce the information of the kd.prob matrix we perform a PCA. The analysis creates groups of cell lines with similar lethality partners. We use the variable TopVar created before.
 
