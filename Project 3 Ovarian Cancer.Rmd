@@ -97,14 +97,6 @@ knitr::opts_chunk$set(echo = T, warning = F) # do not show output
 NAV = apply(copynumber, 1, function(x) {sum(is.na(x))}) 
 copynumber = copynumber[-which(NAV > 0), ]  
 
-'NAV = apply(expression, 1, function(x) {sum(is.na(x))})  # warum als Kommentar??? Wenn irrelevant, bitte löschen
-expression = expression[-which(NAV > 0), ]  
- 
-NAV = apply(kd.ceres, 1, function(x) {sum(is.na(x))}) 
-kd.ceres = kd.ceres[-which(NAV > 0), ]
-
-NAV = apply(kd.prob, 1, function(x) {sum(is.na(x))}) 
-kd.prob = kd.prob[-which(NAV > 0), ]'
 ```
 
 ### Install packages
@@ -488,28 +480,15 @@ kem <- as.data.frame(kem)
 #we add the cell line numbers for the loop in the next steps
 kem$id <- rownames(annotation)
 
-#and order the matrix after the group
-kem <- kem[order(kem$kem, decreasing = TRUE),]
-
 #we create a matrix for further analysis in the loop
 kp <- c(1:5)
 kp <- as.data.frame(kp)
 
 #we need a loop to check each of the five clusters
-apply(kp, 1, function(x) {
+for(i in 1:5) {
   
-  #at first the variable has to be loaded with the Drivermutaions that occur three or more times in the cell lines
-  kp <- anno_zwei[which(rownames(anno_zwei) %in% kem[which(kem$kem %in% x),]$id),];
-  
-  kp <- data.matrix(kp)
-  #then a heatmap is plotted containing the cell lines of the group with its Drivermutations
-  heatmap(kp, Rowv = NA,   main = x ,xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(2),  cexCol = 0.9,    cexRow = 0.6); 
-  
-  #we add a legend
-  legend("topright", pch = 15, col = heat.colors(2), legend = c("not mutated", "mutated"), bty = 'n', cex = 1); 
-  
-  #for the computer analysis every Drivermutation that occurs two or more times is used
-  kp <- anno_eins[which(rownames(anno_eins) %in% kem[which(kem$kem %in% x),]$id),];
+  #at first the variable has to be loaded with the Drivermutaions that occur two or more times in the cell lines
+  kp <- anno_eins[which(rownames(anno_eins) %in% kem[which(kem$kem %in% i),]$id),];
   
   #we transpose kp for a easier workflow and transform it to a data frame
   kp <- t(kp);
@@ -527,14 +506,14 @@ apply(kp, 1, function(x) {
   #and we print the genes which are mutated in more than 67%
   print(rownames(kp));
   
-  })
+  }
+
 
 #we add the column subtype desease to the matrix
 kem$sd <- annotation$Subtype.Disease
 ```
 
-Hier fehlt noch die Interpretation der PCA bzw der Cluster.
-
+The method works very well. But there is one problem: Every time the code runs the function "kmeans" in the chunk before will create a new cluster with different groups. That means that the results printed by the chunk before may not fit to the interpretation that follows. As a consequence the k-means cluster was performed several times and groups which came up very often were analysed: There is a group that comes up very often which contains two cell lines (ACH-001278 and ACH-000123). These cell lines have two Mutations in common: "PTPRF"" and "SMARCA4". With the number of the cluster it is possible to check the cell lines in the "kem" matrix. At the two examples the same Subtype desease cancer (Small Cell Carcinoma of the Ovary Hypercalcemic Type (SCCOHT)) can be seen. These two cell lines may have the same SL partners
 
 
 ## 6. Linear Regression
