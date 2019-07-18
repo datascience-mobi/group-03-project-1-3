@@ -392,36 +392,68 @@ topVar = apply(kd.prob, 1, var) # calculate variance over all rows (genes)
 
 kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] # new data frame with just the genes whose knockout leads to highly variant cell death events -> perhaps our synthetic lethality interaction partners?
 
+#we have to transpose the data frame
+kd.prob.top <- t(kd.prob.topVar)
+
 #we use the colors defined in step 4 for our co existing mutations
 pcc <- cbind(`TP` = pcc)
 
-#keine Ahnung warum ich das machen muss ich frag david noch... aber ohne gehts net
+#we also add a legend to the plot
+#to add the right colors to that legend we create a new dataframe containing the colors and the categories defined in step 4:
+#colors <- unique(annodm$col)
+#cl <- c(colors)
+#ca <- unique(annodm$kat)
 
 #this function calculates the PCA with the variance calculated before
-pca.prob = prcomp(kd.prob.topVar, center = F, scale. = F)
-
+#pca.prob = prcomp(kd.prob.topVar, center = F, scale. = F)
 #we plot the pca with the different colors for cell lines with similar Driver Mutations
-plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcc[, 1], pch = 19, xlab = "PC1", ylab = "PC2")
+#plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcc[, 1], pch = 19, xlab = "PC1", ylab = "PC2")
+
+data<-kd.prob.top
+df<-kd.prob.top
+PC<-prcomp(df)
+PCi<-data.frame(PC$x)
+
+
+topVar = apply(kd.prob, 1, var) # calculate variance over all rows (genes)
+
+kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] # new data frame with just the genes whose knockout leads to highly variant cell death events -> perhaps our synthetic lethality interaction partners?
+
+#we have to transpose the data frame
+kd.prob.top <- t(kd.prob.topVar)
+
+#we use the colors defined in step 4 for our co existing mutations
+pcc <- cbind(`TP` = pcc)
 
 #we also add a legend to the plot
 #to add the right colors to that legend we create a new dataframe containing the colors and the categories defined in step 4:
-colors <- unique(annodm$col)
-cl <- c(colors)
-ca <- unique(annodm$kat)
+#colors <- unique(annodm$col)
+#cl <- c(colors)
+#ca <- unique(annodm$kat)
 
+#this function calculates the PCA with the variance calculated before
+#pca.prob = prcomp(kd.prob.topVar, center = F, scale. = F)
+#we plot the pca with the different colors for cell lines with similar Driver Mutations
+#plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcc[, 1], pch = 19, xlab = "PC1", ylab = "PC2")
+
+data<-kd.prob.top
+df<-kd.prob.top
+PC<-prcomp(df)
+PCi<-data.frame(PC$x)
+
+
+ggplot(PCi,aes(x=PC1,y=PC2,col=annodm$kat))+geom_point(size=3)
 #and we add the legend
-legend("topright", pch = 20, col= cl, legend = ca, bty='n', cex=1)
+#legend("topright", pch = 20,
+#and we add the legend
+#legend("topright", pch = 20, col= cl, legend = ca, bty='n', cex=1)
 
-#we can also check the differnt principal components
-comp <- data.frame(pca.prob$rotation[,1:3])
-plot(comp, pch=16, col= pcc)
 ```
 
 We can see that the cluster does not really fit to the results of the PCA. In the next step, we perform a kmeans cluster and check if that fits better
 
 ```{r}
-#we have to transpose the data frame
-kd.prob.top <- t(kd.prob.topVar)
+
 
 #at first we need to find out how many centers we use for the clustering
 kme = sapply(2:7, function(k) {
@@ -435,11 +467,15 @@ plot(2:7, kme, type = "b", pch = 19, xlab = "Number of clusters K")
 km <- kmeans(kd.prob.top, 5)
 
 #extracting the colors
-pcd <- as.factor(km$cluster)
+group <- as.factor(km$cluster)
 
 
 #plotting PCA as before
-plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcd, pch = 19, xlab = "PC1", ylab = "PC2")
+#plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcd, pch = 19, xlab = "PC1", ylab = "PC2")
+
+ggplot(PCi,aes(x=PC1,y=PC2,col=group))+geom_point(size=3)
+
+
 
 
 ```
