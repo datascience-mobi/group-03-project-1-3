@@ -97,14 +97,6 @@ knitr::opts_chunk$set(echo = T, warning = F) # do not show output
 NAV = apply(copynumber, 1, function(x) {sum(is.na(x))}) 
 copynumber = copynumber[-which(NAV > 0), ]  
 
-'NAV = apply(expression, 1, function(x) {sum(is.na(x))})  # warum als Kommentar??? Wenn irrelevant, bitte löschen
-expression = expression[-which(NAV > 0), ]  
- 
-NAV = apply(kd.ceres, 1, function(x) {sum(is.na(x))}) 
-kd.ceres = kd.ceres[-which(NAV > 0), ]
-
-NAV = apply(kd.prob, 1, function(x) {sum(is.na(x))}) 
-kd.prob = kd.prob[-which(NAV > 0), ]'
 ```
 
 ### Install packages
@@ -198,12 +190,12 @@ Here, we want to investigate whether there are certain mutations that often occu
 To get a short overview about how many co existing drivermutations are common in the data we perform a heatmap:
 
 
-```{r echo=TRUE, results='hide'}
+```{r}
 #creating a new matrix containing every cell line that has at least one of our 7 drivermutations. We check if the name of our Drivermutation occurs in the Drivermutation matrix
 dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% dm_null$Var1), ]
 
 #function to find out if the Mutation occurs in the cell lines: "1" means yes and "0" means no
-anno <- apply(dm_null, 1, function(x) {annotation$ff[x]<- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% x), ]$DepMap_ID, 1, 0)})
+anno <- apply(dm_null, 1, function(x) {annotation[x]<- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% x), ]$DepMap_ID, 1, 0)})
 
 #we have to transform the matrix to a data frame for further steps
 anno <- as.data.frame(anno)
@@ -248,33 +240,16 @@ mypalette <- colorRampPalette(cols)(2)
 
 #we also add a second column to the matrix to include color associated Explanations for the legend
 co <- as.data.frame(cols)
-co$kat <- c("not mutated", "mutated (>9)", "mutated (>3)", "mutated (>1)", "mutated (=1)")
-```
+co$kat <- c("not mutated", "mutated (> 9 mutations)", "mutated (> 3 mutations)", "mutated (> 1 mutations)", "mutated (1 mutation)")
 
-```{r}
 #plotting the heatmap
 heatmap(anno, Rowv = NA, Colv = NA, main = "Occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(5),  cexCol = 0.9, cexRow = 0.6)
 
 #adding a legend
-legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 1)
+legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 0.5)
 ```
 
-The heatmap shows cell lines with similar drivermutations. As you can see, the mutations are very random. There are some similar mutated cell lines all the way down in the plot. We can plot a heatmap like this with all mutations we find in the cell lines as well. But the heatmap would be too big to get any impression. All mutations were used to create a cluster to investigate if the number of mutations in one cell line has an impact on the synthetic lethality partners. (we will see in a later step how useful this step is) 
-
-```{r}
-#therefore we use the data extracted in the chunk before
-#"summe" contains the number of all mutations in each cell line
-summe <- as.data.frame(summe)
-rownames(summe) <- rownames(annotation)
-
-#we seperate seven groups according to the number of mutations
-summe$kat <- ifelse(summe$summe > 100, "blue", ifelse(summe$summe > 70, "lightblue", ifelse(summe$summe > 50, "pink", ifelse(summe$summe > 40, "red", ifelse(summe$summe > 30, "orange", ifelse(summe$summe > 20, "yellow", "grey"))))))
-
-#we create avector containing that colors
-pcb <- summe$kat
-```
-
-The next step is only possible with less than four Mutations. Because otherwise there would be too many combinations of drivermutations. In the heatmap we performed in step 4 it is visible that many drivermutations, especially the ones that occur less than five times in our cell lines, occur very randomly along the cell lines. Caused by this fact we validated our seven mutations and choosed the ones that were mentioned in an Ovarian cancer context in literature. The following are our chosen ones: TP53, ARID1A, ATM and PTPRF. We continue the PCA analysis:
+In the heatmap it is visible that many drivermutations, especially the ones that occur less than five times in our cell lines, occur very randomly along the cell lines. Caused by this fact we choosed another way to find groups that fit together. To validate our seven main Driver Mutations it was checked if they were mentioned in an Ovarian cancer context in literature. And the ones which were common are: TP53, ARID1A, ATM and PTPRF. In the next step the cell lines are investigated if these Mutations occur in them and we groups are defined:
 
 ```{r}
 #to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
@@ -418,7 +393,6 @@ topVar = apply(kd.prob, 1, var) # calculate variance over all rows (genes)
 kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] # new data frame with just the genes whose knockout leads to highly variant cell death events -> perhaps our synthetic lethality interaction partners?
 
 #we use the colors defined in step 4 for our co existing mutations
-pcb <- cbind(`TP` = pcb)
 pcc <- cbind(`TP` = pcc)
 
 #keine Ahnung warum ich das machen muss ich frag david noch... aber ohne gehts net
@@ -438,15 +412,12 @@ ca <- unique(annodm$kat)
 #and we add the legend
 legend("topright", pch = 20, col= cl, legend = ca, bty='n', cex=1)
 
-#we defined another cluster in the step before which was created with the information of the heatmap, we can plot the same PCA with different colors 
-plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcb[, 1], pch = 19, xlab = "PC1", ylab = "PC2")
-
 #we can also check the differnt principal components
 comp <- data.frame(pca.prob$rotation[,1:3])
-plot(comp, pch=16, col= pcb)
+plot(comp, pch=16, col= pcc)
 ```
 
-We can see that both of our clusters do not really fit to the results of the PCA. In the next step, we perform a kmeans cluster and check if that fits better
+We can see that the cluster does not really fit to the results of the PCA. In the next step, we perform a kmeans cluster and check if that fits better
 
 ```{r}
 #we have to transpose the data frame
@@ -470,9 +441,6 @@ pcd <- as.factor(km$cluster)
 #plotting PCA as before
 plot(pca.prob$rotation[, 1], pca.prob$rotation[, 2], col = pcd, pch = 19, xlab = "PC1", ylab = "PC2")
 
-#check the other principal components
-comp <- data.frame(pca.prob$rotation[,1:4])
-plot(comp, pch=16, col= pcd)
 
 ```
 
@@ -488,28 +456,15 @@ kem <- as.data.frame(kem)
 #we add the cell line numbers for the loop in the next steps
 kem$id <- rownames(annotation)
 
-#and order the matrix after the group
-kem <- kem[order(kem$kem, decreasing = TRUE),]
-
 #we create a matrix for further analysis in the loop
 kp <- c(1:5)
 kp <- as.data.frame(kp)
 
 #we need a loop to check each of the five clusters
-apply(kp, 1, function(x) {
+for(i in 1:5) {
   
-  #at first the variable has to be loaded with the Drivermutaions that occur three or more times in the cell lines
-  kp <- anno_zwei[which(rownames(anno_zwei) %in% kem[which(kem$kem %in% x),]$id),];
-  
-  kp <- data.matrix(kp)
-  #then a heatmap is plotted containing the cell lines of the group with its Drivermutations
-  heatmap(kp, Rowv = NA,   main = x ,xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(2),  cexCol = 0.9,    cexRow = 0.6); 
-  
-  #we add a legend
-  legend("topright", pch = 15, col = heat.colors(2), legend = c("not mutated", "mutated"), bty = 'n', cex = 1); 
-  
-  #for the computer analysis every Drivermutation that occurs two or more times is used
-  kp <- anno_eins[which(rownames(anno_eins) %in% kem[which(kem$kem %in% x),]$id),];
+  #at first the variable has to be loaded with the Drivermutaions that occur two or more times in the cell lines
+  kp <- anno_eins[which(rownames(anno_eins) %in% kem[which(kem$kem %in% i),]$id),];
   
   #we transpose kp for a easier workflow and transform it to a data frame
   kp <- t(kp);
@@ -525,16 +480,17 @@ apply(kp, 1, function(x) {
   kp <- kp[which(kp$summe > 0.67*cn),];
   
   #and we print the genes which are mutated in more than 67%
+  print(i)
   print(rownames(kp));
   
-  })
+  }
+
 
 #we add the column subtype desease to the matrix
 kem$sd <- annotation$Subtype.Disease
 ```
 
-Hier fehlt noch die Interpretation der PCA bzw der Cluster.
-
+The method works very well. But there is one problem: Every time the code runs the function "kmeans" in the chunk before will create a new cluster with different groups. That means that the results printed by the chunk before may not fit to the interpretation that follows. As a consequence the k-means cluster was performed several times and groups which came up very often were analysed: There is a group that comes up very often which contains two cell lines (ACH-001278 and ACH-000123). These cell lines have two Mutations in common: "PTPRF"" and "SMARCA4". With the number of the cluster it is possible to check the cell lines in the "kem" matrix. At the two examples the same Subtype desease cancer (Small Cell Carcinoma of the Ovary Hypercalcemic Type (SCCOHT)) can be seen. These two cell lines may have the same SL partners
 
 
 ## 6. Linear Regression
