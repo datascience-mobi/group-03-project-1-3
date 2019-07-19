@@ -239,10 +239,26 @@ co <- as.data.frame(cols)
 co$kat <- c("not mutated", "mutated (> 9 mutations)", "mutated (> 3 mutations)", "mutated (> 1 mutations)", "mutated (1 mutation)")
 
 #plotting the heatmap
-heatmap(anno, Rowv = NA, Colv = NA, main = "Occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(5),  cexCol = 0.9, cexRow = 0.3)
+#heatmap(anno, Rowv = NA, Colv = NA, main = "Occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(5),  cexCol = 0.9, cexRow = 0.3)
 
 #adding a legend
-legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 0.6)
+#legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 0.6)
+
+
+#the data is prepared to perform a heatmap
+mat <- matrix(anno, nrow = nrow(anno), ncol = ncol(anno), dimnames = list(rownames(anno), colnames(anno)))
+mat.melted <- melt(mat)
+
+
+ggplot(mat.melted, aes(x = Var1, y = Var2, fill = value)) +
+  scale_fill_gradient( name="status",
+  guide = "legend", limit = c(0,1), breaks=c(0,1), labels = c("not mutated","mutated")) +
+  geom_tile( show.legend = T) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 12, hjust = 1))
+
+
+
+
 ```
 
 ### 4.2 Driver mutations in literature
