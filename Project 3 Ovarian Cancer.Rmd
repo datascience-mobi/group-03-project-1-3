@@ -254,7 +254,7 @@ ggplot(mat.melted, aes(x = Var1, y = Var2, fill = value)) +
   scale_fill_gradient( name="status",
   guide = "legend", limit = c(0,1), breaks=c(0,1), labels = c("not mutated","mutated")) +
   geom_tile( show.legend = T) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 12, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 9, hjust = 1))
 
 
 
@@ -508,12 +508,17 @@ for (j in 0:1000) {
       #groups with only one or without any gene in common aren't usefull as well
       if (NROW(kp) > 1) {
     
+        #groups with too many cell lines arent interesting as well
+        if (NROW(kp) < 9) {
     #the data is transformed to a string and written into the data frame
     po[h] <- toString(rownames(kp))
       }
     #the next two step have to be done otherwise there would be empty colums in between and an error comes up
-      else {po[h] <- "nein"}
-    }
+      
+        else {po[h] <- "nein"}}
+      
+      else {po[h] <- "nein"}}
+      
     else {po[h] <- "nein"}
   } 
 }
