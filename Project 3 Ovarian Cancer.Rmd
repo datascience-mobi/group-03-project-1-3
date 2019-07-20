@@ -559,61 +559,78 @@ There is a group that comes up very often which contains two cell lines (ACH-001
 
 ## 6. Linear Regression
 
-Independent of the previous analysis, this step will focus on the relationship between the gene expression and the copynumber. This approach will be performed with the totality of the given genes. Blub Literatur noch nutzen
-To investigate this issue a linear regression model will be applied to the question: If it is possible to estimate the gene expression based on the given value for the copy number of the certain gene.
+Independent of the previous analysis, this step will focus on the relationship between the gene expression and the copynumber. This approach will be performed with the totality of the given genes. Several studies indicate that a variation of the gene copy number can affect the level of gene expression for the altered gene. Also a copy number variation can influence the gene expression positively or negatively (Stranger et al., 2007). 
+To investigate if there is a linear relationship between the gene expression and the gene copy number, a linear regression model will be applied to the question: If it is possible to estimate the gene expression based on the given value for the copy number of the certain gene.
 
 ### 6.1 Checking the distribution
-
 The data frames expression and copy number are bound to the list list_all.genes. This process ensure that the primary dataset is not changed.
 ```{r}
-list_all.genes <- list(expression,copynumber) # bind the two data frames in one list
-names(list_all.genes) <- c("expression","copynumber") # rename the elements of the list
+# Bind the two data frames together in one list
+list_all.genes <- list(expression,copynumber)
+
+# Rename the elements of the new list
+names(list_all.genes) <- c("expression","copynumber") 
 ```
-Before using the copy number as predictor for the regression model, certain criteria have to be checked.As a requirement for the model the predictor variable should show a normal distribution and only a low number of outliers is preferred.
-First all the  copy number values of the different cell lines are fused to one long column. The new matrices cn1 only contains only two columns.The copy number data indicates a high deviation for vales smaller than -1 in comparison to the gaussian distribution. 
+Before using the copy number as predictor for the regression model, certain criteria have to be checked. As a requirement for the model the predictor variable should show a normal distribution and only a low number of outliers is preferred.  
+First all the  copy number values of the different cell lines are fused to one long column. The new matrices cn1 only contains only two columns.  
 ```{r}
 cn1b <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline") # fuse all cell lines
 
 ```
-The cn1b data indicates a high number of values smaller than -1, which lead to a distribution with a right skew.
-To reduce the influence of this circumstance, all rows that obtain a value smaller than -2 or equal -2 are removed of the data set.  This process leads to a limitation of the predictor variable of the regression models. Predictions will only be possible for genes with a copy number higher than -2.
+The cn1b data indicates a high number of values smaller than -1, which lead to a distribution with a right skew and therefore a deviation to the gaussian distribution.  
+To reduce the influence of this circumstance, all rows that obtain a value smaller than -2 or equal -2 are removed of the data set.  This process leads to a limitation of the predictor variable of the regression model. Predictions will only be possible for genes with a copy number higher than -2.
 ```{r}
-rmv.rows = apply(list_all.genes$copynumber, 1, function(x) {sum(x <= -2)}) # find all genes with at least one values <= -2
-list_all.genes$copynumber <- list_all.genes$copynumber[-which(rmv.rows > 0), ] # remove all rows, those contain more than one value <= -2
+# Find all genes with at least one values <= -2
+rmv.rows = apply(list_all.genes$copynumber, 1, function(x) {sum(x <= -2)}) 
+
+# Remove rows, that contain more than one value <= -2
+list_all.genes$copynumber <- list_all.genes$copynumber[-which(rmv.rows > 0), ] 
 ```
 After the reduction process the copy number values are fused to one column once again with the melt function. A Q-Q-plot is peformed to check the normality of the copy number data set once again and determine if the reduction process shows an improved result for the distribution.
 ```{r}
-cn1 <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline") # fuse all cell lines to one long column 
+# Fuse all cell lines to one long column
+cn1 <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline")  
 
-plotcnb <- ggplot() + geom_qq(aes(sample = cn1b$value), color= "navy blue") + ggtitle("Before reduction") # plot the quantils of the copynumber with the quantils of a gaussian distribution (before reduction process)
+# Plot the quantils of the copy numbers with the quantils of a gaussian distribution (before reduction process)
+plotcnb <- ggplot() + geom_qq(aes(sample = cn1b$value), color= "navy blue") + ggtitle("Before reduction") + theme(plot.title = element_text(size=12, lineheight = 2)) 
 
-plotcn <- ggplot() + geom_qq(aes(sample = cn1$value), color= "navy blue") + ggtitle("After reduction") # plot the quantils of the copynumber with the quantils of a gaussian distribution (after reduction process)
+# Plot the quantils of the copy numbers with the quantils of a gaussian distribution (after reduction process)
+plotcn <- ggplot() + geom_qq(aes(sample = cn1$value), color= "navy blue") + ggtitle("After reduction") + theme(plot.title = element_text(size=12, lineheight = 2))
 
-boxplotcn <- qplot(y=cn1$value, x= 1, geom = "boxplot")+ ggtitle("Copy number") + xlab("") + ylab("copy number") + theme(axis.text.x=element_blank()) # create boxplot + name the graph + define axis + remove the scaling of the x-axis
+# Create boxplot for the copynumber data + remove the scaling of the x-axis
+boxplotcn <- qplot(y=cn1$value, x= 1, geom = "boxplot")+ ggtitle("Copy number") + xlab("") + ylab("copy number") + theme(axis.text.x=element_blank(), plot.title = element_text(size=12, lineheight = 2)) 
 
-grid.arrange(plotcnb, plotcn,boxplotcn, ncol=3, top = "Checking distribution and outliers") #arrange the to plots next to each other
+# Arrange the two plots next to each other
+grid.arrange(plotcnb, plotcn,boxplotcn, ncol=3, top = textGrob("Checking distribution and outliers", gp=gpar(fontsize=16))) 
 ```
-In general a Q-Q-plot compares the quantiles of a theoretical normal distribution (x-axis) with the distribution of a sample data set (y-axis) and can therefore be used to check normality of the expression and copy number data.
-Before the reduction process the Q-Q-plot (left) shows a higher number of values smaller than -1, which leads to a right skew of the distribution of data set.
-After the reduction process the Q-Q-plot (middle) reveals a better fit for normality, although for copy numbers higher than one a strong aberration is revealed.
-The boxplot (right) illustrate the issue of a high number of outliers for each side of the 1,5 IQR (Interquantile range).Having a large number of outliners in the predictor variable can effect the slope for the regression model and may lead to a low accuracy of the predictions based on the model. Also the anomaly of the samples distribution can effect the output of the model. This circumstances has to be considered as a possible error for the regression model.
+
+In general a Q-Q-plot compares the quantiles of a theoretical normal distribution (x-axis) with the distribution of a sample data set (y-axis) and can therefore be used to check normality of the expression and copy number data.  
+Before the reduction process the Q-Q-plot (left) shows a higher number of values smaller than -1, which leads to a right skew of the distribution of data set.  
+After the reduction process the Q-Q-plot (middle) reveals a better fit for normality, although for copy numbers higher than one a strong aberration is revealed.  
+The boxplot (right) illustrate the issue of a high number of outliers for each side of the 1,5 IQR (Interquantile range).Having a large number of outliners in the predictor variable can affect the slope for the regression model and may lead to a low accuracy of the predictions based on the model. Also the anomaly of the samples distribution can effect the output of the model. This circumstances has to be considered as a possible error for the regression model.
 
 ### 6.2 Identify common genes of both variables
-
-Only genes,those are present in both dataframes, can be included for the linear regression model.For each copy number value a corresponding expression value must exists, which can later be plotted in a univariate linear regression model.
+Only genes, those are present in both dataframes, can be included for the linear regression model.For each copy number value a corresponding expression value must exists, which can later be plotted in a univariate linear regression model.
 ```{r}
-common_names = Reduce(intersect, lapply(list_all.genes, row.names)) # identify shared rownames in both data frames
-list_all.genes <- lapply(list_all.genes, function(x) {x[row.names(x) %in% common_names,]}) # only keep the common rownames in the list
+# Identify shared rownames in both data frames
+common_names = Reduce(intersect, lapply(list_all.genes, row.names)) 
+
+# Only keep the common rownames in the list
+list_all.genes <- lapply(list_all.genes, function(x) {x[row.names(x) %in% common_names,]})
 ```
-After both matrices only consists of shared genes, the gene expression values and copy number values are once again merged to one long column and are combined in a new object
+After both matrices only consists of shared genes, the gene expression values and copy number values are once again merged to one long column and are combined in a new object.
 ```{r}
-exp1 <- melt.data.frame(list_all.genes$expression, variable_name = "cell line") #fuse all expression values to one long column
+# Fuse all expression values to one long column
+exp1 <- melt.data.frame(list_all.genes$expression, variable_name = "cell line") 
 
-cn1 <- melt.data.frame(list_all.genes$copynumber, variable_name = "cellline") # fuse all cell lines 
+# Fuse all copy number values to one long column
+cn1 <- melt.data.frame(list_all.genes$copynumber, variable_name = "cell line")  
 
-regression.all.genes <- as.data.frame(cbind(exp1$value, cn1$value)) # merge the colums
+# Merge both columns in new object
+regression.all.genes <- as.data.frame(cbind(exp1$value, cn1$value)) 
 
-colnames(regression.all.genes) <- c("expression", "copynumber") # rename the colums
+# Rename the columns of the new object
+colnames(regression.all.genes) <- c("expression", "copynumber") 
 ```
 In the object regression.all.genes the copy number value in row one correspond to the gene expression value in row one. This circumstance leads to the possibility of plotting the corresponding values of the two variables in the next step.
 
@@ -621,97 +638,115 @@ In the object regression.all.genes the copy number value in row one correspond t
 In this step the correlation between the gene expression and copy number was tested, to decide wether a linear regression model can be applied for the problem. 
 To obtain a visual overview the correlation between the two variables are illustrated in a scatter plot.
 ```{r}
-ggplot(regression.all.genes, aes(x = copynumber, y = expression)) + geom_point(color = "navy blue")+ labs(title = "Correlation between the gene expression and copy number") # create scatter plot for expression and copy number + include the data points in blue + ingtegrate title
+# Create scatter plot for expression and copy number 
+ggplot(regression.all.genes, aes(x = copynumber, y = expression)) + geom_point(color = "navy blue")+ labs(title = "Correlation between the gene expression and copy number", xlab= "copy number", ylab="gene expression") 
 ```
 
 The scatter plot reveals only a low visual relationship between the two variables and do not indicated a linear trendline between the gene expression and the copy number.
 To analyse the correlation futhermore, the pearson and spearman correlation coefficient is computed. The advantage of the spearman correlation is, that the values are transferred into rankings before performing the calculation of the correlation coefficient. This process decreases the effect of outliners for the coefficient. 
 ```{r}
-cor(regression.all.genes$expression, regression.all.genes$copynumber) # compute person correlation 
-cor(regression.all.genes$expression, regression.all.genes$copynumber, method = "spearman") # compute spearman correlation coefficient
+# Compute person correlation 
+cor(regression.all.genes$expression, regression.all.genes$copynumber) 
+
+# Compute spearman correlation coefficient
+cor(regression.all.genes$expression, regression.all.genes$copynumber, method = "spearman")
 ```
-Both correlation coefficients show a low correlation between the two varibles of approximately 0.09 to 0.08. The sligthly lower spearman correlation concludes, that the person correlation is lightly influenced by outliners. With a value smaller than 0,1 for both correlation coefficients only a very weak correlation between the gene expression and the gene copy number is indicated. To verify, that the correlation is not equal to zero and the calculated coefficient is due to a statistical error a t-test for both correlation coefficient is performed. The null hypothesis indicates that there is no correlation between the copy number and the gene expression, while the alternativ hypothesis confirms a correlation between the two variables. As a common level of significance = 0,05 is choosen and a p-value, which is smaller than the level of significance, will lead to a denial of the null hypothesis. First the the person correlation coefficient is verified
+Both correlation coefficients show a very weak correlation between the two varibles of approximately 0.09 to 0.08. The sligthly lower spearman correlation concludes, that the person correlation is lightly influenced by outliners. With a value smaller than 0,1 for both correlation coefficients only a very weak correlation between the gene expression and the gene copy number is indicated. To verify, that the correlation is not equal to zero and the calculated coefficient is due to a statistical error a t-Test for both correlation coefficient is performed. The null hypothesis indicates that there is no correlation between the copy number and the gene expression, while the alternativ hypothesis confirms a correlation between the two variables. As a common level of significance = 0,05 is choosen and a p-value, which is smaller than the level of significance, will lead to a denial of the null hypothesis. First the person correlation coefficient is verified.
 ```{r}
+# t-Test for the pearson correlation coefficient
 cor.test(regression.all.genes$expression, regression.all.genes$copynumber)
 ```
 The p-value shows the possibility that an equal or higher t-value is observed under the null hypothesis. With a p-value < 2.2e-16 the null hypothesis can be rejected, becaue the p-value shows a smaller value than the level of significance and therefore it is unlikely to observe the calculated correlation coefficient without a correlation between the two variables. Only in the case of a p-value that is higher than the level of significance the null hypothesis would be retained. The same analysis is performed for the spearman correlation coefficient.
 ```{r}
+# t-Test for spearman correlation coefficient
 cor.test(regression.all.genes$expression, regression.all.genes$copynumber, method = "spearman")
 ```
 The test also shows a p-value < 2.2e-16, concluding the rejection of the null hypothesis. Both test lead to the conclusion, that the calculated correlation coefficients would not be obtained if the real correlation is equal zero.
-But still the small values for the coefficients shows a very weak correlation between the gene expression and the copy number. Therefore the copy number of a gene may not fit to predict the gene expression, (noch Artikel das es möglich ist)
+But still the small values for the coefficients shows a very weak correlation between the gene expression and the copy number. Therefore the copy number of a gene may not fit to predict the gene expression.
 To decide whether the gene copy number is helpful for prediction purposes, even if the two variables show a very weak linear relationship, a linear regression model will be applied.
 
-To ensure a clean workspace the no longer needed data frames are removed
+To ensure a clean workspace the no longer needed data frames are removed.
 ```{r}
-remove(exp1, cn1, cn1b, boxplotcn, plotcn, plotcnb, common_names, rmv.rows) # remove objects
+# Remove objects
+remove(exp1, cn1, cn1b, boxplotcn, plotcn, plotcnb, common_names, rmv.rows) 
 ```
 
 #### 6.5 Univariate linear regression
-Before using the regression.all.genes data for a regression model, the data set has to be split in a training and testing data set. A common used ratio for the data splitting is 80/20 or 70/30, the regression.all.genes data set will be split in approximately 70% for the trainings data and 30% for validation process afterwards.
-.198920 of 663068 rows are taken randomly of the regression.all.genes matrix and will later be used as trainings data for the model. 
+Before using the regression.all.genes data for a regression model, the data set has to be split in a training and testing data set. A common used ratio for the data splitting is 80/20 or 70/30, the regression.all.genes data set will be split in approximately 70% for the trainings data and 30% for validation process afterwards.  
+198920 of 663068 rows are taken randomly of the regression.all.genes matrix and will later be used as trainings data for the model. 
 ```{r}
-testing.all.genes <- regression.all.genes[sample(1:nrow(regression.all.genes), 198920),] # new dataframe with 198920 randomly selected rows of dataframe regression.all.genes
+# Establish new dataframe with 198920 randomly selected rows of dataframe regression.all.genes
+testing.all.genes <- regression.all.genes[sample(1:nrow(regression.all.genes), 198920),] 
 ```
 Next the 198920 rows are removed from the original object to exclude them from the later performed linear regression model.
 ```{r}
-regression.all.genes <- regression.all.genes[ -sample(1:nrow(regression.all.genes), 198920),] # remove the testing data of the primary data set 
+# Remove the testing data of the primary data set 
+regression.all.genes <- regression.all.genes[ -sample(1:nrow(regression.all.genes), 198920),] 
 ```
-After the separation of the testing dara, the training data is integrated in the regression model lrm.all.genes. The variable copynumber is used as a predictor for the variable gene expression. 
+After the separation of the testing data, the training data is integrated in the linear regression model lrm.all.genes. The variable copynumber is used as a predictor for the variable gene expression. 
 ```{r}
-lrm.all.genes <- lm(expression ~ copynumber, data = regression.all.genes) #establish univariate linear regression model
-summary(lrm.all.genes) # show regression model 
+# Establish univariate linear regression model
+lrm.all.genes <- lm(expression ~ copynumber, data = regression.all.genes) 
+# Show regression model 
+summary(lrm.all.genes) 
 ```
 With the calculated intercept of 2.522913 and  a slope of 0.581562 the equation for the regression is:
 
 gene expression = 3,874921 + 0,780919*copynumber
 
-With a p-value smaller that 2e-16 the t-test indicates that the slope of the regression line has a significant aberration from zero. Even with a level of significance of 0,01 (one per mill) the regression line shows a aberration, which leads to the denial of the null-hypothesis. 
-
-The standard error for the residuals indicates an average aberration of 2.459 between the predicted expression value and the expression value of the dataset. For a good fit of the model a error equal to zero is preferred. In comparison to 
-
+With a p-value smaller that 2e-16 the t-Test indicates, that the slope of the regression line has a significant aberration from zero.  
+The standard error for the residuals indicates an average aberration of 2.459 between the predicted expression value and the expression value of the dataset. For a good fit of the model a error equal to zero is preferred.  
 The R-squared statistic shows the proportion of variance and measures  
-the linear relationship between the predictor variable (copynumber) and the response variable (expression). While a value near 1 would indicated a good fit of the model, the regression model for all genes has a value of 0.008392. That the value is near zero suggests, that the variable copy number does not fit to explain the variable gene expression. This possibly results of the limitation to only one predictor variable for the regression model and the complex molecular biological mechanisms for regulation auf the gene expression, which will be explained in a paragaph ############# 6.7 
+the linear relationship between the predictor variable (copy number) and the response variable (expression). While a value near 1 would indicated a good fit of the model, the regression model for all genes has a value of 0.008392. That the value is near zero suggests, that the variable copy number does not fit to explain the variable gene expression. This possibly results of the limitation to only one predictor variable for the regression model and the complex molecular biological mechanisms for regulation auf the gene expression, which will be explained in a paragaph 6.7 
 
-For the integrity of the analysis the requierments for a good fit of the regression model will be checked
-For a good fit the residuals have to be distributed symmetric around a median of approximately 0. With a calculated value of -0.3827 a slightly deviation of the to zero is obtained. With the values of the first and third quantil an interquantile range of 4,2164.
+For the integrity of the analysis the requierments for a good fit of the regression model will be checked.
+The first requierment is, that the residuals are distributed symmetric around a median of approximately 0. With a calculated value of -0.3827 a slightly deviation of zero is obtained. 
 To facilitate the futher analysis of the residuals, they are saved in the new object Resid
 ```{r}
-Resid <- as.data.frame(lrm.all.genes$residuals) # single data frame for the residuals 
-names(Resid) <- c("residuals") # rename the column
+# Save residuals in single data frame 
+Resid <- as.data.frame(lrm.all.genes$residuals) 
+
+# Rename the column of the new data frame
+names(Resid) <- c("residuals") 
 ```
 Another requirement for the residuals is normality, which is checked with a histogramm of the frequency of certain values for the residuals
 ```{r}
-ggplot(data = Resid, aes(Resid$residuals)) + geom_histogram(bins = 30, col = "navy blue", fill="blue", alpha= .6) + labs( x="residuals", y="counts", title = "Distribution of the Residuals") # plot histogram for residuals(alpha = transparency of the plot) + insert axis name and title
+# Plot histogram for residuals of the training data
+ggplot(data = Resid, aes(Resid$residuals)) + geom_histogram(bins = 30, col = "navy blue", fill="blue", alpha= .6) + labs( x="residuals", y="counts", title = "Distribution of the Residuals") 
 ```
 
-The histogram of the residuals show a hugh abnormality of the gaussian distribution in the lower tail. Because a histogramm only helps to obtain a visual overview of the distribution a Kolmogorov–Smirnov test is performed to verify if the distribution of the residuals fits normality. In general the test verfies wether two data set share the same distribution. For this issue the distribution of the residuals will be compared to a gaussian distribution. The null hypothesis of the statistical test proves a normal distribution for the residuals, while the alternative hypothesis leads to the assumption, that the data is not distributed normally. 
+The histogram of the residuals show a hugh abnormality of the gaussian distribution in the lower tail. Because a histogramm only helps to obtain a visual overview of the distribution a Kolmogorov–Smirnov test is performed to verify if the distribution of the residuals fits normality. In general the test verfies wether two data sets share the same distribution. For this issue the distribution of the residuals will be compared to a gaussian distribution. The null hypothesis of the statistical test proves a normal distribution for the residuals, while the alternative hypothesis leads to the assumption, that the data is not distributed normally. 
 ```{r}
+# test the distribution of the residuals for normality
 ks.test(Resid$residuals, "pnorm")
 ```
 With a p-value smaller than 0,05 the null hypothesis can be rejected, which concludes, that the distribution of the residuals does not fit normality.
 
 Another requirement for the accuracy of a regression model is, that the residuals are independent of the predictor variable. To analyse this circumstance the correlation between the predictor varibale (copy number) and the residuals is checked.
 ```{r}
+# Estimate the pearson correlation coefficient
 cor(regression.all.genes$copynumber ,lrm.all.genes$residuals)
+
+# Test the significance of the pearson correlation coefficient
 cor.test(regression.all.genes$copynumber, lrm.all.genes$residuals)
 ```
 The correlation between the two variables is equal to zero and therefore indicate no correlation between the copy number and the residuals. The t-Test with a p-value of 1 leads to the acceptance of the null hypothesis.
 
-After all requierments are checked and the regression model is established a scatter plot with the regression line is applied to gain a visual overview.
+After all requierments are checked and the regression model is established a scatter plot with the regression line is applied to obtain a visual overview.
 ```{r}
-ggplot(regression.all.genes, aes(x=copynumber, y=expression)) + geom_point(color = "navy blue")+ geom_smooth(method=lm, se=FALSE, color = "red") + ggtitle("Regression model for all genes") # scatter plot for expression and copy number + insert regression line + title
+# Plot scatter plot for expression and copy number 
+ggplot(regression.all.genes, aes(x=copynumber, y=expression)) + geom_point(color = "navy blue")+ geom_smooth(method=lm, se=FALSE, color = "red") + ggtitle("Regression model for all genes") + xlab(" copy number")
 ```
 
 The scatter plot shows a high aberration of the predicted values for the gene expression from the regression line. The previous checking process leads to the conclusion, that the model does not fit to predict the gene expression. To futher analysis this postulation the model will be applied for the testing data set.
 
 ### 6.6 Testing the model
-In this step the testing data will be used to examine the aberration between the predicted expression and the real expression of values, that were not used for the linear regression model. First the predicted values for gene expression are calculated base on the copy number values for the testing dataset.
+In this step the testing data will be used to examine the aberration between the predicted expression and the real expression values, that were not used for the linear regression model. First the predicted values for gene expression are calculated base on the copy number values for the testing dataset.
 ```{r}
-prediction.testing <- as.data.frame(predict(lrm.all.genes, newdata = testing.all.genes)) # calculate the predicted expression values based on the copy number
+# Form new object with the predicted expression values for the testing data set.
+prediction.testing <- as.data.frame(predict(lrm.all.genes, newdata = testing.all.genes)) 
 
-# name the column
-
+# Name the column of the new object
 names(prediction.testing) <- c("pred.exp")
 ```
 Next the standard error of the residuals is caculated for difference between the predicted values and the real values of the testing data set. For the calculation of the error the following formula was used
@@ -720,28 +755,19 @@ Next the standard error of the residuals is caculated for difference between the
 
 In the formula n displays the number of rows in the given data frame. To calculate the residuals the difference between  the real value and the predicted value of the gene expression is used. 
 ```{r}
-sqrt(1/nrow(testing.all.genes) * sum((testing.all.genes$expression-prediction.testing)^2)) # compute standard error for the expression values of the testing data set
+# Compute standard error for the expression values of the testing data set
+sqrt(1/nrow(testing.all.genes) * sum((testing.all.genes$expression-prediction.testing)^2)) 
 ```
 The value of 2.463125 is slightly higher than the residual standard error for the regression model, due to circumstance that the testing data did not account to the regression model.
-For a concluding verification the distribution of the predicted gene expression and real values of the gene expression are plotted for the training and testing data.
+For a concluding verification the distribution of the predicted gene expression and real values of the gene expression are plotted for the testing data.
 ```{r}
-# predict the gene expression for the training data
-prediction.training <- as.data.frame(predict(lrm.all.genes, newdata = regression.all.genes))
-
-# rename the column
-names(prediction.training) <- c("pred.exp")
-
-# plot the density for the predicted and real values (training data)
-density.training <- ggplot()+ geom_density(data = regression.all.genes, aes(x=expression), color="red", alpha=.2, fill= "red") + geom_density(data = prediction.training, aes(x=pred.exp), color ="navy blue", alpha=.4, fill= "navy blue" ) +xlim(0,5) + ggtitle("Training data")
-
-# plot the density for the predicted and real values (testing data)
-density.testing <- ggplot()+ geom_density(data = testing.all.genes,aes(x=expression), color="red", alpha=.2, fill= "red") + geom_density(data = prediction.testing, aes(x=pred.exp), color ="navy blue", alpha=.4, fill= "navy blue" ) + xlim(0,5) + ggtitle("Testing data")
-
-# show both plots side by side
-grid.arrange(density.training, density.testing, ncol=2, top="Comparison of predicted and real expression values ")
+# Plot the density for the predicted and real values (testing data)
+ggplot()+ geom_density(data = testing.all.genes,aes(x=expression), color="red", alpha=.2, fill= "red") + geom_density(data = prediction.testing, aes(x=pred.exp), color ="navy blue", alpha=.4, fill= "navy blue" ) + xlim(0,5) + ggtitle("Comparison of predicted and real expression values") + theme(plot.title = element_text(size=14, lineheight = 2))
 ```
 
-Both plots indicate a high aberration between the predicted values are normally distributed, the reals values show a high density between 0 and 0.5, while the density holds steady for all values above 0.5. The plots show once more that the regression model does not fit to predict the gene expression.  
+The plot illustrate the distribution of the real expression values in red, while the predicted values are indicated in blue.
+While the predicted values are normally distributed, the reals values show a high density between 0 and 0.5. Values higher than 0.5 hold steady at a frequency of approximately 0.2. To illustrate the aberration between the to distribution the maxima expression value is set to 5. It has to be considered that the real expression values have a maxima around 15, but values about 5 only represent a very small proportion of the expression data.
+The plots show once more that the copy number of a gene does not fit to predict the gene expression.  
 
 ### 6.7 Discussion 
 Although the results of the linear regression model are somewhat sobering, this is not very surprising from the biological point of view. Initially, it was our goal to predict the gene expression by looking at the gene copy numbers, since it is known that many upregulations in cancer such as VEGF are due to gene amplifications.  
@@ -759,6 +785,6 @@ Since the expression data from our dataset gives information about the quantity 
 * Non-coding RNA: There are approximately 9000 genes coding for RNA molecules that are not translated into proteins, but have regulatory functions. They often form complexes with other proteins and process or degrade other RNA transcripts. Other non-coding RNAs directly bind the DNA double helix and influence DNA conformation or the accessibility and binding affinity for other proteins such as transcription factors or RNA polymerases.  
 In each cell, a complex interplay of all these regulations takes place. It is therefore impossible to predict gene expression alone by knowing the gene copy number - to obtain a more accurate model, we would need access to further information concerning the mentioned regulatory elements and processes. 
 
-, which would be integrated in a multivariate linear regression model. Futhermore the prediction process should only be applied to a certain gene and not the totality of all genes. 
+, which would be integrated in a multivariate linear regression model. Futhermore the prediction process should only be applied to a certain gene and not the totality of all genes. This would decrease the different regulatory mechanisms between different genes, although regulation also differ in the cells. The approach of investigate the correlation between both variables for a single gene was not performed, due to the fact that each gene only contains 34 data points. 
 
 ## 7. Conclusion
