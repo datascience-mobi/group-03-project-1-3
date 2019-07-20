@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 
 ## Contents
 1. Project Overview
-2. Data Cleanup
+2. Basic Requirements
 3. Driver Mutations
 4. Co-existing Mutations
 5. Synthetic Lethality Interactions
@@ -23,15 +23,22 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 
 ### 1.1 General facts about Ovarian Cancer
 
-Ovarian cancer (OC) is the one of the leading cancer death causes in women. One of 71 women will be diagnosed with this disease at some point during her lifetime. When treated in early stages, OC has relatively high survival rates. However, symptomes mostly start to develop when the tumour has already progressed to advanced stages, which is why the overall 5-year survival rate for OC lies under 50%.
+Ovarian cancer (OC) is one of the leading cancer death causes in women. One of 71 women will be diagnosed with this disease at some point during her lifetime. When treated in early stages, OC has relatively high survival rates. However, symptomes mostly start to develop when the tumour has already progressed to advanced stages, which is why the overall 5-year survival rate for OC lies under 50%.
 
-Ovarian cancer is a very heterogenous disease and mostly represented by epithelial tumours. There are four main subtypes: serous, endometrioid, mucinous and clear cell. Furthermore, tumours can be classified dependent on their state of differentiation. Low grade (LG) Ovarian cancer is well differentiated and therefore not invasive; high grade (HG) tumours are often aggressive and frequently metastasize.
+Ovarian cancer is a very heterogenous disease and mostly represented by epithelial tumours. There are four main subtypes: serous, endometrioid, mucinous and clear cell. Furthermore, tumours can be classified dependent on their state of differentiation. Low grade Ovarian cancer is well differentiated and therefore not invasive; high grade tumours are often aggressive and frequently metastasize.
 
 Standard therapy approaches include surgery and chemotherapy with DNA-damaging agents. Personalized immunotherapeutic approaches often target special features of cancer cell genome and proteome such as over-expressed surface receptors.
 
 ### 1.2 Common mutations in OC
 
-Literature on Ovarian cancer states that the most common mutations are found in the DNA repair-related genes BRCA1 and BRCA2. Abnormalities in other DNA and mismatch repair genes have been found too, as well as TP53, which is also known as "guardian of the genome". According to Testa et al., TP53 accounts for most mutations found in high grade serous Ovarian cancer. Allegedly, another very common mutation is ARID1A.
+Occurence and frequency of certain mutations in Ovarian cancer largely depends on cancer type and whether it can be classified as hereditary or not. Literature on hereditary Ovarian cancer states that the most common mutations are found in the DNA repair-related genes BRCA1 and BRCA2. Abnormalities in other regulatory and tumor suppressor genes have been found too, such as TP53, which is also known as "guardian of the genome" and is responsible for induction of apoptosis when substantial DNA damage occurs. TP53 loss of function mutations are known to majorly contribute to cancer development due to evasion of cell death. According to Testa et al., TP53 accounts for most mutations found in high grade serous Ovarian cancer.
+Allegedly, another very common mutation is ARID1A. The gene ARID1A encodes a protein involved with epigenetic regulation: as part of a chromatin remodeling complex, it influences the expression of CDKN1A, SMAD3, MLH1 and PIK3IP1 (Takeda et al., 2016). Deleterious mutations of ARID1A lead to dysfunctional chromatin remodeling, which is associated with cancerogenesis and cell transformation.
+Furthermore, genes involved in DNA repair (CHEK2, RAD51, BRIP1, PALB2) and mismatch repair (MSH2, MSH6, MLH1, PMS2) are frequently mutated in Ovarian cancer . Other frequently defective pathways are those involved in cell survival, proliferation and growth; mutations often occur in NOTCH, RAS/MEK, PI3K, FOXM1, BRAF and RAS genes (Testa et al., 2018).
+
+```{r pressure, echo=FALSE, out.width = '40%'}
+knitr::include_graphics("D:/Documents/GitHub/project-01-group-03/OCmutations.png")
+```
+
 
 ### 1.3 Project outline
 
@@ -39,8 +46,27 @@ After the data cleanup, our first task will be to verify the information about t
 The next step, which aims at the development of potential future cancer treatments, focuses on the identification of so-called synthetic lethality interaction partners. Those are genes whose knockout specifically leads to cell death in cancer cells, depending on the cells' genotype and therefore also their phenotype. This analysis will be conducted with respect to ocurring driver mutations and cancer subtype.
 Finally, a regression analysis will be performed in order to gain more basic insight on the influence of a gene's copy number on gene expression. Obtained results will allow a more secure assessment of meaningfulness of cancer-related gene amplifications.
 
+## 2. Basic Requirements
 
-## 2. Data Cleanup
+### 2.1 Install packages
+
+To perform our analysis, several R packages with useful functions need to be installed and loaded.
+```{r, results = 'hide', warning=FALSE}
+
+install.packages("reshape", repos = "http://cran.us.r-project.org") 
+install.packages("ggplot2", repos = "http://cran.us.r-project.org") 
+install.packages("data.table", repos = "http://cran.us.r-project.org")
+install.packages("gridExtra", repos = "http://cran.us.r-project.org")
+install.packages("dplyr", repos = "http://cran.us.r-project.org") 
+
+library(reshape)
+library(ggplot2)
+library(data.table)
+library(gridExtra)
+library(dplyr)
+```
+
+### 2.2 Data Cleanup
 
 At first the dataset needs to be downloaded into R-Studio.
 ```{r}
@@ -59,128 +85,102 @@ expression = allDepMapData[["expression"]]
 
 ```
 
-Next, the Ovarian Cancer cell lines will be extracted, since the remaining cell lines do not pose relevance for our project.
+The whole dataset consists of a total of 512 cell lines, all of which are derived from a specific cancer type. The Ovarian Cancer cell lines will be extracted, since the remaining cell lines do not pose relevance for our project.
 
 ```{r}
-annotation = annotation[which(annotation$Primary.Disease == "Ovarian Cancer"), ] # The annotation matrix now only consists of Ovarian Cancer cell lines
-ID = annotation$DepMap_ID # DepMap_ID is the column name for the Ovarian Cancer cell lines
-expression = expression[ , which(colnames(expression) %in% ID)] # Extract the ovarian cancer cell lines from expression, copynumber, kd.ceres, kd.prob and mutation
+# Extract Ovarian Cancer cell lines
+annotation = annotation[which(annotation$Primary.Disease == "Ovarian Cancer"), ]
+
+# Define ID as vector containing all cell line names
+ID = annotation$DepMap_ID
+
+# Expression, copy number, kd.ceres, kd.prob and mutation matrices now only contain OC cell lines:
+expression = expression[ , which(colnames(expression) %in% ID)]
 copynumber = copynumber [ , which(colnames(copynumber) %in% ID)]
 kd.ceres = kd.ceres [ , which(colnames(kd.ceres) %in% ID)]
 kd.prob = kd.prob [ , which(colnames(kd.prob) %in% ID)]
 mutation = mutation [ ID]
 ```
+
 The dataframes with information about copynumbers, gene expression and knockdown data, whose rows consist of the genes, will now be ordered alphabetically. This step will be useful later on to compare different variables for certain genes.
+
 ```{r}
-copynumber <- copynumber[order(rownames(copynumber)),] # order the rownames alphabetically 
+# Order the rownames alphabetically 
+copynumber <- copynumber[order(rownames(copynumber)),]
 expression <- expression[order(rownames(expression)),]
 kd.ceres <- kd.ceres[order(rownames(kd.ceres)),]
 kd.prob <- kd.prob[order(rownames(kd.prob)),]
 ```
+
 Further work with the annotation matrix is made substantially easier by naming the rows with respect to the cell lines' names. So far, the rownames comprise of numbers without apparent relevance. What is more, unnecessary columns are removed from the annotation matrix and the main data is removed from the workspace.
 
 ```{r}
-rownames(annotation) = annotation$DepMap_ID # The column "DepMap_ID" contains the cell line' names
+# Make rownames = genes
+rownames(annotation) = annotation$DepMap_ID
 
-# removing unecessary columns
+# Removal of unecessary columns
 annotation = annotation[, -which(colnames(annotation) %in% c("DepMap_ID", "Aliases", "Primary.Disease", "Gender", "Source"))]
 
-#removing the main data, because we already extracted the OC Data
+# Removal of initial dataset, since relevant information has been extracted
 rm(allDepMapData)
 ```
 
 NA values often pose problems for functions in R and cannot always be automatically coerced. For this reason, rows containing NA values will be removed from the matrices.
 
-```{r include=FALSE}
-knitr::opts_chunk$set(echo = T, warning = F) # do not show output
+```{r, results = 'hide', warning=FALSE} 
+# do not show output
 
 NAV = apply(copynumber, 1, function(x) {sum(is.na(x))}) 
 copynumber = copynumber[-which(NAV > 0), ]  
 
 ```
 
-### Install packages
-
-To perform our analysis, several R packages with useful functions need to be installed and loaded.
-```{r}
-
-install.packages("reshape", repos = "http://cran.us.r-project.org") # hier ein if else machen! Wenn package installiert, nur in der library
-install.packages("ggplot2", repos = "http://cran.us.r-project.org") # laden, nicht nochmal herunterladen. Vllt hat David sowas in seinen
-install.packages("data.table", repos = "http://cran.us.r-project.org") # Beispielen mal gemacht
-install.packages("gridExtra", repos = "http://cran.us.r-project.org")
-
-
-library(reshape)
-library(ggplot2)
-library(data.table)
-library(gridExtra)
-```
 
 ## 3. Driver Mutations
 
+To find out the main driver mutations in the Ovarian Cancer dataset, some re-structuring is required.
 
-Fuse mutation lists to one matrix.
+### 3.1 Re-structuring of mutation matrices
+
+To look at overall frequency of mutations among all cell lines, the existing mutation lists are fused to one matrix.
+
 ```{r}
 mutation.all = as.data.frame(rbindlist(mutation))
 ```
 
-Our analyses just need the information in certain columns of our data frame, for example gene name and location (chromosome), cell line, the kind of mutation (missense, frame shift, etc.). Thus, we extract these columns and put them in the data frame "mutation.all".
+For the following analysis, just the information in certain columns of the data frame is needed, for example gene name and location (chromosome), cell line, the kind of mutation (missense, frame shift, etc.). Thus, we extract these columns and put them in the data frame "mutation.all".
+
 ```{r}
  mutation.all = mutation.all[, which(colnames(mutation.all) %in% c("Hugo_Symbol", "DepMap_ID", "Variant_Classification", "Variant_annotation", "isTCGAhotspot", "Chromosome", "isDeleterious"))]
 ```
 There are different types of mutations. Some of them are silent, which means that the amino acid sequence is not altered and the protein structure is not affected. Other mutations lead to an amino acid exchange, but do not provoke dramatic conformational changes in the encoded protein. Whether or not a mutation has an impact on protein function is noted in the column "isDeleterious". We want to extract all mutations that are TRUE for isDeleterious, since these might have something to do with cancer cell development.
 ```{r}
-mutation.all = mutation.all[which(mutation.all$isDeleterious == "TRUE"), ] # only include rows (=genes) that have deleterious mutations in data frame "mutation.all"
-```
+# only include rows (=genes) that have deleterious mutations in data frame "mutation.all"
+mutation.all = mutation.all[which(mutation.all$isDeleterious == "TRUE"), ]
 
-To simplify work the matrix mutation.all was ordered alphabetically.
-
-```{r}
+# Order alphabetically:
 mutation.all <- mutation.all[order(mutation.all$Hugo_Symbol),]
 
 ```
 
-Find most frequently mutated genes by summing up all "mutation events" found in all cell lines. To do this, the names of the genes were converted to factors.
-```{r}
+```{r, include=FALSE}
+# Find most frequently mutated genes by summing up all "mutation events" found in all cell lines:
 mutation.all$Hugo_Symbol = factor(mutation.all$Hugo_Symbol)
 ```
 
-The most common mutation mutation found is ARID1A (16 times). Surprisingly, BRCA1 and BRCA2 are only mutated twice and once, respectively.
-
-Problem: Many mutations occur several times in one cell line, but in different DNA loci. If we want to identify the most frequent mutations among all cell lines, these duplicates should not be included. We want to extract mutations that occur frequently in different cell lines. Therefore, we use the "duplicated" function from the dplyr package and define a new data frame called new_uniq that only contains one mutation of a gene per cell line for simplicity (since the type of mutation is not relevant here).
-
+Frequently mutated genes are found by summing up all "mutation events" found in all cell lines. However, the problem arises that many mutations occur several times in one cell line, but in different DNA loci. These duplicates should not be included when counting the most frequent mutations among all cell lines. Therefore, the "duplicated" function from the dplyr package is used to define a new data frame called new_uniq that only contains one mutation of a gene per cell line for simplicity (since the type of mutation is not relevant here).
 ```{r}
 duplicates <- which(duplicated(mutation.all[c('Hugo_Symbol', 'DepMap_ID')]), ) #find all identical combinations of mutated gene and cell line
 
 new_uniq <- mutation.all[!duplicated(mutation.all[c('Hugo_Symbol', 'DepMap_ID')]),] #do not include duplicates in data frame new_uniq
-summary(new_uniq)
-
-```
-As we can see, ARID1A is only the second most common mutation after TP53, which is mutated in 12 of 34 different cell lines. The most common mutations among our cell lines are thought to be our driver mutations. We will be conducting further analyses with these genes.
-
-For a better overview, we solely plot genes that are mutated more than 4 times in total. Further analyses will focus on these designated driver mutations.
-
-```{r}
-# Create a new data frame that contains the mutated genes (but just once per cell line, as definded in new_uniq)
-DriverMutation <- as.data.frame(table(new_uniq$Hugo_Symbol)) 
-
-#we extract all mutations that occur at least one time for a later step
-dm_null = DriverMutation[which(DriverMutation$Freq > 0), ]
-dm_null = dm_null[order(dm_null$Freq, decreasing = TRUE),]
-rownames(dm_null) <- dm_null$Var1
-
-# extract all mutations that occur more than 4 times among our cell lines in total
-DriverMutation = DriverMutation[which(DriverMutation$Freq > 4), ] 
-
-DriverMutation$sub <- with(DriverMutation, reorder(DriverMutation$Var1, -DriverMutation$Freq, mean, na.rm = T))
-
-ggplot(data = DriverMutation) +
-geom_col(mapping = aes(x = DriverMutation$sub, y = DriverMutation$Freq, fill = DriverMutation$sub), show.legend = F) +
-labs(x = "Mutated gene", y = "Frequency", title = "Driver mutations in Ovarian Cancer", subtitle = "(present in more than 4 cell lines)", caption = "(based on data from mutation matrix)") # create a barplot of the most frequent mutations, displaying their occurence
-
 
 ```
 
+As can be seen, TP53 is the most commonly mutated gene (12 of 34 different cell lines). ARID1A follows with 8 mutated cell lines. Our driver mutations are thought to be the most frequently mutated genes. Further analysis will be conducted with these genes.
+
+|Driver mutation              | TP53 | ARID1A | ATM | BAI1 | PTPRF | SYNE1 |
+|-----------------------------|:----:|:------:|:---:|:----:|:-----:|:-----:|
+|Number of affected cell lines|12    |   8    | 5   |   5  |  5    |  5    |
 
 
 ## 4. Co-existing Mutations
@@ -190,9 +190,15 @@ labs(x = "Mutated gene", y = "Frequency", title = "Driver mutations in Ovarian C
 Here, we want to investigate whether there are certain mutations that often occur together and are therefore possibly linked to each other in their genesis. The goal will be to create a symmetrical matrix whose columns AND rows are our genes; the cells' content will be the counts of how often two corresponding genes turn up in the same cell line together. Next, maximum values can be extracted and tested for significance.
 
 To get a short overview about how many co existing drivermutations are common in the data we perform a heatmap:
-
-
 ```{r}
+# Create a new data frame that contains the mutated genes (but just once per cell line, as definded in new_uniq)
+dm_null <- as.data.frame(table(new_uniq$Hugo_Symbol)) 
+
+#we extract all mutations that occur at least one time for a later step
+
+dm_null = dm_null[order(dm_null$Freq, decreasing = TRUE),]
+rownames(dm_null) <- dm_null$Var1
+
 #creating a new matrix containing every cell line that has at least one of our 7 drivermutations. We check if the name of our Drivermutation occurs in the Drivermutation matrix
 dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% dm_null$Var1), ]
 
@@ -261,9 +267,8 @@ ggplot(mat.melted, aes(x = Var1, y = Var2, fill = value)) +
 
 ```
 
-### 4.2 Driver mutations in literature
 
-#### 4.2.1 Validation of drivermutations in literature
+### 4.2 Validation of drivermutations in literature
 
 In the heatmap it is visible that many drivermutations, especially the ones that occur less than five times in our cell lines, occur very randomly along the cell lines. Caused by this fact another way to find SL partners is needed.To find out if the main drivermutations is important for a possible SL partner, the main driver muations have to be validated by checking which of them were mentioned in an Ovarian cancer context in literature.
 
