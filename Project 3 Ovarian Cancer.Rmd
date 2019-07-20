@@ -18,6 +18,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 5. Synthetic Lethality Interactions
 6. Linear Regression
 7. Conclusion
+8. Sources
 
 ## 1. Project Overview
 ### 1.1 General facts about Ovarian Cancer
@@ -147,7 +148,7 @@ For the following analysis, just the information in certain columns of the data 
 ```
 There are different types of mutations. Some of them are silent, which means that the amino acid sequence is not altered and the protein structure is not affected. Other mutations lead to an amino acid exchange, but do not provoke dramatic conformational changes in the encoded protein. Whether or not a mutation has an impact on protein function is noted in the column "isDeleterious". We want to extract all mutations that are TRUE for isDeleterious, since these might have something to do with cancer cell development.
 ```{r}
-# only include rows (=genes) that have deleterious mutations in data frame "mutation.all"
+# Only include rows (=genes) that have deleterious mutations in data frame "mutation.all"
 mutation.all = mutation.all[which(mutation.all$isDeleterious == "TRUE"), ]
 
 # Order alphabetically:
@@ -174,6 +175,9 @@ As can be seen, TP53 is the most commonly mutated gene (12 of 34 different cell 
 |-----------------------------|:----:|:------:|:---:|:----:|:-----:|:-----:|
 |Number of affected cell lines|12    |   8    | 5   |   5  |  5    |  5    |
 
+### 3.2 Validation of drivermutations in literature --> Emily
+
+In the heatmap it is visible that many drivermutations, especially the ones that occur less than five times in our cell lines, occur very randomly along the cell lines. Caused by this fact another way to find SL partners is needed.To find out if the main drivermutations is important for a possible SL partner, the main driver muations have to be validated by checking which of them were mentioned in an Ovarian cancer context in literature.
 
 ## 4. Co-existing Mutations
 
@@ -257,13 +261,6 @@ ggplot(mat.melted, aes(x = Var1, y = Var2, fill = value)) +
 
 
 ```
-
-
-### 4.2 Validation of drivermutations in literature
-
-In the heatmap it is visible that many drivermutations, especially the ones that occur less than five times in our cell lines, occur very randomly along the cell lines. Caused by this fact another way to find SL partners is needed.To find out if the main drivermutations is important for a possible SL partner, the main driver muations have to be validated by checking which of them were mentioned in an Ovarian cancer context in literature.
-
-
 
 ## 5. Synthetic Lethality Interactions
 After identifying our most common driver mutations, this information was used to find possible synthetic lethality interaction partners.
@@ -779,3 +776,13 @@ In each cell, a complex interplay of all these regulations takes place. It is th
 , which would be integrated in a multivariate linear regression model. Futhermore the prediction process should only be applied to a certain gene and not the totality of all genes. This would decrease the different regulatory mechanisms between different genes, although regulation also differ in the cells. The approach of investigate the correlation between both variables for a single gene was not performed, due to the fact that each gene only contains 34 data points. 
 
 ## 7. Conclusion
+### 7.1 Driver mutation
+### 7.2 Co-existing Mutations
+### 7.3 Synthetic Lethality Interactions
+### 7.4 Linear Regression
+In the last step a linear regression model was applied to the question whether it is possible to predict the gene expression based on the copy number for the totality of the genes. Because the predictor variable copy number did not fit normality, all values smaller than -2 were removed, limiting the prediction to copy number values higher than -2. 
+Furthermore, a very weak correlation was observed between the two variables, which was verified with a t-Test. This circumstance forecast a bad fit of the two variables for the regression model. 
+While 70% of the data set were used as trainings data for the model, 30% were separated for testing purposes. The R-squared conclude, that only 0,8 % of the variation of the expression data can be explained by the gene copy number and therefore other variables should be considered as prediction variable. The examination of the residuals confirms, that they do not correlate with the predictor copy number, but the distribution of the residuals does not fit normality. The verification with the testing data set illustrate the huge aberration between the predicted and real values for the gene expression. 
+The outcome of the model shows that the complex biological regulatory mechanisms, which influence the level of gene expression on different ways, can not be explained by a single variable. For an  accurate predication a multivariate regression model, which includes several of the in 6.7 mentioned variables, is suggested.
+
+## 8. Sources
