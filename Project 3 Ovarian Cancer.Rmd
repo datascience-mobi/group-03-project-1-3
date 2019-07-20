@@ -20,9 +20,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 7. Conclusion
 
 ## 1. Project Overview
-
 ### 1.1 General facts about Ovarian Cancer
-
 Ovarian cancer (OC) is one of the leading cancer death causes in women. One of 71 women will be diagnosed with this disease at some point during her lifetime. When treated in early stages, OC has relatively high survival rates. However, symptomes mostly start to develop when the tumour has already progressed to advanced stages, which is why the overall 5-year survival rate for OC lies under 50%.
 
 Ovarian cancer is a very heterogenous disease and mostly represented by epithelial tumours. There are four main subtypes: serous, endometrioid, mucinous and clear cell. Furthermore, tumours can be classified dependent on their state of differentiation. Low grade Ovarian cancer is well differentiated and therefore not invasive; high grade tumours are often aggressive and frequently metastasize.
@@ -30,26 +28,22 @@ Ovarian cancer is a very heterogenous disease and mostly represented by epitheli
 Standard therapy approaches include surgery and chemotherapy with DNA-damaging agents. Personalized immunotherapeutic approaches often target special features of cancer cell genome and proteome such as over-expressed surface receptors.
 
 ### 1.2 Common mutations in OC
-
 Occurence and frequency of certain mutations in Ovarian cancer largely depends on cancer type and whether it can be classified as hereditary or not. Literature on hereditary Ovarian cancer states that the most common mutations are found in the DNA repair-related genes BRCA1 and BRCA2. Abnormalities in other regulatory and tumor suppressor genes have been found too, such as TP53, which is also known as "guardian of the genome" and is responsible for induction of apoptosis when substantial DNA damage occurs. TP53 loss of function mutations are known to majorly contribute to cancer development due to evasion of cell death. According to Testa et al., TP53 accounts for most mutations found in high grade serous Ovarian cancer.
 Allegedly, another very common mutation is ARID1A. The gene ARID1A encodes a protein involved with epigenetic regulation: as part of a chromatin remodeling complex, it influences the expression of CDKN1A, SMAD3, MLH1 and PIK3IP1 (Takeda et al., 2016). Deleterious mutations of ARID1A lead to dysfunctional chromatin remodeling, which is associated with cancerogenesis and cell transformation.
 Furthermore, genes involved in DNA repair (CHEK2, RAD51, BRIP1, PALB2) and mismatch repair (MSH2, MSH6, MLH1, PMS2) are frequently mutated in Ovarian cancer . Other frequently defective pathways are those involved in cell survival, proliferation and growth; mutations often occur in NOTCH, RAS/MEK, PI3K, FOXM1, BRAF and RAS genes (Testa et al., 2018).
 
 ```{r pressure, echo=FALSE, out.width = '40%'}
-knitr::include_graphics("D:/Documents/GitHub/project-01-group-03/OCmutations.png")
+# knitr::include_graphics("D:/Documents/GitHub/project-01-group-03/OCmutations.png")
 ```
 
 
 ### 1.3 Project outline
-
 After the data cleanup, our first task will be to verify the information about the common driver mutations and to gain further insight on potential driver mutations in Ovarian cancer. Further analysis will be revolving around these driver mutations. Among other things, co-existing mutations will be investigated in order to assess cancer development.
 The next step, which aims at the development of potential future cancer treatments, focuses on the identification of so-called synthetic lethality interaction partners. Those are genes whose knockout specifically leads to cell death in cancer cells, depending on the cells' genotype and therefore also their phenotype. This analysis will be conducted with respect to ocurring driver mutations and cancer subtype.
 Finally, a regression analysis will be performed in order to gain more basic insight on the influence of a gene's copy number on gene expression. Obtained results will allow a more secure assessment of meaningfulness of cancer-related gene amplifications.
 
 ## 2. Basic Requirements
-
 ### 2.1 Install packages
-
 To perform our analysis, several R packages with useful functions need to be installed and loaded.
 ```{r, results = 'hide', warning=FALSE}
 
@@ -68,7 +62,6 @@ library(gridExtra)
 ```
 
 ### 2.2 Data Cleanup
-
 At first the dataset needs to be downloaded into R-Studio.
 ```{r}
 allDepMapData <- readRDS("~/GitHub/project-01-group-03/DepMap19Q1_allData.RDS")
@@ -138,11 +131,9 @@ copynumber = copynumber[-which(NAV > 0), ]
 
 
 ## 3. Driver Mutations
-
 To find out the main driver mutations in the Ovarian Cancer dataset, some re-structuring is required.
 
 ### 3.1 Re-structuring of mutation matrices
-
 To look at overall frequency of mutations among all cell lines, the existing mutation lists are fused to one matrix.
 
 ```{r}
@@ -195,12 +186,11 @@ To get a short overview about how many co existing drivermutations are common in
 # Create a new data frame that contains the mutated genes (but just once per cell line, as definded in new_uniq)
 dm_null <- as.data.frame(table(new_uniq$Hugo_Symbol)) 
 
-#we extract all mutations that occur at least one time for a later step
-
+# Order matrix with mutations, rename rows
 dm_null = dm_null[order(dm_null$Freq, decreasing = TRUE),]
 rownames(dm_null) <- dm_null$Var1
 
-#creating a new matrix containing every cell line that has at least one of our 7 drivermutations. We check if the name of our Drivermutation occurs in the Drivermutation matrix
+# Creating a new matrix containing every cell line that has at least one of the 7 drivermutations. Then check if the Driver mutation names occur in the Driver mutation matrix
 dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% dm_null$Var1), ]
 
 #function to find out if the Mutation occurs in the cell lines: "1" means yes and "0" means no
@@ -751,9 +741,9 @@ prediction.testing <- as.data.frame(predict(lrm.all.genes, newdata = testing.all
 names(prediction.testing) <- c("pred.exp")
 ```
 Next the standard error of the residuals is caculated for difference between the predicted values and the real values of the testing data set. For the calculation of the error the following formula was used
-
---> insert formula
-
+```{r pressure, echo=FALSE, out.width = '40%'}
+# knitr::include_graphics("D:/Documents/GitHub/project-01-group-03/Formel RMSE.PNG")
+```
 In the formula n displays the number of rows in the given data frame. To calculate the residuals the difference between  the real value and the predicted value of the gene expression is used. 
 ```{r}
 # Compute standard error for the expression values of the testing data set
