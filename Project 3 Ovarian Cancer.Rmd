@@ -48,17 +48,18 @@ Finally, a regression analysis will be performed in order to gain more basic ins
 To perform our analysis, several R packages with useful functions need to be installed and loaded.
 ```{r, results = 'hide', warning=FALSE}
 
-install.packages("reshape", repos = "http://cran.us.r-project.org") 
-install.packages("ggplot2", repos = "http://cran.us.r-project.org") 
+install.packages("reshape", repos = "http://cran.us.r-project.org")
+install.packages("ggplot2", repos = "http://cran.us.r-project.org")
 install.packages("data.table", repos = "http://cran.us.r-project.org")
 install.packages("gridExtra", repos = "http://cran.us.r-project.org")
-install.packages("dplyr", repos = "http://cran.us.r-project.org") 
+#install.packages("dplyr", repos = "http://cran.us.r-project.org")
+
 
 library(reshape)
 library(ggplot2)
 library(data.table)
 library(gridExtra)
-library(dplyr)
+#library(dplyr)
 ```
 
 ### 2.2 Data Cleanup
