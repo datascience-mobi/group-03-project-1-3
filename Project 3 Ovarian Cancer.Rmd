@@ -289,94 +289,72 @@ The heatmap once more indicate that cell lines with only a single driver mutatio
 ## 5. Synthetic Lethality Interactions
 As mentioned in the introduction, it is our goal to seek out synthetic lethality interaction partners for driver mutations occurring in Ovarian cancer. These SL partners are genes that become essential in cancer cells due to the presence of mutations that lead to altered protein function and signaling pathways. The main idea behind identifying the SL partners is finding a way to target cancer cells without affecting healthy cells (O'Neil *et al.*, 2017). A cancer drug leading to effective knockdown of SL partner genes in a patient's tumour could specifically induce cell death in cancer cells. This kind of approach in combination with other therapies would hopefully increase treatment efficacy and reduce unwanted side effects, thus improving life quality.
 
-The task is to find possible synthetic lethality interaction partners for the most frequent driver mutations, these being TP53 and ARID1A. For every driver mutation, our batch of cell lines will be devided into two groups depending on presence or non-presence of the respective driver mutation. Using the matrix kd.prob, the mean gene essentiality can be calculated for both groups respectively. It was hereby assumed that SL partners exhibit higher essentiality values in cell lines that possess the respective driver mutation. By calculating the difference between the mean essentiality regarding presence or non-presence of a driver mutation and identifying the maximum differences, possible SL partners can be identified. Since theoretically, the number of cell lines in each group is by far not sufficient for the obtained values to be highly significant, a statistical test will be performed in order to validate the results.
+The task is to find possible synthetic lethality interaction partners for the most frequent driver mutations, these being TP53 and ARID1A. For every driver mutation, our batch of cell lines will be devided into two groups depending on presence or non-presence of the respective driver mutation. 
 
-First of all, the variance of the estimated cell survival probability (kd.prob) when knocking out specific genes was calculated. It was hereby assumed that genes that display high variances when knocked out are more likely to have specific synthetic lethality interactions since genes that broadly lead to cell death in most cell lines are probably essential for survival on their own. Therefore, the search for synthetic lethality interaction partners will be conducted with genes whose variances are greater than the 75% quantile.
+Using the matrix kd.prob, a one-sided unpaired t-test will be performed in order to calculate the p values for gene essentiality in both groups respectively. It was hereby assumed that SL partners exhibit higher essentiality values in cell lines that possess the respective driver mutation. By extracting the genes that show the lowest p values thus indicating highly significant differences concerning essentiality, potential SL interaction partners can be identified.
+First, the SL interaction partner search will be performed for ARID1A:
 
-It remains to be found out which difference in survival probability the SL interaction partner for ARID1A mutations mentioned in the literature, BRD2, displays.
 ```{r}
 dmARID1A = dm[which(dm$Hugo_Symbol == "ARID1A"), ]
-nonARID1A <- kd.prob[, -which(colnames(kd.prob) %in% dmARID1A$DepMap_ID)] # prob Matrix with cell lines that do not have the ARID1A mutation
-yesARID1A <- kd.prob[, which(colnames(kd.prob) %in% dmARID1A$DepMap_ID)] # prob matrix with cell lines that do have driver mutations
+# Probability Matrix with cell lines that do not have the ARID1A mutation
+nonARID1A <- kd.prob[, -which(colnames(kd.prob) %in% dmARID1A$DepMap_ID)]
+# Probability matrix with cell lines that do have driver mutation
+yesARID1A <- kd.prob[, which(colnames(kd.prob) %in% dmARID1A$DepMap_ID)]
 
 
-no <- nonARID1A[which(row.names(nonARID1A) == "BRD2"), ] # select BRD2 from submatrix comprising of cell lines without ARID1A mutations
-apply(no, 1, mean) # calculate mean of BRD2 survival probability
-yes <- yesARID1A[which(row.names(yesARID1A) == "BRD2"), ]
-apply(yes, 1, mean)
+# Remove TBC1D3 gene because it has only zeros as values
+yesARID1A <- yesARID1A[-14997, ]
+nonARID1A <- nonARID1A[-14997, ]
 
-rm(no, yes)
+# Perform one-sided t test with all marker genes (unpaired)
+p.values = sapply(1:nrow(yesARID1A), function(i) {
+
+    # Compute t-test for all genes whose knockout leads to increased essentiality
+    t.test(yesARID1A[i, ], nonARID1A[i, ], alternative = "greater")$p.value
+})
+
+p.values <- setNames(p.values, rownames(yesARID1A))
+
+# significance level is 0.1 %
+p.values.sig <- p.values[p.values<0.001]
 
 ```
-The output says that BRD2 is about 10% more essential in ARID1A mutated cells... This seems like a very low difference to be considered a "real" SL partner.
-Perhaps this is due to the fact that in the literature, BRD2 was mentioned as a SL partner explicitly in clear cell carcinomas. Our data comprises of different types of Ovarian cancer.
-
-An other idea to find SL partners: calculate mean gene essentiality probability for both initially defined groups with/without driver mutations (TP53, ARID1A, ATM, BAI1, PTPRF, SYNE1, THBS3), plot them and then ask for significant differences (with statistical test!).
-
+In the literature, the gene BRD2 is mentioned as a synthetic lethality interaction partner for ARID1A in Ovarian clear cell carcinomas (Berns *et al.*, 2018). It remains to be found out which significance the difference in survival probability this SL partner displays.
 ```{r}
-dmARID1A = dm[which(dm$Hugo_Symbol == "ARID1A"), ]
-nonARID1A <- kd.prob[, -which(colnames(kd.prob) %in% dmARID1A$DepMap_ID)] # prob Matrix with cell lines that do not have the ARID1A mutation
-yesARID1A <- kd.prob[, which(colnames(kd.prob) %in% dmARID1A$DepMap_ID)] # prob matrix with cell lines that do have driver mutation
+# Chech p value for alleged SL partner BRD2
+p.values[grep("\\bBRD2\\b", rownames(as.matrix(p.values)))]
 
-# now calculate difference between gene essentiality
+```
+The p value for BRD2 is 0.1763, which statistically is far away from being significant. It can be concluded that in Ovarian Cancer in general, BRD2 is not a significant SL partner in cell lines with ARID1A mutations. However, the most likely reason for this discrepancy is that Berns *et al.* focused on the Ovarian cancer subtype clear cell carcinoma.
 
-m.ARID1A <- as.data.frame(apply(yesARID1A, 1, mean))
-m.nonARID1A <- as.data.frame(apply(nonARID1A, 1, mean))
-diffARID1A <- m.ARID1A - m.nonARID1A # calculate difference in essentiality
-diffARID1A$Difference <- diffARID1A$`apply(yesARID1A, 1, mean)` # wie mach ich das schlauer?
-diffARID1A <- diffARID1A[which(diffARID1A$Difference > 0.3), ]
-
-
-diffARID1A$sub <- with(diffARID1A, reorder(rownames(diffARID1A), -diffARID1A$Difference, mean, na.rm = T))
-
-ggplot(data = diffARID1A) +
-geom_col(mapping = aes(x = diffARID1A$sub, y = diffARID1A$Difference, fill = diffARID1A$sub), show.legend = F) +
-labs(x = "SL partners", y = "Difference in essentiality", title = "SL partners for ARID1A Driver mutation", caption = "(based on data from kd.prob)")
-
-# Muss dann nebeneinander am besten angezeigt werden. Dann diskussion!
-
-
-
+The same statistical testing procedure as was performed for ARID1A will be applied to TP53:
+```{r}
 dmTP53 = dm[which(dm$Hugo_Symbol == "TP53"), ]
-nonTP53 <- kd.prob[, -which(colnames(kd.prob) %in% dmTP53$DepMap_ID)] # prob Matrix with cell lines that do not have the TP53 mutation
-yesTP53 <- kd.prob[, which(colnames(kd.prob) %in% dmTP53$DepMap_ID)] # prob matrix with cell lines that do have driver mutation
+# Probability Matrix with cell lines that do not have the TP53 mutation
+nonTP53 <- kd.prob[, -which(colnames(kd.prob) %in% dmTP53$DepMap_ID)]
+# Probability matrix with cell lines that do have the TP53 driver mutation
+yesTP53 <- kd.prob[, which(colnames(kd.prob) %in% dmTP53$DepMap_ID)]
 
-m.TP53 <- as.data.frame(apply(yesTP53, 1, mean))
-m.nonTP53 <- as.data.frame(apply(nonTP53, 1, mean))
-diffTP53 <- m.TP53 - m.nonTP53 # calculate difference in essentiality
-diffTP53$Difference <- diffTP53$`apply(yesTP53, 1, mean)` 
-diffTP53 <- diffTP53[which(diffTP53$Difference > 0.219), ]
+# Perform SL interaction partner search for TP53
 
-# make a barplot for the genes whose knockout leads to biggest difference in survival probability
+# Remove TBC1D3 gene because it has only zeros as values
+yesTP53 <- yesTP53[-14997, ]
+nonTP53 <- nonTP53[-14997, ]
 
-diffTP53$sub <- with(diffTP53, reorder(rownames(diffTP53), -diffTP53$Difference, mean, na.rm = T))
+# Perform one-sided t test with all marker genes (unpaired)
 
-ggplot(data = diffTP53) +
-geom_col(mapping = aes(x = diffTP53$sub, y = diffTP53$Difference, fill = diffTP53$sub), show.legend = F) +
-labs(x = "SL partners", y = "Difference in essentiality", title = "SL partners for TP53 Driver mutation", caption = "(based on data from kd.prob)")
+p.val = sapply(1:nrow(yesTP53), function(i) {
+# Compute t-test for all genes whose knockout leads to increased essentiality
+t.test(yesTP53[i, ], nonTP53[i, ], alternative = "greater")$p.value
+})
 
+p.val <- setNames(p.values, rownames(yesTP53))
 
-dmATM = dm[which(dm$Hugo_Symbol == "ATM"), ]
-nonATM <- kd.prob[, -which(colnames(kd.prob) %in% dmATM$DepMap_ID)] # prob Matrix with cell lines that do not have the ATM mutation
-yesATM <- kd.prob[, which(colnames(kd.prob) %in% dmATM$DepMap_ID)] # prob matrix with cell lines that do have driver mutation
-
-m.ATM <- as.data.frame(apply(yesATM, 1, mean))
-m.nonATM <- as.data.frame(apply(nonATM, 1, mean))
-diffATM <- m.ATM - m.nonATM # calculate difference in essentiality
-diffATM$Difference <- diffATM$`apply(yesATM, 1, mean)` # wie mach ich das schlauer?
-diffATM <- diffATM[which(diffATM$Difference > 0.3), ]
-
-# make a barplot for the genes whose knockout leads to biggest difference in survival probability
-
-diffATM$sub <- with(diffATM, reorder(rownames(diffATM), -diffATM$Difference, mean, na.rm = T))
-
-ggplot(data = diffATM) +
-geom_col(mapping = aes(x = diffATM$sub, y = diffATM$Difference, fill = diffATM$sub), show.legend = F) +
-labs(x = "SL partners", y = "Difference in essentiality", title = "SL partners for ATM Driver mutation", caption = "(based on data from kd.prob)")
+# significance level is 0.1 %
+p.val.sig <- p.val[p.val<0.001]
 
 ```
-
-Now: test significance of obtained values with a statistical test (which one?)
+Stored in p.values.sig for ARID1A and p.val.sig for TP53 are the most significant synthetic lethality interaction partners. These can later be consulted and for example be validated in further experiments (e.g. a larger group of Ovarian cancer cell lines, mouse models).
 
 ### 5.2 Performing Principal Component Analysis
 
@@ -430,9 +408,9 @@ annodm$kat <- ifelse(annodm$summe == 1000, "TP53 only",
 
 
 #### 5.2.2 PCA combined with cluster after drivermutations
-
 To reduce the information of the kd.prob matrix we perform a PCA. The analysis creates groups of cell lines with similar lethality partners.
 
+First of all, the variance of the estimated cell survival probability (kd.prob) when knocking out specific genes was calculated. It was hereby assumed that genes that display high variances when knocked out are more likely to have specific synthetic lethality interactions since genes that broadly lead to cell death in most cell lines are probably essential for survival on their own. Therefore, the search for synthetic lethality interaction partners will be conducted with genes whose variances are greater than the 75% quantile.
 ```{r}
 # calculate variance over all rows (genes)
 topVar = apply(kd.prob, 1, var) 
