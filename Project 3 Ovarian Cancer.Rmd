@@ -183,162 +183,105 @@ In the heatmap it is visible that many drivermutations, especially the ones that
 
 ## 4. Co-existing Mutations
 
-#### 4.1 Investigation of co-existing driver mutations via heatmap
-
-Here, we want to investigate whether there are certain mutations that often occur together and are therefore possibly linked to each other in their genesis. The goal will be to create a symmetrical matrix whose columns AND rows are our genes; the cells' content will be the counts of how often two corresponding genes turn up in the same cell line together. Next, maximum values can be extracted and tested for significance.
-
-To get a short overview about how many co existing drivermutations are common in the data we perform a heatmap:
+After identification of the most frequent mutations and the verification of the driver mutations with the literature, this step will aim to detect whether most cell lines only obtain one driver mutation or show a coexistence of several driver mutations.
+If mutations often occur together they are possibly linked to each other in their genesis.
+First a new object is defined with one column for the mutated genes and another column for the frequency of the specific mutation. 
+For the analysis duplicates of muatation in one cell line are not considered. 
 ```{r}
-# Create a new data frame that contains the mutated genes (but just once per cell line, as definded in new_uniq)
+# Create new data frame with one column for the mutated gene at the corresponding frequency 
 dm_null <- as.data.frame(table(new_uniq$Hugo_Symbol)) 
 
-#we extract all mutations that occur at least one time for a later step
-
+# Order the genes with decreasing order for the frequency
 dm_null = dm_null[order(dm_null$Freq, decreasing = TRUE),]
-rownames(dm_null) <- dm_null$Var1
 
-#creating a new matrix containing every cell line that has at least one of our 7 drivermutations. We check if the name of our Drivermutation occurs in the Drivermutation matrix
+# Use the names of the genes as rownames
+rownames(dm_null) <- dm_null$Var1
+```
+To later determine whether a specific mutation is present in a cell line a new object is created. The cells of the new object consistis of the two values one or zero. One indicates that the listed mutation occurs in the cell line, while zero denies the present of the mutation for the cell line. The single genes will be added as columns.
+```{r }
+# wirklich wichtig? noch umbenennen
 dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% dm_null$Var1), ]
 
-#function to find out if the Mutation occurs in the cell lines: "1" means yes and "0" means no
+# Apply function to annotation data, where one is added in present of the mutation and zero if mutation is not present
 anno <- apply(dm_null, 1, function(x) {annotation[x]<- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% x), ]$DepMap_ID, 1, 0)})
 
-#we have to transform the matrix to a data frame for further steps
+# Transform new matrix to a data frame
 anno <- as.data.frame(anno)
 
-#we add the names of the cell lines to the matrix
+# Add the cell line numbers as row names
 rownames(anno) <- rownames(annotation)
-
-#now we sum up how many TRUE occur in each cell line
+```
+The new object can now be used to calculated the number of mutations for one cell line based on the sum of the single. 
+```{r}
+# Sum up the values for each cell line to determine the totality of mutated genes
 anno$summe <- apply(anno, 1, function(x) { sum(x)})
 
-#to get a better overview we use only the drivermutations that occur in more than 3 cell lines (the other two are needed in step 5)
+# Show the characteristics for the column summe 
+summary(anno$summe)
+```
+With a minimal number of 23 mutations for one cell line it is indicated, that mutations do not occur single in cancer cell. On average a cell line exhibits a totality of 89 mutated genes, but it has to be concidered that in this step each mutation is counted. Mutations that only occur in one cell line are included, while they can not be considered as driver mutations. Next only mutated genes that are present in more than three cell lines are used for futher analysis.
+````{r}
+# Create object with mutations that occur at least in 2 or 4 cell lines (dm_eins is requiered for step 5)
+dm_eins <- dm_null[which(dm_null$Freq > 1), ] 
 dm_drei <- dm_null[which(dm_null$Freq > 3), ]
-dm_zwei <- dm_null[which(dm_null$Freq > 2), ]
-dm_eins <- dm_null[which(dm_null$Freq > 1), ]
 
-#these two are extracted for step 5
-anno_zwei <- anno[, which(colnames(anno) %in% rownames(dm_zwei))]
-anno_zwei <- as.data.frame(anno_zwei)
-anno_eins <- anno[, which(colnames(anno) %in% rownames(dm_eins))]
-anno_eins <- as.data.frame(anno_eins)
-
+# Use the above created objects to remove genes that do not occur at least two or four times (anno_eins is requiered for step 5)
+anno_eins <- as.data.frame(anno[, which(colnames(anno) %in% rownames(dm_eins))])
 anno <- anno[, which(colnames(anno) %in% rownames(dm_drei))]
-#we have to bring the cell lines in a better order: so we put the cell lines with the most mutations together and decrease it upwards. 
+```
+After the reduction process the sum of the single mutations for each cell line has to be calculated again
+```{r}
+# sum up the mutated genes for each cell line 
 anno$summe <- apply(anno, 1, function(x) { sum(x)})
+
+# order the cell lines with decreaing number of mutations  
 anno <- anno[order(anno$summe, decreasing = TRUE),]
 
-#we remove columns which should not be plotted
+# Show the characteristics for the column summe
+summary(anno$summe)
+```
+Only including mutations, that at least occur in four different cell lines, limits the amount of observed mutation. In comparison approximately three to four frequent mutation are observed for each cell line, while the previous analysis indicate a number of 48 mutated genes as median. Also a cell line, which does not contain one of the defined driver mutations, is indicated.
+To later apply the data frame anno to a heat map to obtain a visual overview the column has to be removed and the data frame is converted in a matrix
+````{r}
+# Remove column summe to exclude it from the heat map
 anno <- anno[, -which(colnames(anno) == "summe")]
 
-#and bring the matrix in a format the function "heatmap" can plot
+# Convert object anno into matrix 
 anno <- data.matrix(anno)
+```
 
+Do not need this?
+```{r}
 #we create a color palette containing the colors we want to use
-cols <- heat.colors(5)
-mypalette <- colorRampPalette(cols)(2)
-
+# cols <- heat.colors(5)
+# mypalette <- colorRampPalette(cols)(2)
 #we also add a second column to the matrix to include color associated Explanations for the legend
-co <- as.data.frame(cols)
-co$kat <- c("not mutated", "mutated (> 9 mutations)", "mutated (> 3 mutations)", "mutated (> 1 mutations)", "mutated (1 mutation)")
-
+# co <- as.data.frame(cols)
+# co$kat <- c("not mutated", "mutated (> 9 mutations)", "mutated (> 3 mutations)", "mutated (> 1 mutations)", "mutated (1 mutation)")
 #plotting the heatmap
 #heatmap(anno, Rowv = NA, Colv = NA, main = "Occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(5),  cexCol = 0.9, cexRow = 0.3)
-
 #adding a legend
 #legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 0.6)
-
-
-#the data is prepared to perform a heatmap
+```
+Next the data is shaved in another object, that can be used to create a heatmap. This heatmap indicates based on the colors wheter a specific gene is mutated in a cell line or not.
+```{r}
+# Prepare data for application of a heatmap
 mat <- matrix(anno, nrow = nrow(anno), ncol = ncol(anno), dimnames = list(rownames(anno), colnames(anno)))
+
+# Melt the values to one long column 
 mat.melted <- melt(mat)
 
-
+# Plot cell lines and mutation in a heatmap 
 ggplot(mat.melted, aes(x = Var1, y = Var2, fill = value)) +
   scale_fill_gradient( name="status",
   guide = "legend", limit = c(0,1), breaks=c(0,1), labels = c("not mutated","mutated")) +
   geom_tile( show.legend = T) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 9, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 6, hjust = 1)) + ggtitle("Investigation of Co-existing Mutations") + xlab("Cell lines") + ylab("Mutations")
 ```
 
+The heatmap once more indicate that cell lines with only a single driver mutation are raw, while most cell lines consists of combination of different mutation. The heatmap also shows the cell line with the highest number of mutation left, while the number is decreasing to the right side. Only cell line ACH-000524 obtain none of the frequent mutations, while ten of 34 cell lines do only have one of the definient driver mutations. These cell lines do not indicate a pattern for a common 
 
 
-```{r}
-# Create a new data frame that contains the mutated genes (but just once per cell line, as definded in new_uniq)
-#dm_null <- as.data.frame(table(new_uniq$Hugo_Symbol)) 
-
-# Order matrix with mutations, rename rows
-#dm_null = dm_null[order(dm_null$Freq, decreasing = TRUE),]
-#rownames(dm_null) <- dm_null$Var1
-
-# löschen, falls wirklich unnötig:
-# Creating a new matrix containing every cell line that has at least one of the 7 drivermutations. Then check if the Driver mutation names occur in the Driver mutation matrix
-# dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% dm_null$Var1), ]
-
-#function to find out if the Mutation occurs in the cell lines: "1" means yes and "0" means no
-# anno <- as.data.frame(apply(dm_null, 1, function(x) {annotation[x]<- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% x), ]$DepMap_ID, 1, 0)}))
-#anno <- as.matrix(apply(dm_null, 1, function(x) {annotation[x]<- ifelse(rownames(annotation) %in% new_uniq[which(new_uniq$Hugo_Symbol %in% x), ]$DepMap_ID, 1, 0)}))
-
-#we have to transform the matrix to a data frame for further steps
-#anno <- as.data.frame(anno)
-
-#we add the names of the cell lines to the matrix
-#rownames(anno) <- rownames(annotation)
-
-#now we sum up how many TRUE occur in each cell line
-#anno$summe <- apply(anno, 1, function(x) { sum(x)})
-
-#to get a better overview we use only the drivermutations that occur in more than 3 cell lines (the other two are needed in step 5)
-#dm_drei <- dm_null[which(dm_null$Freq > 3), ]
-#dm_zwei <- dm_null[which(dm_null$Freq > 2), ]
-#dm_eins <- dm_null[which(dm_null$Freq > 1), ]
-
-#these two are extracted for step 5
-#anno_zwei <- as.data.frame(anno[, which(colnames(anno) %in% rownames(dm_zwei))]) # as.matrix
-#anno_eins <- as.data.frame(anno[, which(colnames(anno) %in% rownames(dm_eins))]) # as.matrix
-
-#anno <- anno[, which(colnames(anno) %in% rownames(dm_drei))]
-#we have to bring the cell lines in a better order: so we put the cell lines with the most mutations together and decrease it upwards. 
-#anno$summe <- apply(anno, 1, function(x) { sum(x)})
-#anno <- anno[order(anno$summe, decreasing = TRUE),]
-
-#we remove columns which should not be plotted
-#anno <- anno[, -which(colnames(anno) == "summe")]
-
-#and bring the matrix in a format the function "heatmap" can plot
-#anno <- data.matrix(anno) # unnötig, wenn das mit as.matrix oben schon funktioniert
-
-#we create a color palette containing the colors we want to use
-#cols <- heat.colors(5)
-#mypalette <- colorRampPalette(cols)(2)
-
-# ACHTUNG EVTL ALLES LÖSCHEN:
-
-#we also add a second column to the matrix to include color associated Explanations for the legend
-#co <- as.data.frame(cols) # Zeilen 235 und diese kann man in einem Schritt: co <- as.data.frame(heat.colors(5))
-# co$kat <- c("not mutated", "mutated (> 9 mutations)", "mutated (> 3 mutations)", "mutated (> 1 mutations)", "mutated (1 mutation)") # braucht er nicht nochmal ???
-
-#plotting the heatmap
-#heatmap(anno, Rowv = NA, Colv = NA, main = "Occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(5),  cexCol = 0.9, cexRow = 0.3)
-
-#adding a legend
-#legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 0.6)
-
-#the data is prepared to perform a heatmap
-#mat <- matrix(anno, nrow = nrow(anno), ncol = ncol(anno), dimnames = list(rownames(anno), colnames(anno)))
-#mat.melted <- melt(mat)
-
-
-#ggplot(mat.melted, aes(x = Var1, y = Var2, fill = value)) +
-  #scale_fill_gradient( name="status",
-  #guide = "legend", limit = c(0,1), breaks=c(0,1), labels = c("not mutated","mutated")) +
-  #geom_tile( show.legend = T) +
-  #theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 9, hjust = 1))
-
-
-
-
-```
 
 ## 5. Synthetic Lethality Interactions
 After identifying our most common driver mutations, this information was used to find possible synthetic lethality interaction partners.
