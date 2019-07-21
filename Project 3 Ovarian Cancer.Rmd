@@ -185,7 +185,6 @@ As can be seen, TP53 is the most commonly mutated gene (12 of 34 different cell 
 In the heatmap it is visible that many drivermutations, especially the ones that occur less than five times in our cell lines, occur very randomly along the cell lines. Caused by this fact another way to find SL partners is needed.To find out if the main drivermutations is important for a possible SL partner, the main driver muations have to be validated by checking which of them were mentioned in an Ovarian cancer context in literature.
 
 ## 4. Co-existing Mutations
-
 After identification of the most frequent mutations and the verification of the driver mutations with the literature, this step will aim to detect whether most cell lines only obtain one driver mutation or show a coexistence of several driver mutations.
 If mutations often occur together they are possibly linked to each other in their genesis.
 First a new object is defined with one column for the mutated genes and another column for the frequency of the specific mutation. 
@@ -282,9 +281,10 @@ ggplot(mat.melted, aes(x = Var1, y = Var2, fill = value)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 6, hjust = 1)) + ggtitle("Investigation of Co-existing Mutations") + xlab("Cell lines") + ylab("Mutations")
 ```
 
-The heatmap once more indicate that cell lines with only a single driver mutation are raw, while most cell lines consists of combination of different mutation. The heatmap also shows the cell line with the highest number of mutation left, while the number is decreasing to the right side. Only cell line ACH-000524 obtain none of the frequent mutations, while ten of 34 cell lines do only have one of the definient driver mutations. These cell lines do not indicate a pattern for a common 
-
-
+The heatmap once more indicate that cell lines with only a single driver mutation are raw, while most cell lines consists of combination of different mutation. The heatmap also shows the cell line with the highest number of mutation left, while the number is decreasing to the right side. Only cell line ACH-000524 obtain none of the frequent mutations, while ten of 34 cell lines do only have one of the definient driver mutations. These cell lines do not indicate a pattern for a common mutation, where a single variantion in the gene is associated with the development of overian cancer. In the 10 cell lines only the two genes TLN2 and PRSS3 show a frequeny of two. 
+Each cancer cell exhibits a high amount of gene variation due to mutation, which could result of genome or chromosomal instability. Studies inticate that 33 to 66 mutation occur in cell lines, which lead to an altered aminoacid sequence.
+But many of the genomic aberration do not lead to a different phenotype and can therefore be seen as passenger mutation. They result of the genetic instability due to the occurance of a driver mutation (Alberts et al., 2017). 
+Therefore it is likly that the heatmap shows driver and passanger mutations, which would have to be verified in experiments, wether the single mutation tend to change the phenotyp of the cell or not. Still the heatmap shows, that most cell lines contain a combination of as driver mutation altered genes. This circumstance has to be considered in the search for synthetic lethality partners, because the data set does not include cell lines with only include one of the determined driver mutations. 
 
 ## 5. Synthetic Lethality Interactions
 As mentioned in the introduction, it is our goal to seek out synthetic lethality interaction partners for driver mutations occurring in Ovarian cancer. These SL partners are genes that become essential in cancer cells due to the presence of mutations that lead to altered protein function and signaling pathways. The main idea behind identifying the SL partners is finding a way to target cancer cells without affecting healthy cells (O'Neil *et al.*, 2017). A cancer drug leading to effective knockdown of SL partner genes in a patient's tumour could specifically induce cell death in cancer cells. This kind of approach in combination with other therapies would hopefully increase treatment efficacy and reduce unwanted side effects, thus improving life quality.
@@ -359,13 +359,20 @@ Stored in p.values.sig for ARID1A and p.val.sig for TP53 are the most significan
 ### 5.2 Performing Principal Component Analysis
 
 
-#### 5.2.1 Creating groups with similar drivermutations
-In step 4.2.1 the driver mutations were validated with literature.
-And the ones which were common are: TP53, ARID1A, ATM and PTPRF. In the next step the cell lines are investigated if these Mutations occur in them and which groups can be defined:
+#### 5.2 Grouping of the cell lines based on the combination of mutations
+In step 4.2 the driver mutations were validated with literature, leading to the assumption of the four mutations TP53, ARID1A, ATM and PTPRF, which are  associated with cancer development.
+As indicated in step 4 most driver mutations occur in a combination with other driver mutations in the cell lines. 
+To investigate the specific interaction with possible synthetic lethality via PCA the cell lines has to be grouped based on their mutational signatures first.
+In the following each of the four driver mutations will receive a different decimal power, which are listed in the table below.
 
-to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
+|Driver mutation     | Number |
+|--------------------|:------:|
+|TP53                |1000    |
+|ARID1A              |100     |
+|ATM                 |10      |
+|PTPRF               |1       |
 
-to seperate the cell lines in groups with similar Mutations we give every Drivermutation a specific value: If TP53 is True in the cell line it gets a "1000" , if it isnt ther will be a "0"
+Before using the decimal power as sign for the present driver mutations in the cell, a new object is created. In the rows the 34 cell lines are listed and a column for each mutation indicates the combination of mutations for the specific cell line. Each cell with a value of zero show, that the driver mutation (column name) is not present in the cell line, while one a the four different decimal power indicates the existence of the driver mutation. 
 
 ```{r}
 # Create an empty object consisting of 34 rows (cell lines) and 0 columns
@@ -387,9 +394,8 @@ annodm$PTPRF  <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "
 annodm$summe  <- apply(annodm, 1, function(x) { sum(x)})
 
 ```
-
-Many cell lines do not even have one of our chosen mutations because their sum is zero. At many others we can see that they have the same combination of Drivermutations because they have the same value at "annodm$summe".
-In the following step we gave the different combinations a specific category
+The sum of all the decimal power for each cell line lead to the specific combination of driver mutation, can be used to determine which specific mutations occur in the cell line.
+The column summe is now used to name the mutation sequence and will highlight the different groups in the following Principal Component Analysis.A new column for written mutation combinations a is added to the object annodm.
 
 ```{r}
 # Add new column saying which mutations a cell line has based on the calculated sums
@@ -404,35 +410,42 @@ annodm$kat <- ifelse(annodm$summe == 1000, "TP53 only",
 
 ```
 
-
-
-
-#### 5.2.2 PCA combined with cluster after drivermutations
-To reduce the information of the kd.prob matrix we perform a PCA. The analysis creates groups of cell lines with similar lethality partners.
-
-First of all, the variance of the estimated cell survival probability (kd.prob) when knocking out specific genes was calculated. It was hereby assumed that genes that display high variances when knocked out are more likely to have specific synthetic lethality interactions since genes that broadly lead to cell death in most cell lines are probably essential for survival on their own. Therefore, the search for synthetic lethality interaction partners will be conducted with genes whose variances are greater than the 75% quantile.
+#### 5.3 PCA cluster by the driver mutation combination
+To investigate possible SLI partners a Principle Component Analysis (PCA) is performed. In general a PCA can be applied for dimension reduction, reduce a large data set into Pinciple Components, which condense the essential information of the data set. Differences in the data set exhibit the most information, because the data points can be categorized by variables that shows a variance in the data set. As describe in the paragraphs above genes with a high variance are likely to be possible SLI parnters.
+First the knockdown data is reduced to genes that indactes a variance higher than the 75% quantil.
 ```{r}
-# calculate variance over all rows (genes)
+# Calculate variance over all rows for the gene knockdown (probability)
 topVar = apply(kd.prob, 1, var) 
 
-# new data frame with just the genes whose knockout leads to highly variant cell death events -> perhaps our synthetic lethality interaction partners?
-topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] 
+# Reduce data set to genes, that indicates a variance higher that the 75% quantile
+kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] 
 
-#we have to transpose the data frame
-topVar <- t(topVar)
-
-#we use the colors defined in step 4 for our co existing mutations
-mutation <- annodm$kat
-
-#this function calculates the PCA with the variance calculated before
-PC<-prcomp(topVar)
+# Transpose the data frame
+kd.prob.topVar <- t(kd.prob.topVar)
+```
+Next the reduced knockdown data is applied to a PCA. To obtain a clustering of the different driver mutation combination, the definied groups of the previos step are colored.
+```{r}
+# Calculate the variance and Principle Components for the knock.down data
+PC<-prcomp(kd.prob.topVar)
 PCi<-data.frame(PC$x)
 
-#we plot the pca with the different colors for cell lines with similar Driver Mutations
-ggplot(PCi,aes(x=PC1,y=PC2,col=mutation))+geom_point(size=2.5)
+# Use different colors for the defined groups in step 5.++++++++++++++
+Mutation <- annodm$kat
 
-
+# Plot the PCA for and show defined groups in different colors
+ggplot(PCi,aes(x=PC1,y=PC2,col=Mutation))+geom_point(size=2.5) + ggtitle("Cell lines clustered by driver mutations")
 ```
+- no clustering of defined groups
+- all seenms to cluster same, some outliers --> but other points of the group does not tent to cluster with outliers
+- not useful to determine the load of the PC --> no clear structure based on the driver mutation
+- may problem --> driver mut are TSG, if SLIP inhibit protein (activated due to TSG inactivation) other TSG still inactiv, may buffer effect of SLIP
+- no hard synthetic lethality interaction partners due to regulatory buffering mechanisms (carl text)
+- identification of false driver mutation
+- wrong clustering
+- To obtain better result --> cell line only contain one specific driver mutation, look for SLIP and afterwards induce other mutations, lead to buffering mechasims?
+- easier for oncogenes to inactivat them, instead of inactivate proteins, that a active due to the lack of the TSG-inactivation
+
+
 
 #### 5.2.3 PCA combined with kmeans cluster
 
