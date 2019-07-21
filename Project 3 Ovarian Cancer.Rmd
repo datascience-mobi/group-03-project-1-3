@@ -71,7 +71,7 @@ Another common mutation is ARID1A. The gene ARID1A encodes a protein involved wi
 Furthermore, genes involved in DNA repair (CHEK2, RAD51, BRIP1, PALB2) and mismatch repair (MSH2, MSH6, MLH1, PMS2) are frequently mutated in Ovarian cancer. Other frequently defective pathways are those involved in cell survival, proliferation and growth; mutations often occur in NOTCH, RAS/MEK, PI3K, FOXM1, BRAF and RAS genes (Testa *et al.*, 2018).
 
 ```{r pressure, echo=FALSE, out.width = '40%'}
-# knitr::include_graphics("C:\Users\ninah\Documents\GitHub\project-01-group-03")
+knitr::include_graphics("C:/Users/ninah/Documents/GitHub/project-01-group-03/OCmutations.png")
 ```
 
 
@@ -231,24 +231,30 @@ As can be seen, TP53 is the most commonly mutated gene (12 of 34 different cell 
 
 To determine whether the six obsorved mutations are associated with cancer and can be seen as driver mutations for the data set, the function of the genes are look up in the literature
 
-**TP53**   
-TP53 is a tumor suppressor gene and codes for the protein p53, a transcription factor. p53 regulates DNA repair mechanisms and apoptosis. In the case of ovarian cancer the function of p53 was knocked down in tumors This mutation is the top mutation in ovarian cancer, especially in high serous carcinomas. (Mandilaras et al., 2019)
+**TP53**
+TP53 is a tumor suppressor gene, which is coding for the transcription factor p53. The protein regulates DNA repair mechanisms and apoptosis. An inactivation of the tumor suppressor gene, also leads to an increased genomic instability. This mutation is not only the most frequent mutation in ovarian cancer (especially in high serous carcinomas.), but also occur in a multiplicity of other cancer types (Mandilaras *et al.*, 2019).
 
-**ARID1A**                                                                                       Arida1A is a member of SWI/SNF family which is known to regulate different cell processes. It is mutated in 50% of all ovarian clear cell carcinomas.(Berns et al., 2018)
+**ARID1A**
+ARID1A is a member of SWI/SNF family, which influence the expression level via chromatin remodeling. This process regulates on the second base the cell proliferation and differentiation. The tumor suppressor gene is mutated in 50% of all ovarian clear cell carcinomas (Berns *et al.*, 2018).
 
-**ATM**                                                                                              The mutation of ATM, which encodes for a protein kinase leads to a chromosome fragility causing a higher risk of getting breast and ovarian cancer.(Thorstenson et al., 2003)
+**ATM**
+ATM encodes for a protein kinase and serve as a Checkpoint for the genome replication. A mutation in the repair enzyme leads to chromosomal fragility causing a higher risk of for breast and ovarian cancer (Thorstenson *et al.*, 2003).
 
-**BAI1**   
-BAI1 inhibits angiogenesis and is a cell growth suppressor. Angiogenesis is essential for growth and metastasis of tumors.(Chao et al., 2015)
+**BAI1**
+BAI1 inhibits the angiogenesis and is a cell growth suppressor. The neoplasm of blood vessels is essential for tumor proliferation and metastasis of tumors. BAI1 functions as tumor suppressor gene in human cells(Chao *et al.*, 2015).
 
-**PTPRF**  
-PTPRF is a tumor suppressor gene which was found in different cancer types but is not very well investigated.(Tian et al., 2018)
+**PTPRF**
+PTPRF is a tumor suppressor gene, which was found in different cancer types. The exact function of the gene and the relationship to cancer development is fully investigated. (Tian et al., 2018)
 
-**SYNE1**  
+**SYNE1**
 SYNE1 encodes a protein expressed in skeletal, smooth muscle and peripheral blood lymphocytes. (Doherty et al., 2010)
 
-**THBS3** (richtige Quele)  
-THBS3 encodes a glycoprotein that mediates cell to cell and cell to matrix interactions and is also involved in the regulation of skeletal maturation. A mutation of this gene was found in different cancer types but is not very well investigated.
+**THBS3**
+THBS3 encodes a glycoprotein that mediates cell to cell and cell to matrix interactions and is also involved in the regulation of skeletal maturation. A mutation of this gene was found in different cancer types but is fully investigated.
+
+The tumor suppressor genes TP53 and ARID1A, which both are associated with Ovarian cancer, will be used as main driver mutations for the following analysis. They also occur most frequently in ovarian cancer and inhibiting the inactivation of the two genes via synthetic lethality interaction will have a positive impact on the mortality rate for several subtypes of ovarian cancer. 
+Since the relationship between ovarian cancer and SYNE1/ THBS3 is not fully explained, the mutations will not be included in further analysis. The mutations ATM, BAI1 and PTPRF will be considered as driver mutation of second order.
+
 
 ## 4. Coexisting Mutations
 
@@ -728,7 +734,7 @@ names(prediction.testing) <- c("pred.exp")
 ```
 Next the standard error of the residuals is caculated for difference between the predicted values and the real values of the testing data set. For the calculation of the error the following formula was used
 ```{r formula, echo=FALSE, out.width = '40%'}
-# knitr::include_graphics("D:/Documents/GitHub/project-01-group-03/Formel RMSE.PNG")
+knitr::include_graphics("C:/Users/ninah/Documents/GitHub/project-01-group-03/FormelRMSE.PNG")
 ```
 In the formula n displays the number of rows in the given data frame. To calculate the residuals the difference between  the real value and the predicted value of the gene expression is used. 
 ```{r}
@@ -772,9 +778,17 @@ In each cell, a complex interplay of all these regulations takes place. It is th
 
 ### 7.1 Driver mutation
 
+In the first step the most frequent mutations of the data set were identified. The analysis revealed that the mutation of a single gene often occurs more than once in one cell line. After duplicates were removed the tumor suppressor gene TP53 exhibited the highest mutation rate with 12 counts in total, followed by the gene ARID1A with 8 counts. Both tumor suppressors are linked to the development of Ovarian cancer and are known as common driver mutations for this cancer type. With a slightly lower frequency of 5 counts mutation in the genes ATM, BAI1 and PTPRF occurred in the cancer data set.
+
 ### 7.2 Co-existing Mutations
 
+After identifying the driver mutations, it was analysed which mutations occur together most frequently. The results were shown in a heatmap. It was concluded that there is no typical pattern for certain mutation combinations.
+
 ### 7.3 Synthetic Lethality Interactions
+
+By applying a t-test, the most significant SLI partners for the two most common driver mutations TP53 and ARID1A were identified. These are the most likely to exhibit positive results in further experiments and should be investigated thoroughly.
+
+Next, a PCA was performed to determine possible SLI partners for the most common mutations in OC using the knockdown data. Since no clear results could be obtained, a kmeans clustering was performed prior to a second PCA aiming to find subtype-specific SLI partners.
 
 ### 7.4 Linear Regression
 In the last step a linear regression model was applied to the question whether it is possible to predict the gene expression based on the copy number for the totality of the genes. Because the predictor variable copy number did not fit normality, all values smaller than -2 were removed, limiting the prediction to copy number values higher than -2. 
@@ -783,3 +797,27 @@ While 70% of the data set were used as trainings data for the model, 30% were se
 The outcome of the model shows that the complex biological regulatory mechanisms, which influence the level of gene expression on different ways, can not be explained by a single variable. For an  accurate predication a multivariate regression model, which includes several of the in 6.7 mentioned variables, is suggested.
 
 ## 8. Sources
+
+Alberts, B., Johnson, A., Lewis, J., Morgan, D., Raff, M., Roberts, K., and Walter, P. (2017). Molekularbiologie der Zelle, 6. Auflage edn (Weinheim: Wiley-VCH).
+
+Berns, K., Caumanns, J.J., Hijmans, E.M., Gennissen, A.M.C., Severson, T.M., Evers, B., Wisman, G.B.A., Jan Meersma, G., Lieftink, C., Beijersbergen, R.L., et al. (2018). ARID1A mutation sensitizes most ovarian clear cell carcinomas to BET inhibitors. Oncogene 37, 4611-4625.
+
+Chao, A., Tsai, C.-L., Jung, S.-M., Chuang, W.-C., Kao, C., Hsu, A., Chen, S.-H., Lin, C.-Y., Lee, Y.-C., Lee, Y.-S., et al. (2015). BAI1-Associated Protein 2-Like 1 (BAIAP2L1) Is a Potential Biomarker in Ovarian Cancer. PloS one 10, e0133081-e0133081.
+
+Doherty, J.A., Rossing, M.A., Cushing-Haugen, K.L., Chen, C., Van Den Berg, D.J., Wu, A.H., Pike, M.C., Ness, R.B., Moysich, K., Chenevix-Trench, G., et al. (2010). ESR1/SYNE1 polymorphism and invasive epithelial ovarian cancer risk: an Ovarian Cancer Association Consortium study. Cancer Epidemiol Biomarkers Prev 19, 245-250.
+
+Mandilaras, V., Garg, S., Cabanero, M., Tan, Q., Pastrello, C., Burnier, J., Karakasis, K., Wang, L., Dhani, N.C., Butler, M.O., et al. (2019). TP53 mutations in high grade serous ovarian cancer and impact on clinical outcomes: a comparison of next generation sequencing and bioinformatics analyses. International Journal of Gynecologic Cancer 29, 346-352.
+
+O'Neil, N.J., Bailey, M.L., and Hieter, P. (2017). Synthetic lethality and cancer. Nat Rev Genet 18, 613-623.
+
+Stranger, B.E., Forrest, M.S., Dunning, M., Ingle, C.E., Beazley, C., Thorne, N., Redon, R., Bird, C.P., de Grassi, A., Lee, C., et al. (2007). Relative Impact of Nucleotide and Copy Number Variation on Gene Expression Phenotypes.  315, 848-853.
+
+Takeda, T., Banno, K., Okawa, R., Yanokura, M., Iijima, M., Irie-Kunitomi, H., Nakamura, K., Iida, M., Adachi, M., Umene, K., et al. (2016). ARID1A gene mutation in ovarian and endometrial cancers (Review). Oncol Rep 35, 607-613.
+
+Testa, U., Petrucci, E., Pasquini, L., Castelli, G., and Pelosi, E. (2018). Ovarian Cancers: Genetic Abnormalities, Tumor Heterogeneity and Progression, Clonal Evolution and Cancer Stem Cells. Medicines (Basel) 5.
+
+Toss, A., Tomasello, C., Razzaboni, E., Contu, G., Grandi, G., Cagnacci, A., Schilder, R.J., and Cortesi, L. (2015). Hereditary ovarian cancer: not only BRCA 1 and 2 genes. Biomed Res Int 2015, 341723.
+
+Thorstenson, Y.R., Roxas, A., Kroiss, R., Jenkins, M.A., Yu, K.M., Bachrich, T., Muhr, D., Wayne, T.L., Chu, G., Davis, R.W., et al. (2003). Contributions of <strong><em>ATM</em></strong> Mutations to Familial Breast and Ovarian Cancer. Cancer Research 63, 3325-3333.
+
+Tian, X.a., Yang, C., Yang, L., Sun, Q., and Liu, N. (2018). PTPRF as a novel tumor suppressor through deactivation of ERK1/2 signaling in gastric adenocarcinoma. Onco Targets Ther 11, 7795-7803.
