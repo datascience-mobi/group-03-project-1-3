@@ -446,123 +446,31 @@ ggplot(PCi,aes(x=PC1,y=PC2,col=Mutation))+geom_point(size=2.5) + ggtitle("Cell l
 
 
 #### 5.2.3 PCA combined with kmeans cluster
-
-We can see that the cluster does not really fit to the results of the PCA. In the next step, we perform a kmeans cluster and check if that fits better
-
+Obviously, the cell lines do not visibly cluster based on the combination of the most frequent driver mutations. As an alternative idea, the clustering could be based on the different OC subtypes. The problem hereby is that the subtype definitions are very vague and numerous, which is disadvantageous since our data only comprises of 34 cell lines.
+The high number of different subtypes can be seen when using the function `summary()`. For this reason, an elbow plot will be performed prior to the PCA to verify the quality of the clustering. A visible kink in the elbow plot indicates a more drastic decrease in WSS, which is a measure for the distance between the points of a cluster. Finally, a kmeans clustering and PCA can be performed.
 ```{r}
-#at first we need to find out how many centers we use for the clustering
+# Find optimal number of cluster
 kme = sapply(2:7, function(k) {
-    kmeans(topVar, centers = k)$tot.withinss
+  
+    kmeans(kd.prob.topVar, centers = k)$tot.withinss
 })
 plot(2:7, kme, type = "b", pch = 19, xlab = "Number of clusters K")
-
-#the elbow plot does not give clear information about the ideal number of clusters, but we will use five centers (silhouette plot is in progress)
-
-#performing clustering
-km <- kmeans(topVar, 5)
-
-#extracting the colors
-group <- as.factor(km$cluster)
-
-
-#plotting PCA as before
-ggplot(PCi,aes(x=PC1,y=PC2,col=group))+geom_point(size=2.5)
 ```
 
-#### 5.2.4 PCA results
-
-clustered by kmeans there are five groups which fit to the pca very well. In the next step it is investigated which cell lines are grouped by kmeans and what they have in common. But there comes up a problem: every time our code runs, the function kmeans will create a new cluster. Caused by that it in impossible to interpret exacly the groups which were formed in the chunk before. To get a good interpretation of the kmeans data a loop is created which forms a new kmeans cluster every single round that will be analysed. 
-
+Unfortunately, the elbow plot does not give clear information about the ideal number of clusters. However, this is not surprinsing since the dataset comprises of various different Ovarian cancer subtypes that do not exhibit great relation as has already been shown in the analysis of occurring driver mutations. Five centers will be used in the following.
 ```{r}
-#a data frame is created to print the results in
-po <- as.data.frame(1)
+# Perform kmeans clustering
+km <- kmeans(kd.prob.topVar, 5)
 
-#the loop will create 1000 kmeans cluster
-for (j in 0:1000) {  
+# Extract groups of cell lines for the plot
+Groups <- as.factor(km$cluster)
 
-  #a kmeans cluster is formed
-  km <- kmeans(topVar, 5)
-  
-  #the number of the cluster is extracted (1 to 5)
-  kem <- (km[["cluster"]])
-  kem <- as.data.frame(kem)
-  
-  #we add the rownames from the annotation matrix to validate the cell lines have the right assignment
-  kem$id <- rownames(annotation)
-  
-  #we need another loop to check each of the five clusters
-  for(i in 1:5) {
-  
-    #at first the variable has to be loaded with the Drivermutaions that occur two or more times in the cell lines
-    kp <- anno_eins[which(rownames(anno_eins) %in% kem[which(kem$kem %in% i),]$id),];
-  
-    #we transpose kp for a easier workflow and transform it to a data frame
-    kp <- t(kp);
-    kp <- as.data.frame(kp);
-  
-    #and we count the number how often the mutation occurs in that group
-    kp$summe <- apply(kp, 1, function(x) { sum(x)});
- 
-    #now we delete genes that are mutated in less than 67% of the cell lines
-    kp <- kp[which(kp$summe > 0.666*NCOL(kp)),];
-  
-    #we remove the column "summe""
-    kp <- kp[, -which(colnames(kp) %in% "summe")] 
-    
-    #at this point the data is extracted from the loop into the data frame created before
-    
-    #the following function counts the number of the round from 1 to 10000
-    h <- j*5+i
-    
-    #we don't need groups that contain only one cell line because the mutations would not be significant
-    if (NCOL(kp) > 1) { 
-      
-      #groups with only one or without any gene in common aren't usefull as well
-      if (NROW(kp) > 1) {
-    
-        #groups with too many cell lines arent interesting as well
-        if (NROW(kp) < 9) {
-    #the data is transformed to a string and written into the data frame
-    po[h] <- toString(rownames(kp))
-      }
-    #the next two step have to be done otherwise there would be empty colums in between and an error comes up
-      
-        else {po[h] <- "nein"}}
-      
-      else {po[h] <- "nein"}}
-      
-    else {po[h] <- "nein"}
-  } 
-}
 
-#the data frame is transposed to get a better overview and to perform further analysis
-po <- t(po)
-
-#the combinations are counted and converted to a data frame
-ko <- table(po)
-ko <- as.data.frame(ko)
-
-#they are order after the most frequency
-ko <- ko[order(ko$Freq, decreasing = T),]
-
-#and the "nein" row is deleted
-ko <- ko[-which(ko$po %in% "nein"),]
-
-#a barplot is created to visualize the data
-similar_mutations <- ko$po
-ggplot(data = ko) +
-geom_col(mapping = aes(x = ko$po, y = ko$Freq, fill = similar_mutations), show.legend = T) +
-
-  theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank()) +
-  labs(x = "Mutated gene", y = "Frequency", title = "Frequency of specific kmeans cluster")
-
-#we add the column subtype desease to the matrix
-kem$sd <- annotation$Subtype.Disease
+# Plot PCA with different colour for each group
+ggplot(PCi,aes(x=PC1,y=PC2,col=Groups))+geom_point(size=2.5)+ggtitle("Cell lines clustered with kmeans")
 ```
 
-There is a group that comes up very often which contains two cell lines (ACH-001278 and ACH-000123). These cell lines have two Mutations in common: "PTPRF"" and "SMARCA4". With the number of the cluster it is possible to check the cell lines in the "kem" matrix. At the two examples the same Subtype desease cancer (Small Cell Carcinoma of the Ovary Hypercalcemic Type (SCCOHT)) can be seen. These two cell lines may have the same SL partners. The other group which contains the mutations: "ARID1A", "KMT2D", "NOX5", "PTEN", "TNRC6C" etc.  is formed out of three cell lines (ACH-000947 ACH-000936 ACH-000885). Their Subtype desease is "Adenocarcinoma", but there are many others with the same Subtype desease. But caused by the fact that those three are clustered together very often by their kd.prob data. It is possible that one of these mutated genes has a promising SL partner.
-
-
+As defined, there are five groups. Here, as well, there are no visibly seperated clusters. This underlines our suspicion that there is no significant difference between the cancer cell lines.
 
 ## 6. Linear Regression
 
