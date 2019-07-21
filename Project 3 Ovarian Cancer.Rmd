@@ -1,16 +1,14 @@
 ---
 title: 'Project 3: Ovarian Cancer'
-  output:
-  word_document: default
-  pdf_document: default
+output:
   html_document: default
+  pdf_document: default
+  word_document: default
 ---
-<style>
-body {
-text-align: justify}
-</style>
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+#<style>body {text-align: justify} </style>
 ```
 
 ## Contents
