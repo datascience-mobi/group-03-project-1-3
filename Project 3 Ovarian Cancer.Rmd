@@ -732,11 +732,8 @@ prediction.testing <- as.data.frame(predict(lrm.all.genes, newdata = testing.all
 # Name the column of the new object
 names(prediction.testing) <- c("pred.exp")
 ```
-Next the standard error of the residuals is caculated for difference between the predicted values and the real values of the testing data set. For the calculation of the error the following formula was used
-```{r formula, echo=FALSE, out.width = '40%'}
-knitr::include_graphics("C:/Users/ninah/Documents/GitHub/project-01-group-03/FormelRMSE.PNG")
-```
-In the formula n displays the number of rows in the given data frame. To calculate the residuals the difference between  the real value and the predicted value of the gene expression is used. 
+Next the standard error of the residuals is caculated for difference between the predicted values and the real values of the testing data set. 
+In the formula of the standard error n displays the number of rows in the given data frame. To calculate the residuals the difference between  the real value and the predicted value of the gene expression is used. 
 ```{r}
 # Compute standard error for the expression values of the testing data set
 sqrt(1/nrow(testing.all.genes) * sum((testing.all.genes$expression-prediction.testing)^2)) 
