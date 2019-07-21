@@ -285,6 +285,7 @@ But many of the genomic aberration do not lead to a different phenotype and can 
 Therefore it is likly that the heatmap shows driver and passanger mutations, which would have to be verified in experiments, wether the single mutation tend to change the phenotyp of the cell or not. Still the heatmap shows, that most cell lines contain a combination of as driver mutation altered genes. This circumstance has to be considered in the search for synthetic lethality partners, because the data set does not include cell lines with only include one of the determined driver mutations. 
 
 ## 5. Synthetic Lethality Interactions
+### 5.1 Identification of SL partners with applied statistics
 As mentioned in the introduction, it is our goal to seek out synthetic lethality interaction partners for driver mutations occurring in Ovarian cancer. These SL partners are genes that become essential in cancer cells due to the presence of mutations that lead to altered protein function and signaling pathways. The main idea behind identifying the SL partners is finding a way to target cancer cells without affecting healthy cells (O'Neil *et al.*, 2017). A cancer drug leading to effective knockdown of SL partner genes in a patient's tumour could specifically induce cell death in cancer cells. This kind of approach in combination with other therapies would hopefully increase treatment efficacy and reduce unwanted side effects, thus improving life quality.
 
 The task is to find possible synthetic lethality interaction partners for the most frequent driver mutations, these being TP53 and ARID1A. For every driver mutation, our batch of cell lines will be devided into two groups depending on presence or non-presence of the respective driver mutation. 
@@ -409,8 +410,8 @@ annodm$kat <- ifelse(annodm$summe == 1000, "TP53 only",
 ```
 
 #### 5.3 PCA cluster by the driver mutation combination
-To investigate possible SLI partners a Principle Component Analysis (PCA) is performed. In general a PCA can be applied for dimension reduction, reduce a large data set into Pinciple Components, which condense the essential information of the data set. Differences in the data set exhibit the most information, because the data points can be categorized by variables that shows a variance in the data set. As describe in the paragraphs above genes with a high variance are likely to be possible SLI parnters.
-First the knockdown data is reduced to genes that indactes a variance higher than the 75% quantil.
+To investigate possible SLI partners a Principle Component Analysis (PCA) is performed. In general a PCA can be applied for dimension reduction, reduce a large data set into Pinciple Components, which condense the essential information of the data set. Differences in the data set exhibit the most information, because the data points can be categorized by variables that shows a variance in the data set. As describe in the paragraphs above genes with a high variance are likely to be possible SLI partners.
+First the knockdown data is reduced to genes that indactes a variance higher than the 75% quantile.
 ```{r}
 # Calculate variance over all rows for the gene knockdown (probability)
 topVar = apply(kd.prob, 1, var) 
@@ -427,12 +428,15 @@ Next the reduced knockdown data is applied to a PCA. To obtain a clustering of t
 PC<-prcomp(kd.prob.topVar)
 PCi<-data.frame(PC$x)
 
-# Use different colors for the defined groups in step 5.++++++++++++++
+# Use different colors for the defined groups in step 5.+++++++++
 Mutation <- annodm$kat
 
 # Plot the PCA for and show defined groups in different colors
 ggplot(PCi,aes(x=PC1,y=PC2,col=Mutation))+geom_point(size=2.5) + ggtitle("Cell lines clustered by driver mutations")
 ```
+As can be seen, no clustering of the groups, which are defined by their driver mutation pattern, is visible. In this form, the PCA does not support the significant SL partners found by means of the statistical test. The reason for this could be that the observation of many driver mutations at once in a cell line poses a too great complexity of genetic characteristics and can therefore not be plotted this simply. A more direct way to find SLI partners would be to establish cell lines with one driver mutation only and to subsequently introduce further mutations to examine the complex interplay of several mutations.
+
+
 - no clustering of defined groups
 - all seenms to cluster same, some outliers --> but other points of the group does not tent to cluster with outliers
 - not useful to determine the load of the PC --> no clear structure based on the driver mutation
@@ -470,10 +474,20 @@ Groups <- as.factor(km$cluster)
 ggplot(PCi,aes(x=PC1,y=PC2,col=Groups))+geom_point(size=2.5)+ggtitle("Cell lines clustered with kmeans")
 ```
 
-As defined, there are five groups. Here, as well, there are no visibly seperated clusters. This underlines our suspicion that there is no significant difference between the cancer cell lines.
+As defined, there are five groups. Here, as well, there are no visibly seperated clusters. Nevertheless, the clusters are situated in distinct regions of the plot, suggesting a connection between the cell lines. The composition of the clusters is displayed in the following table showing the observed subtype for each cluster:
+
+|Cluster       | Subtype                                                                              |
+|:------------:|:-------------------------------------------------------------------------------------|
+|1             |Adenocarcinoma (various types: serous, endometrioid, clear cell)                      |
+|2             |Teratocarcinoma                                                                       |
+|3             |Adenocarcinoma (serous), Carcinoma, Cystadenocarcinoma                                |
+|4             |Carcinoma, Adenocarcinoma (clear cell, serous), Cystadenocarcinoma                    |
+|5             |Small cell carcinoma, Adenocarcinoma  (mucinous, clear cell, endometrioid), Carcinoma |
+
+There does not seem to be a clear seperation of subtypes when clustering using the knockdown data. Against our expectations, these results suggest that SL interaction partners are not greatly dependent on cancer subtype. For more convincing results, a more explicit classification regarding the subtypes would have been required. Furthermore, a higher number of different cell lines would have been advantageous.  
+Another possible reason for the inconclusive results is due to possible inefficiency of RNA knockdown which was applied to the cell lines.
 
 ## 6. Linear Regression
-
 Independent of the previous analysis, this step will focus on the relationship between the gene expression and the copynumber. This approach will be performed with the totality of the given genes. Several studies indicate that a variation of the gene copy number can affect the level of gene expression for the altered gene. Also a copy number variation can influence the gene expression positively or negatively (Stranger et al., 2007). 
 To investigate if there is a linear relationship between the gene expression and the gene copy number, a linear regression model will be applied to the question: If it is possible to estimate the gene expression based on the given value for the copy number of the certain gene.
 
