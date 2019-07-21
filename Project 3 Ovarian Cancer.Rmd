@@ -52,6 +52,7 @@ install.packages("reshape", repos = "http://cran.us.r-project.org")
 install.packages("ggplot2", repos = "http://cran.us.r-project.org")
 install.packages("data.table", repos = "http://cran.us.r-project.org")
 install.packages("gridExtra", repos = "http://cran.us.r-project.org")
+install.packages("grid", repos = "http://cran.us.r-project.org")
 #install.packages("dplyr", repos = "http://cran.us.r-project.org")
 
 
@@ -59,6 +60,7 @@ library(reshape)
 library(ggplot2)
 library(data.table)
 library(gridExtra)
+library(grid)
 #library(dplyr)
 ```
 
@@ -190,11 +192,12 @@ To get a short overview about how many co existing drivermutations are common in
 # Create a new data frame that contains the mutated genes (but just once per cell line, as definded in new_uniq)
 dm_null <- as.data.frame(table(new_uniq$Hugo_Symbol)) 
 
-# Order matrix with mutations, rename rows
+#we extract all mutations that occur at least one time for a later step
+
 dm_null = dm_null[order(dm_null$Freq, decreasing = TRUE),]
 rownames(dm_null) <- dm_null$Var1
 
-# Creating a new matrix containing every cell line that has at least one of the 7 drivermutations. Then check if the Driver mutation names occur in the Driver mutation matrix
+#creating a new matrix containing every cell line that has at least one of our 7 drivermutations. We check if the name of our Drivermutation occurs in the Drivermutation matrix
 dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% dm_null$Var1), ]
 
 #function to find out if the Mutation occurs in the cell lines: "1" means yes and "0" means no
@@ -256,6 +259,81 @@ ggplot(mat.melted, aes(x = Var1, y = Var2, fill = value)) +
   guide = "legend", limit = c(0,1), breaks=c(0,1), labels = c("not mutated","mutated")) +
   geom_tile( show.legend = T) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 9, hjust = 1))
+```
+
+
+
+```{r}
+# Create a new data frame that contains the mutated genes (but just once per cell line, as definded in new_uniq)
+#dm_null <- as.data.frame(table(new_uniq$Hugo_Symbol)) 
+
+# Order matrix with mutations, rename rows
+#dm_null = dm_null[order(dm_null$Freq, decreasing = TRUE),]
+#rownames(dm_null) <- dm_null$Var1
+
+# löschen, falls wirklich unnötig:
+# Creating a new matrix containing every cell line that has at least one of the 7 drivermutations. Then check if the Driver mutation names occur in the Driver mutation matrix
+# dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% dm_null$Var1), ]
+
+#function to find out if the Mutation occurs in the cell lines: "1" means yes and "0" means no
+# anno <- as.data.frame(apply(dm_null, 1, function(x) {annotation[x]<- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% x), ]$DepMap_ID, 1, 0)}))
+#anno <- as.matrix(apply(dm_null, 1, function(x) {annotation[x]<- ifelse(rownames(annotation) %in% new_uniq[which(new_uniq$Hugo_Symbol %in% x), ]$DepMap_ID, 1, 0)}))
+
+#we have to transform the matrix to a data frame for further steps
+#anno <- as.data.frame(anno)
+
+#we add the names of the cell lines to the matrix
+#rownames(anno) <- rownames(annotation)
+
+#now we sum up how many TRUE occur in each cell line
+#anno$summe <- apply(anno, 1, function(x) { sum(x)})
+
+#to get a better overview we use only the drivermutations that occur in more than 3 cell lines (the other two are needed in step 5)
+#dm_drei <- dm_null[which(dm_null$Freq > 3), ]
+#dm_zwei <- dm_null[which(dm_null$Freq > 2), ]
+#dm_eins <- dm_null[which(dm_null$Freq > 1), ]
+
+#these two are extracted for step 5
+#anno_zwei <- as.data.frame(anno[, which(colnames(anno) %in% rownames(dm_zwei))]) # as.matrix
+#anno_eins <- as.data.frame(anno[, which(colnames(anno) %in% rownames(dm_eins))]) # as.matrix
+
+#anno <- anno[, which(colnames(anno) %in% rownames(dm_drei))]
+#we have to bring the cell lines in a better order: so we put the cell lines with the most mutations together and decrease it upwards. 
+#anno$summe <- apply(anno, 1, function(x) { sum(x)})
+#anno <- anno[order(anno$summe, decreasing = TRUE),]
+
+#we remove columns which should not be plotted
+#anno <- anno[, -which(colnames(anno) == "summe")]
+
+#and bring the matrix in a format the function "heatmap" can plot
+#anno <- data.matrix(anno) # unnötig, wenn das mit as.matrix oben schon funktioniert
+
+#we create a color palette containing the colors we want to use
+#cols <- heat.colors(5)
+#mypalette <- colorRampPalette(cols)(2)
+
+# ACHTUNG EVTL ALLES LÖSCHEN:
+
+#we also add a second column to the matrix to include color associated Explanations for the legend
+#co <- as.data.frame(cols) # Zeilen 235 und diese kann man in einem Schritt: co <- as.data.frame(heat.colors(5))
+# co$kat <- c("not mutated", "mutated (> 9 mutations)", "mutated (> 3 mutations)", "mutated (> 1 mutations)", "mutated (1 mutation)") # braucht er nicht nochmal ???
+
+#plotting the heatmap
+#heatmap(anno, Rowv = NA, Colv = NA, main = "Occuring Drivermutations",xlab = "Mutated Gene", ylab = "cell line", col = heat.colors(5),  cexCol = 0.9, cexRow = 0.3)
+
+#adding a legend
+#legend("topright", pch = 15, col = cols, legend = co$kat, bty = 'n', cex = 0.6)
+
+#the data is prepared to perform a heatmap
+#mat <- matrix(anno, nrow = nrow(anno), ncol = ncol(anno), dimnames = list(rownames(anno), colnames(anno)))
+#mat.melted <- melt(mat)
+
+
+#ggplot(mat.melted, aes(x = Var1, y = Var2, fill = value)) +
+  #scale_fill_gradient( name="status",
+  #guide = "legend", limit = c(0,1), breaks=c(0,1), labels = c("not mutated","mutated")) +
+  #geom_tile( show.legend = T) +
+  #theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 9, hjust = 1))
 
 
 
@@ -355,25 +433,30 @@ Now: test significance of obtained values with a statistical test (which one?)
 
 
 #### 5.2.1 Creating groups with similar drivermutations
-In step 4.2.1 the drivermutations were validated with literature.
+In step 4.2.1 the driver mutations were validated with literature.
 And the ones which were common are: TP53, ARID1A, ATM and PTPRF. In the next step the cell lines are investigated if these Mutations occur in them and which groups can be defined:
 
+to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
+
+to seperate the cell lines in groups with similar Mutations we give every Drivermutation a specific value: If TP53 is True in the cell line it gets a "1000" , if it isnt ther will be a "0"
 
 ```{r}
-#to investigate which cell lines contain which drivermutation we create a new data frame containing only the colums about our four Drivermutations
+# Create an empty object consisting of 34 rows (cell lines) and 0 columns
 annodm <- as.data.frame(anno[, which(colnames(annotation) %in% c("nix"))])
 
-#to seperate the cell lines in groups with similar Mutations we give every Drivermutation a specific value: If TP53 is True in the cell line it gets a "1000" , if it isnt ther will be a "0"
+# Add a column for TP53 mutation; if a cell line contains the mutation, 1000 will be inserted into the cell of the matrix (otherwise 0)
 annodm$TP53   <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "TP53"), ]$DepMap_ID, 1000, 0)
 
-#same here, ARID1A gets a "100" for True and a "0" for FALSE
+# Add a column for ARID1A mutation; if a cell line contains the mutation, 100 will be inserted into the cell of the matrix (otherwise 0)
 annodm$ARID1A <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "ARID1A"), ]$DepMap_ID, 100, 0)
 
-#and the same for the next Mutations
+# Add a column for ATM mutation; if a cell line contains the mutation, 10 will be inserted into the cell of the matrix (otherwise 0)
 annodm$ATM    <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "ATM"), ]$DepMap_ID, 10, 0)
+
+# Add a column for PTPRF mutation; if a cell line contains the mutation, 1 will be inserted into the cell of the matrix (otherwise 0)
 annodm$PTPRF  <- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% "PTPRF"), ]$DepMap_ID, 1, 0)
 
-#we can now sum up these values in a new column
+# Sum up the designated values into a new column
 annodm$summe  <- apply(annodm, 1, function(x) { sum(x)})
 
 ```
@@ -382,16 +465,16 @@ Many cell lines do not even have one of our chosen mutations because their sum i
 In the following step we gave the different combinations a specific category
 
 ```{r}
-
-#we picked the most common combinations and gave them different categories by their sums
+# Add new column saying which mutations a cell line has based on the calculated sums
 annodm$kat <- ifelse(annodm$summe == 1000, "TP53 only", 
               ifelse(annodm$summe > 1099, "TP53 & ARID1A", 
               ifelse(annodm$summe == 100, "ARID1A only", 
               ifelse(annodm$summe == 110, "ARID1A & sec. Mu", 
-              ifelse(annodm$summe == 101, "ARID1A & sec. Mu", 
-              ifelse(annodm$summe < 100, "no TP53 & no ARID1A", 
-              ifelse(annodm$summe == 0, "no TP53 & no ARID1A", "TP53 & sec. Mu"
+              ifelse(annodm$summe == 101, "ARID1A & sec. Mu",
+              ifelse(annodm$summe == 0, "none of four mutations",
+              ifelse(annodm$summe < 100, "no TP53 & no ARID1A", "TP53 & sec. Mu"
 )))))))
+
 ```
 
 
@@ -406,18 +489,16 @@ To reduce the information of the kd.prob matrix we perform a PCA. The analysis c
 topVar = apply(kd.prob, 1, var) 
 
 # new data frame with just the genes whose knockout leads to highly variant cell death events -> perhaps our synthetic lethality interaction partners?
-kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] 
+topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ] 
 
 #we have to transpose the data frame
-kd.prob.top <- t(kd.prob.topVar)
+topVar <- t(topVar)
 
 #we use the colors defined in step 4 for our co existing mutations
 mutation <- annodm$kat
 
 #this function calculates the PCA with the variance calculated before
-data<-kd.prob.top
-df<-kd.prob.top
-PC<-prcomp(df)
+PC<-prcomp(topVar)
 PCi<-data.frame(PC$x)
 
 #we plot the pca with the different colors for cell lines with similar Driver Mutations
@@ -433,14 +514,14 @@ We can see that the cluster does not really fit to the results of the PCA. In th
 ```{r}
 #at first we need to find out how many centers we use for the clustering
 kme = sapply(2:7, function(k) {
-    kmeans(kd.prob.top, centers = k)$tot.withinss
+    kmeans(topVar, centers = k)$tot.withinss
 })
 plot(2:7, kme, type = "b", pch = 19, xlab = "Number of clusters K")
 
 #the elbow plot does not give clear information about the ideal number of clusters, but we will use five centers (silhouette plot is in progress)
 
 #performing clustering
-km <- kmeans(kd.prob.top, 5)
+km <- kmeans(topVar, 5)
 
 #extracting the colors
 group <- as.factor(km$cluster)
@@ -462,7 +543,7 @@ po <- as.data.frame(1)
 for (j in 0:1000) {  
 
   #a kmeans cluster is formed
-  km <- kmeans(kd.prob.top, 5)
+  km <- kmeans(topVar, 5)
   
   #the number of the cluster is extracted (1 to 5)
   kem <- (km[["cluster"]])
@@ -738,7 +819,7 @@ prediction.testing <- as.data.frame(predict(lrm.all.genes, newdata = testing.all
 names(prediction.testing) <- c("pred.exp")
 ```
 Next the standard error of the residuals is caculated for difference between the predicted values and the real values of the testing data set. For the calculation of the error the following formula was used
-```{r pressure, echo=FALSE, out.width = '40%'}
+```{r formula, echo=FALSE, out.width = '40%'}
 # knitr::include_graphics("D:/Documents/GitHub/project-01-group-03/Formel RMSE.PNG")
 ```
 In the formula n displays the number of rows in the given data frame. To calculate the residuals the difference between  the real value and the predicted value of the gene expression is used. 
