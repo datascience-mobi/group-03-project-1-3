@@ -1,11 +1,14 @@
 ---
 title: 'Project 3: Ovarian Cancer'
-output:
+  output:
   word_document: default
   pdf_document: default
   html_document: default
 ---
-
+<style>
+body {
+text-align: justify}
+</style>
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
@@ -22,16 +25,16 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 
 ## 1. Project Overview
 ### 1.1 General facts about Ovarian Cancer
-Ovarian cancer (OC) is one of the leading cancer death causes in women. One of 71 women will be diagnosed with this disease at some point during her lifetime. When treated in early stages, OC has relatively high survival rates. However, symptomes mostly start to develop when the tumour has already progressed to advanced stages, which is why the overall 5-year survival rate for OC lies under 50%.
+Ovarian cancer (OC) is one of the leading cancer death causes in women. One of 77 women will be diagnosed with this disease at some point during her lifetime (Testa *et al.*, 2018). When treated in early stages, OC has relatively high survival rates. However, symptomes mostly start to develop when the tumour has already progressed to advanced stages, which is why the overall 5-year survival rate for OC lies under 50%.
 
-Ovarian cancer is a very heterogenous disease and mostly represented by epithelial tumours. There are four main subtypes: serous, endometrioid, mucinous and clear cell. Furthermore, tumours can be classified dependent on their state of differentiation. Low grade Ovarian cancer is well differentiated and therefore not invasive; high grade tumours are often aggressive and frequently metastasize.
+Ovarian cancer is a very heterogenous disease and mostly represented by epithelial tumours. There are four main subtypes: serous, endometrioid, mucinous and clear cell (Testa *et al.*, 2018). Furthermore, tumours can be classified dependent on their state of differentiation. Low grade Ovarian cancer is well differentiated and therefore not invasive; high grade tumours are often aggressive and frequently metastasize.
 
 Standard therapy approaches include surgery and chemotherapy with DNA-damaging agents. Personalized immunotherapeutic approaches often target special features of cancer cell genome and proteome such as over-expressed surface receptors.
 
 ### 1.2 Common mutations in OC
-Occurence and frequency of certain mutations in Ovarian cancer largely depends on cancer type and whether it can be classified as hereditary or not. Literature on hereditary Ovarian cancer states that the most common mutations are found in the DNA repair-related genes BRCA1 and BRCA2. Abnormalities in other regulatory and tumor suppressor genes have been found too, such as TP53, which is also known as "guardian of the genome" and is responsible for induction of apoptosis when substantial DNA damage occurs. TP53 loss of function mutations are known to majorly contribute to cancer development due to evasion of cell death. According to Testa et al., TP53 accounts for most mutations found in high grade serous Ovarian cancer.
-Allegedly, another very common mutation is ARID1A. The gene ARID1A encodes a protein involved with epigenetic regulation: as part of a chromatin remodeling complex, it influences the expression of CDKN1A, SMAD3, MLH1 and PIK3IP1 (Takeda et al., 2016). Deleterious mutations of ARID1A lead to dysfunctional chromatin remodeling, which is associated with cancerogenesis and cell transformation.
-Furthermore, genes involved in DNA repair (CHEK2, RAD51, BRIP1, PALB2) and mismatch repair (MSH2, MSH6, MLH1, PMS2) are frequently mutated in Ovarian cancer . Other frequently defective pathways are those involved in cell survival, proliferation and growth; mutations often occur in NOTCH, RAS/MEK, PI3K, FOXM1, BRAF and RAS genes (Testa et al., 2018).
+Occurence and frequency of certain mutations in Ovarian cancer largely depends on cancer type, as described by Testa *et al.*. For example, literature on hereditary Ovarian cancer states that the most common mutations are found in the DNA repair-related genes BRCA1 and BRCA2 (Toss *et al.*, 2015). These are however rarely found in non-hereditary Ovarian cancer. Abnormalities in other regulatory and tumor suppressor genes have been found too, such as TP53, which is also known as "guardian of the genome" and is responsible for induction of apoptosis when substantial DNA damage occurs. TP53 loss of function mutations are known to majorly contribute to cancer development due to evasion of cell death. According to Testa *et al.*, TP53 accounts for most mutations found in high grade serous Ovarian cancer and carcinosarcomas.
+Another common mutation is ARID1A. The gene ARID1A encodes a protein involved with epigenetic regulation: as part of a chromatin remodeling complex, it influences the expression of CDKN1A, SMAD3, MLH1 and PIK3IP1 (Takeda *et al.*, 2016). Deleterious mutations of ARID1A lead to dysfunctional chromatin remodeling, which is associated with cancerogenesis and cell transformation.
+Furthermore, genes involved in DNA repair (CHEK2, RAD51, BRIP1, PALB2) and mismatch repair (MSH2, MSH6, MLH1, PMS2) are frequently mutated in Ovarian cancer. Other frequently defective pathways are those involved in cell survival, proliferation and growth; mutations often occur in NOTCH, RAS/MEK, PI3K, FOXM1, BRAF and RAS genes (Testa *et al.*, 2018).
 
 ```{r pressure, echo=FALSE, out.width = '40%'}
 # knitr::include_graphics("D:/Documents/GitHub/project-01-group-03/OCmutations.png")
@@ -40,7 +43,7 @@ Furthermore, genes involved in DNA repair (CHEK2, RAD51, BRIP1, PALB2) and misma
 
 ### 1.3 Project outline
 After the data cleanup, our first task will be to verify the information about the common driver mutations and to gain further insight on potential driver mutations in Ovarian cancer. Further analysis will be revolving around these driver mutations. Among other things, co-existing mutations will be investigated in order to assess cancer development.
-The next step, which aims at the development of potential future cancer treatments, focuses on the identification of so-called synthetic lethality interaction partners. Those are genes whose knockout specifically leads to cell death in cancer cells, depending on the cells' genotype and therefore also their phenotype. This analysis will be conducted with respect to ocurring driver mutations and cancer subtype.
+The next step, which aims at the development of potential future cancer treatments, focuses on the identification of so-called synthetic lethality interaction partners. Those are genes whose knockout specifically leads to cell death in cancer cells, depending on the cells' genotype and therefore also their phenotype (O'Neil *et al.*, 2017). This analysis will be conducted with respect to ocurring driver mutations and cancer subtype.
 Finally, a regression analysis will be performed in order to gain more basic insight on the influence of a gene's copy number on gene expression. Obtained results will allow a more secure assessment of meaningfulness of cancer-related gene amplifications.
 
 ## 2. Basic Requirements
@@ -65,7 +68,7 @@ library(grid)
 ```
 
 ### 2.2 Data Cleanup
-At first the dataset needs to be downloaded into R-Studio.
+First, the dataset needs to be loaded into R-Studio.
 ```{r}
 allDepMapData <- readRDS("~/GitHub/project-01-group-03/DepMap19Q1_allData.RDS")
 ```
@@ -341,7 +344,10 @@ ggplot(mat.melted, aes(x = Var1, y = Var2, fill = value)) +
 ```
 
 ## 5. Synthetic Lethality Interactions
-After identifying our most common driver mutations, this information was used to find possible synthetic lethality interaction partners.
+As mentioned in the introduction, it is our goal to seek out synthetic lethality interaction partners for driver mutations occurring in Ovarian cancer. These SL partners are genes that become essential in cancer cells due to the presence of mutations that lead to altered protein function and signaling pathways. The main idea behind identifying the SL partners is finding a way to target cancer cells without affecting healthy cells (O'Neil *et al.*, 2017). A cancer drug leading to effective knockdown of SL partner genes in a patient's tumour could specifically induce cell death in cancer cells. This kind of approach in combination with other therapies would hopefully increase treatment efficacy and reduce unwanted side effects, thus improving life quality.
+
+The task is to find possible synthetic lethality interaction partners for the most frequent driver mutations, these being TP53 and ARID1A. For every driver mutation, our batch of cell lines will be devided into two groups depending on presence or non-presence of the respective driver mutation. Using the matrix kd.prob, the mean gene essentiality can be calculated for both groups respectively. It was hereby assumed that SL partners exhibit higher essentiality values in cell lines that possess the respective driver mutation. By calculating the difference between the mean essentiality regarding presence or non-presence of a driver mutation and identifying the maximum differences, possible SL partners can be identified. Since theoretically, the number of cell lines in each group is by far not sufficient for the obtained values to be highly significant, a statistical test will be performed in order to validate the results.
+
 First of all, the variance of the estimated cell survival probability (kd.prob) when knocking out specific genes was calculated. It was hereby assumed that genes that display high variances when knocked out are more likely to have specific synthetic lethality interactions since genes that broadly lead to cell death in most cell lines are probably essential for survival on their own. Therefore, the search for synthetic lethality interaction partners will be conducted with genes whose variances are greater than the 75% quantile.
 
 It remains to be found out which difference in survival probability the SL interaction partner for ARID1A mutations mentioned in the literature, BRD2, displays.
