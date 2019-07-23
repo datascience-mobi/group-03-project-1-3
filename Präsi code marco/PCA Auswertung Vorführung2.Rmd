@@ -1,0 +1,63 @@
+```{r}
+DriverMutation <- as.data.frame(table(new_uniq$Hugo_Symbol)) 
+dm <- new_uniq[which(new_uniq$Hugo_Symbol %in% dm_null$Var1), ]
+dm_null = DriverMutation[which(DriverMutation$Freq > 0), ]
+dm_null = dm_null[order(dm_null$Freq, decreasing = TRUE),]
+rownames(dm_null) <- dm_null$Var1
+anno_e <- apply(dm_null, 1, function(x) {annotation[x]<- ifelse(rownames(annotation) %in% dm[which(dm$Hugo_Symbol %in% x), ]$DepMap_ID, 1, 0)})
+rownames(anno_e) <- rownames(annotation)
+topVar = apply(kd.prob, 1, var)
+kd.prob.topVar = kd.prob[topVar > quantile(topVar, probs = 0.75), ]
+kd.prob.top <- t(kd.prob.topVar)
+mutations <- as.data.frame(1)
+cl <- as.data.frame(1)
+
+
+
+
+for (j in 0:10000) {
+
+  km <- kmeans(kd.prob.top, 5)
+  kem <- (km[["cluster"]])
+  kem <- as.data.frame(kem)
+  kem$id <- rownames(annotation)
+  for(i in 1:5) {
+  
+    kp <- anno_e[which(rownames(anno_e) %in% kem[which(kem$kem %in% i),]$id),];
+  
+    kp <- t(kp);
+    
+    kp <- as.data.frame(kp);
+  
+    kp$summe <- apply(kp, 1, function(x) { sum(x)});
+  
+    kp <- kp[which(kp$summe > 0.1*NCOL(kp)),];
+    
+    kp <- kp[, -which(colnames(kp) %in% "summe")] 
+    
+    h <- j*5+i
+    if (NCOL(kp) > 1) { 
+      if (NROW(kp) > 1) {
+  
+    mutations[h] <- toString(rownames(kp))
+    cl[h] <- toString(colnames(kp))
+      } else {mutations[h] <- "nein"; cl[h] <- "nein";}
+    }else {po[h] <- "nein"; cl[h] <- "nein";}
+  } 
+}
+
+mutations <- t(mutations)
+cl <- t(cl)  
+mutt <- table(mutations)
+clt <- table(cl)
+
+mutt <- as.data.frame(mutt)
+clt <- as.data.frame(clt)
+clt <- clt[order(clt$Freq),]
+mutt <- mutt[order(mutt$Freq),]
+#kot$names <- sot$so
+
+View(clt)
+#we add the column subtype desease to the matrix
+kem$sd <- annotation$Subtype.Disease
+```
